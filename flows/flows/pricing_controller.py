@@ -5,7 +5,7 @@ from flows.stdlogger import root
 
 
 @frappe.whitelist()
-def compute_base_rate_for_a_customer(customer, plant, item, sales_tax_type, indent_date):
+def compute_base_rate_for_a_customer(customer, plant, item, sales_tax_type, indent_date, precision_4_digit=0):
     context = {
         'customer': customer,
         'plant': plant,
@@ -37,10 +37,12 @@ def compute_base_rate_for_a_customer(customer, plant, item, sales_tax_type, inde
     if len(rs) > 0:
         transportation, discount, tax_percentage, surcharge_percentage = rs[0]
 
+    round_off_digit = 2 if precision_4_digit == 0 else 4
+
     base_rate_for_customer_before_tax = base_rate_for_plant + transportation - discount
     tax = base_rate_for_customer_before_tax * tax_percentage / 100
     surcharge = tax * surcharge_percentage / 100
-    base_rate_for_customer = base_rate_for_customer_before_tax + tax + surcharge
+    base_rate_for_customer = round(base_rate_for_customer_before_tax + tax + surcharge, round_off_digit)
 
     conversion_factor_query = """
     select conversion_factor
@@ -62,7 +64,7 @@ def compute_base_rate_for_a_customer(customer, plant, item, sales_tax_type, inde
         "conversion_factor": conversion_factor
     })
 
-    return base_rate_for_customer * conversion_factor
+    return round(base_rate_for_customer * conversion_factor, round_off_digit)
 
 
 @frappe.whitelist()
