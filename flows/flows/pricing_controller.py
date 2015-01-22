@@ -38,8 +38,8 @@ def compute_base_rate_for_a_customer(customer, plant, item, sales_tax_type, inde
         transportation, discount, tax_percentage, surcharge_percentage = rs[0]
 
     base_rate_for_customer_before_tax = base_rate_for_plant + transportation - discount
-    tax = base_rate_for_customer_before_tax * tax_percentage/100
-    surcharge = tax * surcharge_percentage/100
+    tax = base_rate_for_customer_before_tax * tax_percentage / 100
+    surcharge = tax * surcharge_percentage / 100
     base_rate_for_customer = base_rate_for_customer_before_tax + tax + surcharge
 
     conversion_factor_query = """
@@ -49,6 +49,18 @@ def compute_base_rate_for_a_customer(customer, plant, item, sales_tax_type, inde
     """.format(**context)
 
     conversion_factor = frappe.db.sql(conversion_factor_query)[0][0]
+
+    root.debug({
+        "base_rate_for_plant": base_rate_for_plant,
+        "transportation": transportation,
+        "discount": discount,
+        "tax_percentage": tax_percentage,
+        "surcharge_percentage": surcharge_percentage,
+        "tax": tax,
+        "surcharge": surcharge,
+        "base_rate_for_customer": base_rate_for_customer,
+        "conversion_factor": conversion_factor
+    })
 
     return base_rate_for_customer * conversion_factor
 
