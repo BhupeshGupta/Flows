@@ -108,6 +108,13 @@
    "set_only_once": 0
   }, 
   {
+   "fieldname": "contract_number", 
+   "fieldtype": "Data", 
+   "label": "Contract Number", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "default": "CST", 
    "fieldname": "sales_tax_type", 
    "fieldtype": "Select", 
@@ -162,7 +169,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-01-22 17:51:10.629793", 
+ "modified": "2015-01-23 11:44:52.860401", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Customer Plant Variables", 
