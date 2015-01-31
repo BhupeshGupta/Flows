@@ -11,7 +11,8 @@ app_version = "0.0.1"
 fixtures = [
     "Custom Field",
     "Supplier Type",
-    "Item Group"
+    "Item Group",
+    "Warehouse"
 ]
 
 # Includes in <head>
