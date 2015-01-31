@@ -9,6 +9,16 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
         this.setup_queries();
     },
 
+    set_plant_query: function (field) {
+        if (this.frm.fields_dict[field]) {
+            this.frm.set_query(field, function () {
+                return{
+                    filters: { 'supplier_type': 'Gas Plant' }
+                }
+            });
+        }
+    },
+
     setup_queries: function () {
         if (this.frm.fields_dict["gatepass"]) {
             this.frm.set_query("gatepass", function () {
@@ -19,6 +29,8 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
                 }
             });
         }
+
+        this.set_plant_query("plant");
     },
 
     // Hook events to compute func

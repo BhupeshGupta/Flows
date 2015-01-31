@@ -8,10 +8,11 @@ app_email = "bhupesh00gupta@gmail.com"
 app_url = "No URL yet"
 app_version = "0.0.1"
 
-# fixtures = [
-#     "Custom Field",
-#     "Custom Script"
-# ]
+fixtures = [
+    "Custom Field",
+    "Supplier Type",
+    "Item Group"
+]
 
 # Includes in <head>
 # ------------------

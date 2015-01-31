@@ -2,7 +2,7 @@
  "allow_copy": 0, 
  "allow_import": 1, 
  "allow_rename": 1, 
- "autoname": "naming_series:", 
+ "autoname": "GP.DD.MM.YY.###", 
  "creation": "2015-01-01 18:19:05.046859", 
  "custom": 0, 
  "docstatus": 0, 
@@ -10,58 +10,38 @@
  "document_type": "Master", 
  "fields": [
   {
-   "allow_on_submit": 0, 
-   "fieldname": "naming_series", 
-   "fieldtype": "Select", 
-   "hidden": 0, 
-   "ignore_user_permissions": 0, 
-   "in_filter": 0, 
+   "default": "Today", 
+   "description": "", 
+   "fieldname": "posting_date", 
+   "fieldtype": "Date", 
    "in_list_view": 1, 
-   "label": "naming_series", 
-   "no_copy": 0, 
-   "options": "GP", 
-   "permlevel": 0, 
-   "precision": "", 
-   "print_hide": 0, 
-   "read_only": 0, 
-   "report_hide": 0, 
-   "reqd": 0, 
-   "search_index": 0, 
-   "set_only_once": 0
-  }, 
-  {
-   "fieldname": "amended_from", 
-   "fieldtype": "Link", 
-   "label": "Amended From", 
-   "no_copy": 1, 
-   "options": "Gatepass", 
-   "permlevel": 0, 
-   "print_hide": 1, 
-   "read_only": 1
-  }, 
-  {
-   "fieldname": "plant", 
-   "fieldtype": "Link", 
-   "label": "Plant", 
-   "options": "Supplier", 
+   "label": "Date", 
    "permlevel": 0, 
    "precision": "", 
    "reqd": 1
+  }, 
+  {
+   "default": "Out", 
+   "fieldname": "gatepass_type", 
+   "fieldtype": "Select", 
+   "label": "Gatepass Type", 
+   "options": "Out\nIn", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
+   "fieldname": "column_break_3", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
   }, 
   {
    "fieldname": "vehicle", 
    "fieldtype": "Link", 
+   "in_list_view": 1, 
    "label": "Vehicle", 
    "options": "Transportation Vehicle", 
-   "permlevel": 0, 
-   "precision": "", 
-   "reqd": 1
-  }, 
-  {
-   "fieldname": "route", 
-   "fieldtype": "Link", 
-   "label": "Route", 
-   "options": "Transportation Route", 
    "permlevel": 0, 
    "precision": "", 
    "reqd": 1
@@ -76,6 +56,71 @@
    "reqd": 1
   }, 
   {
+   "fieldname": "ehouse_section", 
+   "fieldtype": "Section Break", 
+   "label": "Warehouse", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "description": "", 
+   "fieldname": "warehouse", 
+   "fieldtype": "Link", 
+   "in_list_view": 1, 
+   "label": "Warehouse", 
+   "options": "Warehouse", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
+   "fieldname": "cb3", 
+   "fieldtype": "Column Break", 
+   "label": "cb3", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "default": "Other", 
+   "fieldname": "dispatch_destination", 
+   "fieldtype": "Select", 
+   "label": "Dispatch Destination", 
+   "options": "Plant\nOther", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
+   "fieldname": "items_section", 
+   "fieldtype": "Section Break", 
+   "label": "Items", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "items", 
+   "fieldtype": "Table", 
+   "label": "Items", 
+   "options": "Gatepass Item", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
+   "fieldname": "allocation", 
+   "fieldtype": "Section Break", 
+   "label": "Allocation", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "advance", 
+   "fieldtype": "Currency", 
+   "label": "Advance", 
+   "permlevel": 0, 
+   "precision": "2"
+  }, 
+  {
    "fieldname": "pf", 
    "fieldtype": "Currency", 
    "label": "PF", 
@@ -83,9 +128,8 @@
    "precision": "2"
   }, 
   {
-   "fieldname": "cb3", 
+   "fieldname": "column_break_19", 
    "fieldtype": "Column Break", 
-   "label": "cb3", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -105,20 +149,44 @@
    "precision": ""
   }, 
   {
-   "fieldname": "advance", 
-   "fieldtype": "Currency", 
-   "label": "Advance", 
+   "fieldname": "amended_from", 
+   "fieldtype": "Link", 
+   "label": "Amended From", 
+   "no_copy": 1, 
+   "options": "Gatepass", 
    "permlevel": 0, 
-   "precision": "2"
+   "print_hide": 1, 
+   "read_only": 1
   }, 
   {
-   "description": "Date on with vehicle is dispatched out or received in", 
-   "fieldname": "date", 
-   "fieldtype": "Date", 
-   "label": "Date", 
+   "default": "Arun Logistics", 
+   "fieldname": "company", 
+   "fieldtype": "Link", 
+   "hidden": 1, 
+   "label": "Company", 
+   "options": "Company", 
    "permlevel": 0, 
    "precision": "", 
+   "read_only": 1, 
    "reqd": 1
+  }, 
+  {
+   "fieldname": "posting_time", 
+   "fieldtype": "Time", 
+   "hidden": 1, 
+   "label": "Posting Time", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 0
+  }, 
+  {
+   "fieldname": "fiscal_year", 
+   "fieldtype": "Link", 
+   "hidden": 1, 
+   "label": "Fiscal Year", 
+   "options": "Fiscal Year", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "hide_heading": 0, 
@@ -128,7 +196,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-01-22 14:18:46.667946", 
+ "modified": "2015-01-29 15:08:23.832119", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Gatepass", 

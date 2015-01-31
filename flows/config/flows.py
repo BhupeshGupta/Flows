@@ -24,6 +24,11 @@ def get_data():
                 },
                 {
                     "type": "doctype",
+                    "name": "Goods Receipt",
+                    "description": _("Delivery Notes")
+                },
+                {
+                    "type": "doctype",
                     "name": "Customer",
                     "description": _("Customer database.")
                 },
@@ -34,6 +39,18 @@ def get_data():
                 }
             ]
         },
+		{
+			"label": _("Main Reports"),
+			"icon": "icon-table",
+			"items": [
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "Flows Stock Ledger",
+					"doctype": "Item",
+				},
+			]
+		},
         {
             "label": _("Setup"),
             "icon": "icon-cog",
@@ -47,6 +64,11 @@ def get_data():
                     "type": "doctype",
                     "name": "Customer Plant Variables",
                     "description": _("Values specific to Customer and Plant.")
+                },
+                {
+                    "type": "doctype",
+                    "name": "Goods Receipt Book",
+                    "description": _("Invoice raised by Gas Plants in name fo Customers.")
                 },
                 {
                     "type": "doctype",

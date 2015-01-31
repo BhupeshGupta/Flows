@@ -1,5 +1,7 @@
 frappe.provide("erpnext.flows");
 
+cur_frm.add_fetch('vehicle', 'driver', 'driver');
+
 erpnext.flows.GatepassController = frappe.ui.form.Controller.extend({
     onload: function () {
         this.setup_queries();
@@ -28,6 +30,11 @@ erpnext.flows.GatepassController = frappe.ui.form.Controller.extend({
     setup_queries: function () {
         this.set_plant_query("plant");
         this.set_pump_query("fuel_pump");
+    },
+
+
+    fuel_pump: function (doc, cdt, cdn) {
+        cur_frm.set_df_property("fuel_quantity", "reqd", doc.fuel_pump != "");
     }
 
 });
