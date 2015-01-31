@@ -12,7 +12,9 @@ fixtures = [
     "Custom Field",
     "Supplier Type",
     "Item Group",
-    "Warehouse"
+    "Warehouse",
+    "Item",
+    "Item Conversion"
 ]
 
 # Includes in <head>
