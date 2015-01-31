@@ -19,8 +19,4 @@
 "Info:","","","One of: Yes, No","Valid Item Group","Valid Account","Valid Account","Valid Cost Center","0 or 1","","","Valid Website Slideshow","","","Leave blank for new records","",""
 "Start entering data below this line"
 "","""Packed LPG""","Packed LPG","No","LPG","","","",0,"","all-item-groups/energy/lpg","","","","","",""
-"","""LPG""","LPG","Yes","Energy","","","",0,"","all-item-groups/energy","","","","","",""
 "","""Energy""","Energy","Yes","All Item Groups","","","",0,"","all-item-groups","","","","","",""
-"","""All Item Groups""","All Item Groups","Yes","","","","",0,"","","","","","","",""
-"","""Consumable""","Consumable","No","All Item Groups","","","",0,"","all-item-groups","","","","","",""
-"","""Products""","Products","No","All Item Groups","","","",1,"","all-item-groups","","","","","",""
