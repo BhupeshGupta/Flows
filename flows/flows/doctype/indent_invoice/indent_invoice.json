@@ -86,8 +86,8 @@
    "read_only": 1
   }, 
   {
-   "default": "", 
-   "fieldname": "indent_date", 
+   "default": "Today", 
+   "fieldname": "posting_date", 
    "fieldtype": "Date", 
    "label": "Indent Date", 
    "permlevel": 0, 
@@ -121,15 +121,6 @@
    "read_only": 1
   }, 
   {
-   "default": "Today", 
-   "fieldname": "posting_date", 
-   "fieldtype": "Date", 
-   "hidden": 1, 
-   "label": "Posting Date", 
-   "permlevel": 0, 
-   "precision": ""
-  }, 
-  {
    "fieldname": "indent", 
    "fieldtype": "Read Only", 
    "label": "Indent", 
@@ -137,6 +128,23 @@
    "permlevel": 0, 
    "precision": "", 
    "read_only": 1
+  }, 
+  {
+   "fieldname": "posting_time", 
+   "fieldtype": "Time", 
+   "hidden": 0, 
+   "label": "Posting Time", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "fiscal_year", 
+   "fieldtype": "Link", 
+   "hidden": 0, 
+   "label": "Fiscal Year", 
+   "options": "Fiscal Year", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "hide_heading": 0, 
@@ -146,7 +154,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-01-31 16:20:32.042533", 
+ "modified": "2015-01-31 18:59:52.144521", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 

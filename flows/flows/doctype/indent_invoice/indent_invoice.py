@@ -13,40 +13,19 @@ from erpnext.accounts import utils as account_utils
 
 from erpnext.accounts.party import get_party_account
 
+from erpnext.accounts.general_ledger import make_gl_entries
+
+from frappe.utils import today, now
+
+
 
 class IndentInvoice(StockController):
-
     def __init__(self, *args, **kwargs):
-        super(IndentInvoice, self).__init__(*args, **kwargs)
         self.set_missing_values()
+        super(IndentInvoice, self).__init__(*args, **kwargs)
 
     def on_submit(self):
         super(IndentInvoice, self).on_submit()
-
-        self.make_gl_entries()
-
-        self.transfer_stock_to_indent_owner()
-
-        self.transfer_stock_to_bottling_plant()
-
-        self.mark_refill_process()
-
-        self.transfer_stock_to_indent_owner()
-
-        self.transfer_stock_to_vehicle()
-
-    def transfer_stock_to_indent_owner(self):
-        pass
-
-    def transfer_stock_to_bottling_plant(self):
-        pass
-
-    def mark_refill_process(self):
-        pass
-
-    def transfer_stock_to_vehicle(self):
-        pass
-
 
     def validate(self):
         return super(IndentInvoice, self).validate()
@@ -57,17 +36,17 @@ class IndentInvoice(StockController):
         root.debug("Gl Entry Map: {}".format(gl_entries))
 
         if gl_entries:
-            from erpnext.accounts.general_ledger import make_gl_entries
+
 
             make_gl_entries(gl_entries, cancel=(self.docstatus == 2),
                             update_outstanding='Yes', merge_entries=False)
 
     def set_missing_values(self, *args, **kwargs):
 
-        self.transaction_date = self.indent_date
+        # self.transaction_date = self.indent_date
 
-        self.indent, self.customer = frappe.db.sql(
-            """select parent, customer from `tabIndent Item`
+        self.customer = frappe.db.sql(
+            """select customer from `tabIndent Item`
 					where name = %s""", self.indent_item
         )[0]
 
@@ -76,8 +55,6 @@ class IndentInvoice(StockController):
 					where docstatus = 1 and name = %s""", self.indent
         )[0]
 
-        self.fiscal_year = account_utils.get_fiscal_year(date=self.indent_date)[0]
-
         root.debug({
             "indent_item_name": self.indent_item,
             "indent_name": self.indent,
@@ -85,6 +62,13 @@ class IndentInvoice(StockController):
             "company": self.company,
             "plant": self.plant
         })
+
+        if not self.posting_date:
+            self.posting_date = today()
+        if not self.posting_time:
+            self.posting_time = now()
+        if not self.fiscal_year:
+            self.fiscal_year = account_utils.get_fiscal_year(date=self.posting_date)[0]
 
         super(IndentInvoice, self).set_missing_values(*args, **kwargs)
 
@@ -159,12 +143,33 @@ class IndentInvoice(StockController):
         gl_dict.update(args)
         return gl_dict
 
-    def get_indent(self):
-        frappe.get_doc("Indent", self.indent)
-        self.customer = frappe.db.sql(
-            """select parent, customer from `tabIndent Item`
-					where name = %s""", self.indent_item
-        )[0]
+    def get_indent(self, dict=False):
+        if not self._indent:
+            self._indent = frappe.get_doc("Indent", self.indent)
+        return self._indent if dict else self._indent.name
+
+    def get_indent_item(self, dict=False):
+        if not self._indent_item:
+            self._indent_item = frappe.get_doc("Indent Item", self.indent_name)
+        return self._indent_item if dict else self._indent_item.name
+
+    def get_sl_entry(self, args):
+        sl_dict = frappe._dict(
+            {
+                "posting_date": self.posting_date,
+                "posting_time": self.posting_time,
+                "voucher_type": self.doctype,
+                "voucher_no": self.name,
+                "actual_qty": 0,
+                "incoming_rate": 0,
+                "company": self.company,
+                "fiscal_year": self.fiscal_year,
+                "is_cancelled": self.docstatus == 2 and "Yes" or "No"
+            })
+
+        sl_dict.update(args)
+
+        return sl_dict
 
 
 def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
