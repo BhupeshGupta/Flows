@@ -35,6 +35,10 @@ erpnext.flows.GatepassController = frappe.ui.form.Controller.extend({
 
     fuel_pump: function (doc, cdt, cdn) {
         cur_frm.set_df_property("fuel_quantity", "reqd", doc.fuel_pump != "");
+    },
+
+    dispatch_destination: function (doc, cdt, cdn) {
+        cur_frm.set_df_property("route", "reqd", doc.dispatch_destination == "Plant");
     }
 
 });

@@ -18,14 +18,13 @@ from erpnext.accounts.general_ledger import make_gl_entries
 from frappe.utils import today, now
 
 
-
 class IndentInvoice(StockController):
     def __init__(self, *args, **kwargs):
-        self.set_missing_values()
         super(IndentInvoice, self).__init__(*args, **kwargs)
 
     def on_submit(self):
         super(IndentInvoice, self).on_submit()
+        self.make_gl_entries()
 
     def validate(self):
         return super(IndentInvoice, self).validate()
@@ -43,17 +42,17 @@ class IndentInvoice(StockController):
 
     def set_missing_values(self, *args, **kwargs):
 
-        # self.transaction_date = self.indent_date
+        super(IndentInvoice, self).set_missing_values(*args, **kwargs)
 
-        self.customer = frappe.db.sql(
-            """select customer from `tabIndent Item`
-					where name = %s""", self.indent_item
-        )[0]
+        sql = """
+select company, plant
+from `tabIndent`
+where docstatus = 1 and
+name = '{}'""".format(self.indent)
 
-        self.company, self.plant = frappe.db.sql(
-            """select company, plant from `tabIndent`
-					where docstatus = 1 and name = %s""", self.indent
-        )[0]
+        root.debug(str((self.indent, self.indent_item)))
+
+        self.company, self.plant = frappe.db.sql(sql)[0]
 
         root.debug({
             "indent_item_name": self.indent_item,
@@ -69,8 +68,6 @@ class IndentInvoice(StockController):
             self.posting_time = now()
         if not self.fiscal_year:
             self.fiscal_year = account_utils.get_fiscal_year(date=self.posting_date)[0]
-
-        super(IndentInvoice, self).set_missing_values(*args, **kwargs)
 
 
     def cancel(self):
@@ -91,6 +88,8 @@ class IndentInvoice(StockController):
 
     def make_customer_gl_entry(self, gl_entries):
 
+        self.set_missing_values()
+
         supplier_account = flow_utils.get_supplier_account(self.company, self.plant)
 
         root.debug({
@@ -101,7 +100,7 @@ class IndentInvoice(StockController):
 
         root.debug("plant account name {}".format(customer_account))
 
-        root.debug(account_utils.get_fiscal_year(date=self.indent_date))
+        root.debug(account_utils.get_fiscal_year(date=self.posting_date))
 
         if self.actual_amount:
             gl_entries.append(
@@ -143,16 +142,6 @@ class IndentInvoice(StockController):
         gl_dict.update(args)
         return gl_dict
 
-    def get_indent(self, dict=False):
-        if not self._indent:
-            self._indent = frappe.get_doc("Indent", self.indent)
-        return self._indent if dict else self._indent.name
-
-    def get_indent_item(self, dict=False):
-        if not self._indent_item:
-            self._indent_item = frappe.get_doc("Indent Item", self.indent_name)
-        return self._indent_item if dict else self._indent_item.name
-
     def get_sl_entry(self, args):
         sl_dict = frappe._dict(
             {
@@ -173,58 +162,17 @@ class IndentInvoice(StockController):
 
 
 def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
-    gatepass_sql = """
-    SELECT name FROM `tabGatepass` WHERE vehicle = '{vehicle}' AND docstatus=1
-    """.format(vehicle=filters["vehicle"])
-
-    root.debug(gatepass_sql)
-
-    gatepass_names = [x[0] for x in frappe.db.sql(gatepass_sql)]
-
-    indent_sql = """
-    SELECT name FROM `tabIndent` WHERE gatepass in {gatepass_names} and docstatus = "1"
-    """.format(gatepass_names="({})".format(",".join(["'{}'".format(x) for x in gatepass_names])))
-
-    root.debug(indent_sql)
-
-    indent_names = [x[0] for x in frappe.db.sql(indent_sql)]
-
-    if not indent_names:
-        return []
-
     indent_items_sql = """select name, customer
         from `tabIndent Item`
-		where parent in {indent_names}
+		where parent in (select name from tabIndent where vehicle = "{vehicle}" and docstatus = 1)
 		and {search_key} like "{search_val}%"
+		and name not in (select indent from `tabIndent Invoice` where docstatus = 1)
 		order by customer asc limit {start}, {page_len}""".format(
-        indent_names="({})".format(",".join(["'{}'".format(x) for x in indent_names])),
+        vehicle=filters["vehicle"],
         start=start,
         page_len=page_len,
         search_key=searchfield,
-        search_val=txt)
-
-    root.debug(indent_items_sql)
-
-    indent_item_names = [x[0] for x in frappe.db.sql(indent_items_sql)]
-
-    indent_items = frappe.db.sql(indent_items_sql)
-
-    indent_items_attached_to_invoice_sql = """select indent_item
-        from `tabIndent Invoice`
-		where indent_item in {indent_names}
-		and vehicle = '{vehicle}'""".format(
-        indent_names="({})".format(",".join(["'{}'".format(x) for x in indent_item_names])),
-        vehicle=filters["vehicle"]
+        search_val=txt
     )
 
-    root.debug(indent_items_attached_to_invoice_sql)
-
-    indent_items_already_attached_to_invoice = [x[0] for x in frappe.db.sql(indent_items_attached_to_invoice_sql)]
-
-    indent_items_pending_for_invoice_attach_process = []
-
-    for x in indent_items:
-        if x[0] not in indent_items_already_attached_to_invoice:
-            indent_items_pending_for_invoice_attach_process.append(x)
-
-    return indent_items_pending_for_invoice_attach_process
+    return frappe.db.sql(indent_items_sql)

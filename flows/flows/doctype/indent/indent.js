@@ -47,7 +47,7 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
         this.compute_base_rate(doc, cdt, cdn);
     },
 
-    indent_date: function (doc, cdt, cdn) {
+    posting_date: function (doc, cdt, cdn) {
         this.populate_payment_type_info(doc, cdt, cdn);
         this.compute_base_rate(doc, cdt, cdn);
     },
@@ -85,7 +85,7 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
         // Skip computation if indent items are empty
         if (indent_items) {
             $.each(indent_items, function (index, indent_item) {
-                if (indent_item.item && indent_item.customer && doc.plant && doc.indent_date) {
+                if (indent_item.item && indent_item.customer && doc.plant && doc.posting_date) {
                     return frappe.call({
                         method: "flows.flows.pricing_controller.compute_base_rate_for_a_customer",
                         args: {
@@ -93,7 +93,7 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
                             customer: indent_item.customer,
                             item: indent_item.item,
                             sales_tax_type: indent_item.sales_tax_type,
-                            indent_date: doc.indent_date
+                            posting_date: doc.posting_date
                         },
                         callback: function (r) {
                             console.log("compute_base_rate callback");
@@ -137,7 +137,7 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
                         args: {
                             plant: doc.plant,
                             customer: indent_item.customer,
-                            indent_date: doc.indent_date
+                            posting_date: doc.posting_date
                         },
                         callback: function (r) {
                             console.log("populate_payment_type_info callback");

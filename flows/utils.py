@@ -3,38 +3,36 @@ from erpnext.accounts.party import get_party_account
 
 
 def get_or_create_vehicle_stock_account(vehicle_name, stock_owner_company_name):
-    warehouse_name = transport_vehicle_to_warehouse_name(vehicle_name, stock_owner_company_name)
-    return get_or_create_warehouse(warehouse_name, stock_owner_company_name)
+    return get_or_create_warehouse(vehicle_name, stock_owner_company_name)
+
 
 def get_or_create_customer_stock_account(customer_name, company_name_to_find_account_under):
-    warehouse_name = customer_to_warehouse_account_name(customer_name, company_name_to_find_account_under)
-    return get_or_create_warehouse(warehouse_name, company_name_to_find_account_under)
+    return get_or_create_warehouse(customer_name, company_name_to_find_account_under)
+
+
+def get_suppliers_warehouse_account(supplier, company):
+    if ',' in supplier:
+        supplier = supplier.split(',')[0].strip()
+    return get_or_create_warehouse(supplier, company)
+
 
 def get_supplier_account(company, supplier):
     if ',' in supplier:
         supplier = supplier.split(',')[0].strip()
-    get_party_account(company, supplier, "Supplier")
+    return get_party_account(company, supplier, "Supplier")
+
 
 # ***************
 
-def transport_vehicle_to_warehouse_name(vehicle_name, stock_owner_company):
-    stock_owner_company_abbr = frappe.db.get_value(
-        "Company", stock_owner_company, "abbr")
-    return '{} - {}'.format(vehicle_name, stock_owner_company_abbr.strip())
-
-
-def customer_to_warehouse_account_name(customer, company_name_to_find_account_under):
-    company_abbr = frappe.db.get_value(
-        "Company", company_name_to_find_account_under, "abbr"
-    )
-
-    return '{} - {}'.format(customer, company_abbr)
-
-
 def get_or_create_warehouse(warehouse_name, company):
     try:
-        warehouse_account = frappe.get_doc("Warehouse", warehouse_name)
+        company_abbr = frappe.db.get_value(
+            "Company", company, "abbr"
+        )
+
+        warehouse_account = frappe.get_doc("Warehouse", '{} - {}'.format(warehouse_name, company_abbr))
         return warehouse_account
+
     except frappe.DoesNotExistError as e:
         warehouse_account = frappe.get_doc(
             {
@@ -42,5 +40,42 @@ def get_or_create_warehouse(warehouse_name, company):
                 "company": company,
                 "warehouse_name": warehouse_name
             })
-        warehouse_account.save()
+        warehouse_account.insert(ignore_permissions=True)
         return warehouse_account
+
+
+# ******
+
+from frappe import _
+
+
+def get_or_or_create_customer_like_gl_account(company, account):
+    acc_head = frappe.db.get_value("Account", {
+        "master_name": account,
+        "company": company
+    })
+
+    if acc_head:
+        return acc_head
+
+    company_details = frappe.db.get_value(
+        "Company", company, ["abbr", "receivables_group"], as_dict=True
+    )
+
+    # create
+    account = frappe.get_doc({
+        "doctype": "Account",
+        'account_name': account,
+        'parent_account': company_details.receivables_group,
+        'group_or_ledger': 'Ledger',
+        'company': company,
+        'master_name': account,
+        "freeze_account": "No",
+        "report_type": "Balance Sheet"
+    }).insert(ignore_permissions=True)
+
+    frappe.msgprint(_("Account Created: {0}").format(account))
+
+    acc_head = account.name
+
+    return acc_head

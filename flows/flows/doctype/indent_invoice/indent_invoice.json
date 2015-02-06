@@ -132,7 +132,7 @@
   {
    "fieldname": "posting_time", 
    "fieldtype": "Time", 
-   "hidden": 0, 
+   "hidden": 1, 
    "label": "Posting Time", 
    "permlevel": 0, 
    "precision": ""
@@ -140,7 +140,7 @@
   {
    "fieldname": "fiscal_year", 
    "fieldtype": "Link", 
-   "hidden": 0, 
+   "hidden": 1, 
    "label": "Fiscal Year", 
    "options": "Fiscal Year", 
    "permlevel": 0, 
@@ -154,7 +154,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-01-31 18:59:52.144521", 
+ "modified": "2015-02-06 16:26:59.724903", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 

@@ -29,6 +29,11 @@ def get_data():
                 },
                 {
                     "type": "doctype",
+                    "name": "Cash Receipt",
+                    "description": _("Cash Sale")
+                },
+                {
+                    "type": "doctype",
                     "name": "Customer",
                     "description": _("Customer database.")
                 },

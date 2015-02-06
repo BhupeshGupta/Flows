@@ -214,6 +214,15 @@
    "precision": "", 
    "read_only": 1, 
    "reqd": 0
+  }, 
+  {
+   "fieldname": "owner", 
+   "fieldtype": "Link", 
+   "label": "Owner", 
+   "options": "User", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
   }
  ], 
  "hide_heading": 0, 
@@ -223,7 +232,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-01-30 08:40:15.596425", 
+ "modified": "2015-02-03 13:16:52.125807", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Goods Receipt", 

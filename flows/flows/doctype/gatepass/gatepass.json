@@ -82,6 +82,7 @@
   }, 
   {
    "default": "Other", 
+   "depends_on": "", 
    "fieldname": "dispatch_destination", 
    "fieldtype": "Select", 
    "label": "Dispatch Destination", 
@@ -89,6 +90,15 @@
    "permlevel": 0, 
    "precision": "", 
    "reqd": 1
+  }, 
+  {
+   "depends_on": "eval:doc.dispatch_destination=='Plant'", 
+   "fieldname": "route", 
+   "fieldtype": "Link", 
+   "label": "Route", 
+   "options": "Transportation Route", 
+   "permlevel": 0, 
+   "precision": ""
   }, 
   {
    "fieldname": "items_section", 
@@ -196,7 +206,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-01-29 15:08:23.832119", 
+ "modified": "2015-02-03 12:13:38.423504", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Gatepass", 
