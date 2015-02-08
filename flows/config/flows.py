@@ -54,6 +54,24 @@ def get_data():
 					"name": "Flows Stock Ledger",
 					"doctype": "Item",
 				},
+                {
+					"type": "report",
+					"is_query_report": True,
+					"name": "Flows Stock Balance",
+					"doctype": "Item",
+				},
+                {
+					"type": "report",
+					"is_query_report": True,
+					"name": "Flows Empty Report",
+					"doctype": "Item",
+				},
+                {
+					"type": "report",
+					"is_query_report": True,
+					"name": "Flows Invoice Report",
+					"doctype": "Item",
+				},
 			]
 		},
         {
