@@ -79,3 +79,32 @@ def get_or_or_create_customer_like_gl_account(company, account):
     acc_head = account.name
 
     return acc_head
+
+
+def get_party_account(company, party, party_type):
+    acc_head = frappe.db.get_value("Account", {"master_name": party,
+                                               "master_type": party_type, "company": company})
+    if not acc_head:
+        print "missing act head"
+        from erpnext.accounts.party import create_party_account
+
+        acc_head = create_party_account(party, party_type, company)
+    return acc_head
+
+
+def get_stock_owner_via_sales_person_tree(person):
+    """
+    checks sales persons hierarchy and return group person if found. if person is not a sales person
+     returns none
+    :param person:
+    :return:
+    """
+    if not frappe.db.exists("Sales Person", person):
+        return None
+
+    from frappe.utils import nestedset
+
+    sales_person = frappe.get_doc("Sales Person", person)
+
+    return sales_person if sales_person.is_group == 'Yes' else \
+        nestedset.get_ancestors_of("Sales Person", person)[0]

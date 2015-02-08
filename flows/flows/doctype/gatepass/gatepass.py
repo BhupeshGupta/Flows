@@ -29,8 +29,13 @@ class Gatepass(Document):
 
         self.set_missing_values()
 
-        transportation_vehicle_warehouse = utils.get_or_create_vehicle_stock_account(self.vehicle, self.company)
-        transportation_vehicle_warehouse_name = transportation_vehicle_warehouse.name
+        from flows import utils as flow_utils
+
+        stock_owner = flow_utils.get_stock_owner_via_sales_person_tree(self.driver)
+        stock_owner = stock_owner if stock_owner else self.vehicle
+
+        stock_owner_act = utils.get_or_create_vehicle_stock_account(stock_owner, self.company)
+        stock_owner_act_name = stock_owner_act.name
 
         sl_entries = []
 
@@ -40,7 +45,7 @@ class Gatepass(Document):
                     "item_code": d.item,
                     "actual_qty": -1 * d.quantity,
                     "warehouse": self.warehouse if self.gatepass_type.lower() == 'out' else
-                    transportation_vehicle_warehouse_name
+                    stock_owner_act_name
                 })
             )
 
@@ -49,7 +54,7 @@ class Gatepass(Document):
                     "item_code": d.item,
                     "actual_qty": 1 * d.quantity,
                     "warehouse": self.warehouse if self.gatepass_type.lower() == 'in' else
-                    transportation_vehicle_warehouse_name
+                    stock_owner_act_name
                 })
             )
 
