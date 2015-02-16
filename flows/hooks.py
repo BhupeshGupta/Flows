@@ -14,7 +14,8 @@ fixtures = [
     "Item Group",
     "Warehouse",
     "Item",
-    "Item Conversion"
+    "Item Conversion",
+    "Company"
 ]
 
 # Includes in <head>

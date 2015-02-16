@@ -254,7 +254,7 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
         // Ensure EIV is used only once
         for (var key in eiv_map) {
             if (eiv_map[key] > 1) {
-                frappe.throw('same EIV cant be used across multiple loads');
+                frappe.throw('Same EIV cant be used across multiple loads');
             }
         }
     }

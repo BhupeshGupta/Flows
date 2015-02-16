@@ -40,7 +40,7 @@
    "reqd": 1
   }, 
   {
-   "depends_on": "", 
+   "depends_on": "eval:doc.load_type=='Oneway'", 
    "fieldname": "eiv", 
    "fieldtype": "Link", 
    "label": "EIV", 
@@ -255,7 +255,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 1, 
- "modified": "2015-02-13 14:21:37.050748", 
+ "modified": "2015-02-16 12:11:09.871210", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Item", 
