@@ -115,3 +115,17 @@ fixtures = [
 # 	"frappe.core.doctype.event.event.get_events": "flows.event.get_events"
 # }
 
+
+boot_session = "flows.flows.startup_boot_info.boot_session"
+
+
+
+jenv_filter = [
+    'indent_refill_qty:flows.jinja_filters.indent_refill_qty',
+    'indent_oneway_qty:flows.jinja_filters.indent_oneway_qty',
+    'compute_erv_for_refill_in_indent:flows.jinja_filters.compute_erv_for_refill_in_indent',
+    'get_contract_number:flows.jinja_filters.get_contract_number',
+    'get_registration_code:flows.jinja_filters.get_registration_code',
+    'get_customer_tin_number:flows.jinja_filters.get_customer_tin_number',
+    'get_cenvat_status:flows.jinja_filters.get_cenvat_status',
+]

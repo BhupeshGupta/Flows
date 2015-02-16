@@ -17,8 +17,6 @@ def get_suppliers_warehouse_account(supplier, company):
 
 
 def get_supplier_account(company, supplier):
-    if ',' in supplier:
-        supplier = supplier.split(',')[0].strip()
     return get_party_account(company, supplier, "Supplier")
 
 
@@ -106,5 +104,5 @@ def get_stock_owner_via_sales_person_tree(person):
 
     sales_person = frappe.get_doc("Sales Person", person)
 
-    return sales_person if sales_person.is_group == 'Yes' else \
+    return sales_person.name if sales_person.is_group == 'Yes' else \
         nestedset.get_ancestors_of("Sales Person", person)[0]
