@@ -10,6 +10,7 @@ from frappe.model.document import Document
 import frappe
 import frappe.defaults
 from flows import utils as flow_utils
+from frappe.utils import comma_and
 from erpnext.accounts import utils as account_utils
 
 from frappe.utils import today, now
@@ -34,8 +35,7 @@ class Indent(Document):
 
         if invoices:
             frappe.throw("Invoices {} is/are attached to this indent. Cancel those first.".format(
-                ', '.join([x[0] for x in invoices]
-                )
+                comma_and(invoices)
             ))
 
     def process_material_according_to_indent(self):

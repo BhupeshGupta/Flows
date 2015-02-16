@@ -48,7 +48,7 @@ def get_contract_number(customer, date, plant):
     ORDER BY with_effect_from DESC limit 1;
     """.format(customer, date, plant))
 
-    return rs[0][0] if rs else None
+    return rs[0][0] if rs else ''
 
 
 def get_registration_code(customer, vendor):
@@ -64,13 +64,14 @@ def get_registration_code(customer, vendor):
     vendor = vendor.lower()
 
     if vendor == 'hpc':
-        key = 'hpcl_erp_code'
+        key = 'hpcl_erp_number'
     elif vendor == 'bpc':
         key = 'bpcl_sap_code'
     elif vendor == 'ioc':
         key = 'iocl_sap_code'
 
-    return get_customer_field(customer, key)
+    val = get_customer_field(customer, key)
+    return val if val else ''
 
 
 def get_customer_tin_number(customer):
@@ -89,7 +90,7 @@ def get_customer_field(customer_name, field):
     """.format(field, customer_name)
     )
 
-    return rs[0][0] if rs else None
+    return rs[0][0] if rs else ''
 
 
 def get_cenvat_status(customer_name, date, plant):

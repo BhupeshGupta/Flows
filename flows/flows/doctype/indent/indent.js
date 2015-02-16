@@ -232,6 +232,33 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
         }
     },
 
+    naming_series: function (doc, cdt, cdn) {
+        var company = null;
+        switch (doc.naming_series) {
+            case 'IOC':
+                company = 'Mosaic Enterprises Ltd.';
+                break;
+            case 'BPC':
+                company = 'Ludhiana Enterprises Ltd.';
+                break;
+            case 'HPC':
+                company = 'Alpine Energy';
+                break;
+        }
+
+        if (!company) return;
+
+        this.frm.set_value('company', company);
+
+        if (this.company) {
+            this.company(doc, cdt, cdn);
+        }
+    },
+
+    company: function (doc, cdt, cdn) {
+        this.frm.set_value('letter_head', doc.company);
+    },
+
     custom_validate: function (doc) {
         eiv_map = {};
 
