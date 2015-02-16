@@ -33,8 +33,11 @@ class GoodsReceipt(Document):
 
         self.set_missing_values()
 
-        transportation_vehicle_warehouse = utils.get_or_create_vehicle_stock_account(self.vehicle, self.company)
-        transportation_vehicle_warehouse_name = transportation_vehicle_warehouse.name
+        # Commented for staggered phase 1
+        # transportation_vehicle_warehouse = utils.get_or_create_vehicle_stock_account(self.vehicle, self.company)
+        # transportation_vehicle_warehouse_name = transportation_vehicle_warehouse.name
+
+        transportation_vehicle_warehouse_name = self.warehouse
 
         # TODO: write a method to find the same
         customer_warehouse_name = utils.get_or_create_customer_stock_account(self.customer, self.company).name

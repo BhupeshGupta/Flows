@@ -6,7 +6,6 @@ import frappe
 from flows import utils
 from frappe.model.document import Document
 
-from frappe.utils import nestedset
 from flows.stdlogger import root
 
 from erpnext.accounts.general_ledger import make_gl_entries
@@ -27,10 +26,7 @@ class CashReceipt(Document):
         self.make_gl_entry()
 
     def transfer_stock(self):
-        sales_person = frappe.get_doc("Sales Person", self.owner)
-        stock_owner = self.owner if sales_person.is_group == 'Yes' else \
-            nestedset.get_ancestors_of("Sales Person", self.owner)[0]
-
+        stock_owner = utils.get_stock_owner_via_sales_person_tree(self.stock_owner)
         stock_owner_warehouse = utils.get_or_create_warehouse(stock_owner, self.company)
 
         sl_entries = []
@@ -39,17 +35,21 @@ class CashReceipt(Document):
             self.get_sl_entry({
                 "item_code": self.item,
                 "actual_qty": -1 * self.qty,
-                "warehouse": stock_owner_warehouse.name
+                "warehouse": stock_owner_warehouse.name,
+                "process": "New Connection" if self.new_connection == 1 else "Refill"
             })
         )
 
-        sl_entries.append(
-            self.get_sl_entry({
-                "item_code": self.item.replace('F', 'E'),
-                "actual_qty": self.qty,
-                "warehouse": stock_owner_warehouse.name
-            })
-        )
+        # if not a new connection
+        if not self.new_connection == 1:
+            sl_entries.append(
+                self.get_sl_entry({
+                    "item_code": self.item.replace('F', 'E'),
+                    "actual_qty": self.qty,
+                    "warehouse": stock_owner_warehouse.name,
+                    "process": "New Connection" if self.new_connection == 1 else "Refill"
+                })
+            )
 
         make_sl_entries(sl_entries)
 
@@ -108,7 +108,10 @@ class CashReceipt(Document):
                 self.get_gl_dict({
                     "account": owners_account,
                     "debit": self.total,
-                    "remarks": "Against CR {}".format(self.name),
+                    "remarks": "Against CR {}{}".format(
+                        self.name,
+                        " for NC" if self.new_connection == 1 else ""
+                    ),
                 })
             )
 
@@ -117,7 +120,10 @@ class CashReceipt(Document):
                     "account": sales_account,
                     "credit": self.total,
                     "cost_center": cost_center,
-                    "remarks": "Against CR {}".format(self.name),
+                    "remarks": "Against CR {}{}".format(
+                        self.name,
+                        " for NC" if self.new_connection == 1 else ""
+                    ),
                 })
             )
 

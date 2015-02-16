@@ -152,6 +152,13 @@
    "precision": ""
   }, 
   {
+   "fieldname": "fuel_slip_id", 
+   "fieldtype": "Data", 
+   "label": "Fuel Slip Id", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "fuel_quantity", 
    "fieldtype": "Float", 
    "label": "Fuel Quantity", 
@@ -206,7 +213,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-02-03 12:13:38.423504", 
+ "modified": "2015-02-11 12:05:39.786745", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Gatepass", 

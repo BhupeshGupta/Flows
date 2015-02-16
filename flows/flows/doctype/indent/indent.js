@@ -1,6 +1,7 @@
 cur_frm.add_fetch('item', 'item_name', 'item_name');
 cur_frm.add_fetch('item', 'description', 'description');
 cur_frm.add_fetch('gatepass', 'plant', 'plant');
+cur_frm.add_fetch('vehicle', 'driver', 'driver');
 
 frappe.provide("erpnext.flows");
 
@@ -20,17 +21,17 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
     },
 
     setup_queries: function () {
-        if (this.frm.fields_dict["gatepass"]) {
-            this.frm.set_query("gatepass", function () {
-                return{
-                    filters: [
-                        ["Gatepass", "docstatus", "<", "2"]
-                    ]
-                }
-            });
-        }
-
         this.set_plant_query("plant");
+
+        this.frm.set_query("item", "indent", function () {
+            return{
+                filters: [
+                    ["Item", "name", "like", "F%"]
+                ]
+            }
+        });
+
+        this.frm.fields_dict['indent'].grid.get_field("eiv")
     },
 
     // Hook events to compute func
@@ -221,6 +222,41 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
             this.total_payable_by_us(indent, indent.doctype, indent.name);
         }
 
+    },
+
+    load_type: function (doc, cdt, cdn) {
+        var indent_item = frappe.get_doc(cdt, cdn);
+        if (indent_item.load_type == 'Refill') {
+            indent_item.eiv = '';
+            refresh_field('eiv', indent_item.name, indent_item.parentfield);
+        }
+    },
+
+    custom_validate: function (doc) {
+        eiv_map = {};
+
+        $.each(doc.indent, function (index, indent_item) {
+            if (indent_item.load_type == 'Oneway') {
+
+                // Ensure every oneway load has an eiv
+                if (!indent_item.eiv || indent_item.eiv == '') {
+                    frappe.throw('EIV is mandatory for Oneway loads');
+                }
+
+                // Count EIVs
+                eiv_map[indent_item.eiv] = 1 + (eiv_map[indent_item.eiv] || 0);
+            } else {
+                indent_item.eiv = '';
+                refresh_field('eiv', indent_item.name, indent_item.parentfield);
+            }
+        });
+
+        // Ensure EIV is used only once
+        for (var key in eiv_map) {
+            if (eiv_map[key] > 1) {
+                frappe.throw('same EIV cant be used across multiple loads');
+            }
+        }
     }
 
 });

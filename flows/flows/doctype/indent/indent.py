@@ -24,7 +24,19 @@ class Indent(Document):
         self.process_material_according_to_indent()
 
     def on_cancel(self):
+        self.check_next_docs()
         self.process_material_according_to_indent()
+
+    def check_next_docs(self):
+        invoices = frappe.db.sql("""
+        SELECT name FROM `tabIndent Invoice` WHERE docstatus = 1 AND indent = '{}'
+        """.format(self.name))
+
+        if invoices:
+            frappe.throw("Invoices {} is/are attached to this indent. Cancel those first.".format(
+                ', '.join([x[0] for x in invoices]
+                )
+            ))
 
     def process_material_according_to_indent(self):
 

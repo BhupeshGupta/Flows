@@ -29,7 +29,13 @@ erpnext.flows.CashReceiptController = frappe.ui.form.Controller.extend({
         }
     }
 
-})
-;
+});
 
 $.extend(cur_frm.cscript, new erpnext.flows.CashReceiptController({frm: cur_frm}));
+
+if (frappe.boot.cash_receipt && frappe.boot.cash_receipt.stock_owner) {
+    cur_frm.set_value("stock_owner", frappe.boot.cash_receipt.stock_owner, "");
+    cur_frm.set_df_property("stock_owner", "read_only", frappe.boot.cash_receipt.stock_owner != "");
+} else {
+    cur_frm.set_df_property("stock_owner", "reqd", true);
+}

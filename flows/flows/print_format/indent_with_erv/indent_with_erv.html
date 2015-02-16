@@ -1,0 +1,210 @@
+<div class="container">
+
+{% if letter_head and not no_letterhead %}
+<p class="text-left">
+
+<div class="letter-head">{{ letter_head }}</div>
+</p>
+<br/>
+<br/>
+{% endif %}
+
+<div class="row clearfix">
+    <div class="col-md-6 column">
+        <p class="text-left">
+            Vehicle No. {{ doc.vehicle }}<br/>
+            Summery for lifting <span>cylinders from {{ doc.plant }}</span>
+        </p>
+    </div>
+
+    <div class="col-md-6 column">
+        <p class="text-right">
+            Indent No. {{ doc.name }}<br/>
+            Date: {{doc.posting_date}}
+        </p>
+
+    </div>
+</div>
+
+
+<div class="row clearfix">
+    <br/>
+    <div class="col-md-12 column">
+        <p>
+            We are sending vehicle no. {{ doc.vehicle }} &amp; we hear by authorise Mr. {{ doc.driver|capitalize }} as
+            driver (whose signature has been attested below) to the above mentioned vehicle.
+        </p>
+    </div>
+</div>
+
+
+<div class="row clearfix">
+    <div class="col-md-12 column">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>
+                    #
+                </th>
+                <th>
+                    Customer
+                </th>
+                <th>
+                    SAP
+                </th>
+                <th>
+                    Contract No.
+                </th>
+                <th>
+                    TIN No.
+                </th>
+                <th>
+                    Cap In KG
+                </th>
+                <th>
+                    Oneway
+                </th>
+                <th>
+                    Refill
+                </th>
+                <th>
+                    Modvat
+                </th>
+                <th>
+                    Payment
+                </th>
+                <th>
+                    Rate
+                </th>
+                <th>
+                    Amount
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for indent_item in doc.indent %}
+            <tr>
+                <td>
+                    {{ indent_item.idx }}
+                </td>
+                <td>
+                    {{ indent_item.customer }}
+                </td>
+                <td>
+                    {{ indent_item.customer | get_registration_code(doc.naming_series) }}
+                </td>
+                <td>
+                    {{ indent_item.customer | get_contract_number(doc.posting_date, doc.plant) or ''}}
+                </td>
+                <td>
+                    {{ indent_item.customer | get_customer_tin_number }}
+                </td>
+                <td>
+                    {{ indent_item.item.replace('FC', '') + ' Kg'}}
+                </td>
+                <td>
+                    {% if indent_item.load_type == 'Oneway' %}
+                    {{ indent_item.qty }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if indent_item.load_type == 'Refill' %}
+                    {{ indent_item.qty }}
+                    {% endif %}
+                </td>
+                <td>
+                    {{ indent_item.customer | get_cenvat_status(doc.posting_date, doc.plant) or ''}}
+                </td>
+                <td>
+                    {% if indent_item.payment_type == 'Indirect' %}
+                    PAYER
+                    {% else %}
+                    BAL SAP
+                    {% endif %}
+                </td>
+                <td>
+                    {{ indent_item.rate }}
+                </td>
+                <td>
+                    {{ indent_item.amount }}
+                </td>
+            </tr>
+
+            {% endfor %}
+
+
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>Total</td>
+                <td>{{ doc.indent| indent_oneway_qty }}</td>
+                <td>{{ doc.indent| indent_refill_qty }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>{{ doc.grand_total }}</td>
+            </tr>
+
+
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="row clearfix">
+    <div class="col-md-12 column">
+        <h3 class="text-center">
+        </h3>
+
+        <h3 class="text-center">
+            <strong>Equipment Return Voucher Detail</strong>
+        </h3>
+
+        {% set map = doc.indent|compute_erv_for_refill_in_indent %}
+
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                {% for key in map.keys() %}
+                <th>
+                    {{ key }}
+                </th>
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                {% for value in map.values() %}
+                <td>
+                    {{ value }}
+                </td>
+                {% endfor %}
+            </tr>
+            </tbody>
+        </table>
+        <p>
+            Please acknowledge the receipt if equipment returned to plant.
+        </p>
+    </div>
+</div>
+<div class="row clearfix">
+    <div class="col-md-6 column">
+        <p class="text-left">
+            <br/>
+            <br/>
+            _________________________<br/>
+            Signature Of The Driver
+        </p>
+    </div>
+    <div class="col-md-6 column">
+        <p class="text-right">
+            For {{ doc.letter_head }}
+            <br/>
+            <br/>
+            <span>Authorised Signatory</span>
+        </p>
+    </div>
+</div>
+</div>

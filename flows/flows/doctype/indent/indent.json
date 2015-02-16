@@ -5,6 +5,7 @@
  "autoname": "naming_series:", 
  "creation": "2014-12-27 01:03:38.445940", 
  "custom": 0, 
+ "default_print_format": "Indent with ERV", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "document_type": "Transaction", 
@@ -45,6 +46,7 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "default": "Mosaic", 
    "fieldname": "company", 
    "fieldtype": "Link", 
    "hidden": 0, 
@@ -71,7 +73,8 @@
    "label": "Logistics Partner", 
    "options": "Company", 
    "permlevel": 0, 
-   "precision": ""
+   "precision": "", 
+   "reqd": 1
   }, 
   {
    "allow_on_submit": 0, 
@@ -101,6 +104,15 @@
    "reqd": 1
   }, 
   {
+   "fieldname": "driver", 
+   "fieldtype": "Link", 
+   "label": "Driver", 
+   "options": "Driver", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
    "allow_on_submit": 0, 
    "fieldname": "plant", 
    "fieldtype": "Link", 
@@ -121,12 +133,14 @@
    "set_only_once": 0
   }, 
   {
+   "default": "Today", 
    "description": "Date on which indent will be invoiced/submitted to OMC.", 
    "fieldname": "posting_date", 
    "fieldtype": "Date", 
    "label": "Indent Date", 
    "permlevel": 0, 
-   "precision": ""
+   "precision": "", 
+   "reqd": 1
   }, 
   {
    "allow_on_submit": 0, 
@@ -163,7 +177,7 @@
    "print_hide": 0, 
    "read_only": 0, 
    "report_hide": 0, 
-   "reqd": 0, 
+   "reqd": 1, 
    "search_index": 0, 
    "set_only_once": 0
   }, 
@@ -227,6 +241,14 @@
    "options": "Fiscal Year", 
    "permlevel": 0, 
    "precision": ""
+  }, 
+  {
+   "fieldname": "letter_head", 
+   "fieldtype": "Link", 
+   "label": "Letter Head", 
+   "options": "Letter Head", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "hide_heading": 0, 
@@ -236,7 +258,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-02-02 18:48:11.900777", 
+ "modified": "2015-02-13 17:23:43.309640", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent", 

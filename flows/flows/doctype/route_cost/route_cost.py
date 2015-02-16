@@ -3,9 +3,8 @@
 
 from __future__ import unicode_literals
 from frappe.model.document import Document
-from frappe.model.naming import make_autoname
 
 
-class IndentItem(Document):
+class RouteCost(Document):
     def autoname(self):
-        self.name = make_autoname(self.parent + '.##')
+        self.name = '{}-{}-{}'.format(self.route, self.with_effect_from, self.vehicle_type)
