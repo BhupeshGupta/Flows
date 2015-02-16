@@ -15,7 +15,10 @@ fixtures = [
     "Warehouse",
     "Item",
     "Item Conversion",
-    "Company"
+    "Company",
+    "Workflow State",
+    "Workflow Action",
+    "Workflow"
 ]
 
 # Includes in <head>
