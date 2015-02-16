@@ -18,4 +18,12 @@
 "Type:","Data (text)","Link","Select","Data","Select","Select","Text","Text","Data","Int","Check","Check","Check","Data","Text","Check","Data","Check","Check","Check","Check","Check","Check"
 "Info:","","Valid DocType","One of: Button, Check, Code, Column Break, Currency, Data, Date, Datetime, Dynamic Link, Float, HTML, Image, Int, Link, Long Text, Password, Percent, Read Only, Section Break, Select, Small Text, Table, Text, Text Editor, Time","","","One of: 1, 2, 3, 4, 5, 6, 7, 8, 9","","","","Integer","0 or 1","0 or 1","0 or 1","","","0 or 1","","0 or 1","0 or 1","0 or 1","0 or 1","0 or 1","0 or 1"
 "Start entering data below this line"
+"","""Customer-hpcl_erp_number""","Customer","Data","HPCL ERP Number","","","","","hpcl_erp_number",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-bpcl_sap_code""","Customer","Data","BPCL SAP Code","","","","","bpcl_sap_code",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-iocl_sap_code""","Customer","Data","IOCL SAP Code","","","","","iocl_sap_code",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-cbreak2""","Customer","Column Break","cbreak2","","","","","cbreak2",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-ecc_number""","Customer","Data","ECC Number","","","","","ecc_number",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-tin_number""","Customer","Data","TIN Number","","","","","tin_number",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-pan_number""","Customer","Data","PAN Number","","","","","pan_number",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-registration_number""","Customer","Section Break","Registration Number","","","","","registration_number",0,0,0,0,"","",0,"",0,0,0,0,0,0
 "","""Stock Ledger Entry-process""","Stock Ledger Entry","Data","Process","voucher_detail_no","","","","process",0,0,1,0,"","",0,"",0,0,0,0,0,0

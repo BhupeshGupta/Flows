@@ -44,36 +44,71 @@ def get_data():
                 }
             ]
         },
-		{
-			"label": _("Main Reports"),
-			"icon": "icon-table",
-			"items": [
-				{
-					"type": "report",
-					"is_query_report": True,
-					"name": "Flows Stock Ledger",
-					"doctype": "Item",
-				},
+        {
+            "label": _("Equipment Docs"),
+            "icon": "icon-star",
+            "items": [
                 {
-					"type": "report",
-					"is_query_report": True,
-					"name": "Flows Stock Balance",
-					"doctype": "Item",
-				},
-                {
-					"type": "report",
-					"is_query_report": True,
-					"name": "Flows Empty Report",
-					"doctype": "Item",
-				},
-                {
-					"type": "report",
-					"is_query_report": True,
-					"name": "Flows Invoice Report",
-					"doctype": "Item",
-				},
-			]
-		},
+                    "type": "doctype",
+                    "name": "Equipment Issue Voucher",
+                    "description": _("")
+                }
+            ]
+        },
+        {
+        "label": _("Main Reports"),
+        "icon": "icon-table",
+        "items": [
+            {
+            "type": "report",
+            "is_query_report": True,
+            "name": "Flows Stock Ledger",
+            "doctype": "Item",
+            },
+            {
+            "type": "report",
+            "is_query_report": True,
+            "name": "Flows Stock Balance",
+            "doctype": "Item",
+            },
+            {
+            "type": "report",
+            "is_query_report": True,
+            "name": "Flows Empty Report",
+            "doctype": "Item",
+            },
+            {
+            "type": "report",
+            "is_query_report": True,
+            "name": "Flows Invoice Report",
+            "doctype": "Item",
+            },
+            {
+            "type": "report",
+            "is_query_report": True,
+            "name": "Transportation Report",
+            "doctype": "Item",
+            },
+            {
+            "type": "report",
+            "is_query_report": True,
+            "name": "C Form Report",
+            "doctype": "Item",
+            },
+            {
+            "type": "report",
+            "is_query_report": True,
+            "name": "C Form Analytics",
+            "doctype": "Item",
+            },
+            {
+            "type": "report",
+            "is_query_report": True,
+            "name": "Fuel Report",
+            "doctype": "Item",
+            },
+        ]
+        },
         {
             "label": _("Setup"),
             "icon": "icon-cog",
@@ -87,6 +122,11 @@ def get_data():
                     "type": "doctype",
                     "name": "Customer Plant Variables",
                     "description": _("Values specific to Customer and Plant.")
+                },
+                {
+                    "type": "doctype",
+                    "name": "Route Cost",
+                    "description": _("Cost for a route")
                 },
                 {
                     "type": "doctype",
