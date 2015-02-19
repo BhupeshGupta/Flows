@@ -130,6 +130,15 @@
    "read_only": 1
   }, 
   {
+   "fieldname": "transportation_invoice", 
+   "fieldtype": "Link", 
+   "label": "Transportation Invoice", 
+   "options": "Sales Invoice", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
+  }, 
+  {
    "fieldname": "posting_time", 
    "fieldtype": "Time", 
    "hidden": 1, 
@@ -154,7 +163,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-02-14 13:47:42.796238", 
+ "modified": "2015-02-19 17:17:49.624262", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 

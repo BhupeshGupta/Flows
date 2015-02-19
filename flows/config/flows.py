@@ -137,6 +137,10 @@ def get_data():
                     "type": "doctype",
                     "name": "Item Conversion",
                     "description": _("Quantity of gas in an Item.")
+                },
+                {
+                    "type": "doctype",
+                    "name": "Customer Landed Rate",
                 }
             ]
         },

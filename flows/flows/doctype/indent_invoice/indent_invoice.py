@@ -15,8 +15,8 @@ from erpnext.accounts.party import get_party_account
 
 from erpnext.accounts.general_ledger import make_gl_entries
 
-from frappe.utils import today, now
 from erpnext.stock.stock_ledger import make_sl_entries
+from frappe.utils import today, now
 
 
 class IndentInvoice(StockController):
@@ -24,10 +24,12 @@ class IndentInvoice(StockController):
         super(IndentInvoice, self).__init__(*args, **kwargs)
 
     def on_submit(self):
-        super(IndentInvoice, self).on_submit()
         self.check_previous_doc()
-        self.make_gl_entries()
+        # self.make_gl_entries()
         self.make_stock_refill_entry()
+        self.raise_transportation_bill()
+        super(IndentInvoice, self).on_submit()
+
 
     def check_previous_doc(self):
         indent = frappe.db.sql("""
@@ -41,9 +43,11 @@ class IndentInvoice(StockController):
 
     def cancel(self):
         super(IndentInvoice, self).cancel()
-        self.make_gl_entries()
+        self.set_missing_values()
+        # self.make_gl_entries()
         root.debug("Canceled {}".format(self.name))
         self.make_stock_refill_entry()
+        self.cancel_transport_bill()
 
     def validate(self):
         return super(IndentInvoice, self).validate()
@@ -54,8 +58,6 @@ class IndentInvoice(StockController):
         root.debug("Gl Entry Map: {}".format(gl_entries))
 
         if gl_entries:
-
-
             make_gl_entries(gl_entries, cancel=(self.docstatus == 2),
                             update_outstanding='Yes', merge_entries=False)
 
@@ -249,6 +251,100 @@ class IndentInvoice(StockController):
 
         return sl_dict
 
+    def cancel_transport_bill(self):
+        sales_invoice = frappe.get_doc("Sales Invoice", self.transportation_invoice)
+        sales_invoice.docstatus = 2
+        sales_invoice.save()
+
+    def raise_transportation_bill(self):
+
+        qty_in_kg = get_conversion_factor(self.item) * float(self.qty)
+        per_kg_rate_in_invoice = self.actual_amount / qty_in_kg
+
+        landed_rate, transportation_rate = get_landed_rate_for_customer(self.customer, self.posting_date)
+        rate_diff = landed_rate - per_kg_rate_in_invoice
+
+        actual_transportation_rate = rate_diff if rate_diff > 0 else 0
+
+        visible_transportation_rate = max(transportation_rate, rate_diff)
+
+        discount = visible_transportation_rate - actual_transportation_rate
+
+        credit_note_amount = -1 * rate_diff if rate_diff < 0 else 0
+        if credit_note_amount > 0:
+            # TODO: Raise a CN
+            pass
+
+
+        # Invoice Description
+        invoice_description = ''
+        if discount > 0:
+            invoice_description += "Rate per KG: {rate} Discount per KG: {discount}\n".format(
+                rate=visible_transportation_rate, discount=discount
+            )
+        invoice_description += """(Bill No: {bill_no} Dt: {invoice_date} Item: {item} Qty: {qty} Amt: {amt})""".format(
+            bill_no=self.name, invoice_date=self.posting_date, item=self.item, qty=self.qty, amt=self.actual_amount
+        )
+
+        transportation_invoice = frappe.get_doc({
+            "doctype": "Sales Invoice",
+            "customer": self.customer,
+            "customer_name": self.customer.strip(),
+            "customer_address": "{}-Billing".format(self.customer.strip()),
+            "posting_date": today(),
+            "posting_time": now(),
+            "entries": [
+                {
+                    "qty": qty_in_kg,
+                    "rate": actual_transportation_rate,
+                    "item_code": "LPG Transport",
+                    "item_name": "LPG Transport",
+                    "stock_uom": "Kg",
+                    "doctype": "Sales Invoice Item",
+                    "description": invoice_description,
+                    "idx": 1,
+                    "income_account": "Service - AL",
+                    "parenttype": "Sales Invoice",
+                    "parentfield": "entries",
+                }
+            ],
+            "against_income_account": "Service - AL",
+            "select_print_heading": "Transport Bill",
+            "company": "Arun Logistics",
+            "letter_head": "Arun Logistics",
+            "is_opening": "No",
+            "naming_series": "CI-",
+            "price_list_currency": "INR",
+            "currency": "INR",
+            "taxes_and_charges": "Road Transport",
+            "plc_conversion_rate": 1,
+            "tc_name": "Commercial Invoice"
+        })
+
+        transportation_invoice.save()
+
+        transportation_invoice.terms = self.get_terms_for_commercial_invoice(transportation_invoice)
+
+        transportation_invoice.docstatus = 1
+
+        transportation_invoice.save()
+
+        self.transportation_invoice = transportation_invoice.name
+
+    def get_terms_for_commercial_invoice(self, commercial_invoice):
+        payment_type = frappe.db.sql("""
+                SELECT payment_type
+                FROM `tabIndent Item`
+                WHERE name = '{}'""".format(self.indent_item)
+        )[0][0]
+
+        terms_template = frappe.get_doc('Terms and Conditions', 'Commercial Invoice').terms
+
+        return terms_template.format(
+            service_tax_paid_by = 'Transporter',
+            total_payable_amount=self.actual_amount + commercial_invoice.grand_total_export if payment_type == 'Indirect' else commercial_invoice.grand_total_export
+        )
+
 
 def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
     indent_items_sql = """
@@ -267,3 +363,27 @@ def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
     )
 
     return frappe.db.sql(indent_items_sql)
+
+
+def get_conversion_factor(item):
+    conversion_factor_query = """
+        select conversion_factor
+        from `tabItem Conversion`
+        where item='{item}';
+        """.format(item=item)
+
+    val = frappe.db.sql(conversion_factor_query)[0][0]
+
+    root.debug(val)
+
+    return float(val) if val else 0
+
+
+def get_landed_rate_for_customer(customer, date):
+    return frappe.db.sql("""
+    SELECT landed_rate, local_transport_rate
+    FROM `tabCustomer Landed Rate`
+    WHERE customer='{customer}' AND
+    with_effect_from<='{date}'
+    ORDER BY with_effect_from DESC LIMIT 1;
+    """.format(customer=customer, date=date))[0]

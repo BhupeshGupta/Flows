@@ -18,7 +18,9 @@ fixtures = [
     "Company",
     "Workflow State",
     "Workflow Action",
-    "Workflow"
+    "Workflow",
+    "Letter Head",
+    "Print Heading"
 ]
 
 # Includes in <head>
