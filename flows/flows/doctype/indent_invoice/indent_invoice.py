@@ -24,11 +24,12 @@ class IndentInvoice(StockController):
         super(IndentInvoice, self).__init__(*args, **kwargs)
 
     def on_submit(self):
+        self.set_missing_values()
+        super(IndentInvoice, self).on_submit()
         self.check_previous_doc()
-        # self.make_gl_entries()
+        self.make_gl_entries()
         self.make_stock_refill_entry()
         self.raise_transportation_bill()
-        super(IndentInvoice, self).on_submit()
 
 
     def check_previous_doc(self):
@@ -44,12 +45,14 @@ class IndentInvoice(StockController):
     def cancel(self):
         super(IndentInvoice, self).cancel()
         self.set_missing_values()
-        # self.make_gl_entries()
+        self.make_gl_entries()
         root.debug("Canceled {}".format(self.name))
         self.make_stock_refill_entry()
         self.cancel_transport_bill()
 
     def validate(self):
+        if self.docstatus == 0:
+            self.transportation_invoice = ''
         return super(IndentInvoice, self).validate()
 
     def make_gl_entries(self, repost_future_gle=True):
@@ -197,7 +200,7 @@ class IndentInvoice(StockController):
                         "account": customer_account,
                         "against": ba_account,
                         "debit": self.actual_amount,
-                        "remarks": "Against Invoice Id {}".format(self.name),
+                        "remarks": "Against Invoice no. {}".format(self.name),
                         "against_voucher": self.name,
                         "against_voucher_type": self.doctype,
                         "company": self.indent_object.logistics_partner
@@ -209,7 +212,7 @@ class IndentInvoice(StockController):
                         "account": ba_account,
                         "against": customer_account,
                         "credit": self.actual_amount,
-                        "remarks": "Against Invoice Id {}".format(self.name),
+                        "remarks": "Against Invoice no. {}".format(self.name),
                         "against_voucher": self.name,
                         "against_voucher_type": self.doctype,
                         "company": self.indent_object.logistics_partner
@@ -253,8 +256,9 @@ class IndentInvoice(StockController):
 
     def cancel_transport_bill(self):
         sales_invoice = frappe.get_doc("Sales Invoice", self.transportation_invoice)
-        sales_invoice.docstatus = 2
-        sales_invoice.save()
+        if sales_invoice.docstatus != 2:
+            sales_invoice.docstatus = 2
+            sales_invoice.save()
 
     def raise_transportation_bill(self):
 
@@ -286,7 +290,7 @@ class IndentInvoice(StockController):
             bill_no=self.name, invoice_date=self.posting_date, item=self.item, qty=self.qty, amt=self.actual_amount
         )
 
-        transportation_invoice = frappe.get_doc({
+        consignment_note_json_doc = {
             "doctype": "Sales Invoice",
             "customer": self.customer,
             "customer_name": self.customer.strip(),
@@ -309,40 +313,56 @@ class IndentInvoice(StockController):
                 }
             ],
             "against_income_account": "Service - AL",
-            "select_print_heading": "Transport Bill",
+            "select_print_heading": "Consignment Note",
             "company": "Arun Logistics",
             "letter_head": "Arun Logistics",
             "is_opening": "No",
-            "naming_series": "CI-",
+            "naming_series": "CN-",
             "price_list_currency": "INR",
             "currency": "INR",
-            "taxes_and_charges": "Road Transport",
             "plc_conversion_rate": 1,
-            "tc_name": "Commercial Invoice"
-        })
+            "tc_name": "Consignment Note",
+            "consignor": self.indent_object.plant,
+            "remarks": "Consignment Note Against Invoice no. {}".format(self.name)
+        }
+
+        customer_object = frappe.get_doc("Customer", self.customer)
+
+        if customer_object.service_tax_liability == "Transporter":
+            consignment_note_json_doc["taxes_and_charges"] = "Road Transport"
+
+        transportation_invoice = frappe.get_doc(consignment_note_json_doc)
 
         transportation_invoice.save()
 
-        transportation_invoice.terms = self.get_terms_for_commercial_invoice(transportation_invoice)
+        transportation_invoice.terms = self.get_terms_for_commercial_invoice(transportation_invoice, customer_object)
 
         transportation_invoice.docstatus = 1
 
         transportation_invoice.save()
 
-        self.transportation_invoice = transportation_invoice.name
+        frappe.db.sql("UPDATE `tabIndent Invoice` SET transportation_invoice='{}'".format(
+            transportation_invoice.name
+        ))
 
-    def get_terms_for_commercial_invoice(self, commercial_invoice):
+    def get_terms_for_commercial_invoice(self, commercial_invoice, customer_object):
         payment_type = frappe.db.sql("""
                 SELECT payment_type
                 FROM `tabIndent Item`
                 WHERE name = '{}'""".format(self.indent_item)
         )[0][0]
 
-        terms_template = frappe.get_doc('Terms and Conditions', 'Commercial Invoice').terms
+        terms_template = frappe.get_doc('Terms and Conditions', 'Consignment Note').terms
+
+        payable_amount = '{} ({} + {})'.format(
+            self.actual_amount + commercial_invoice.grand_total_export,
+            self.actual_amount,
+            commercial_invoice.grand_total_export,
+        ) if payment_type == 'Indirect' else commercial_invoice.grand_total_export
 
         return terms_template.format(
-            service_tax_paid_by = 'Transporter',
-            total_payable_amount=self.actual_amount + commercial_invoice.grand_total_export if payment_type == 'Indirect' else commercial_invoice.grand_total_export
+            service_tax_paid_by=customer_object.service_tax_liability,
+            total_payable_amount=payable_amount
         )
 
 
@@ -352,7 +372,7 @@ def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
         FROM `tabIndent Item`
 		WHERE parent IN (SELECT name FROM tabIndent WHERE vehicle = "{vehicle}" AND docstatus = 1)
 		AND {search_key} LIKE "{search_val}%"
-		AND name NOT IN (SELECT indent FROM `tabIndent Invoice` WHERE docstatus = 1)
+		AND name NOT IN (SELECT indent_item FROM `tabIndent Invoice` WHERE docstatus = 1)
 		ORDER BY customer ASC limit {start}, {page_len}
 		""".format(
         vehicle=filters["vehicle"],

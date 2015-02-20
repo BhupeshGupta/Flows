@@ -1,0 +1,502 @@
+"Data Import Template"
+"Table:","Print Format"
+""
+""
+"Notes:"
+"Please do not change the template headings."
+"First data column must be blank."
+"If you are uploading new records, leave the ""name"" (ID) column blank."
+"If you are uploading new records, ""Naming Series"" becomes mandatory, if present."
+"Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish."
+"For updating, you can update only selective columns."
+"You can only upload upto 5000 records in one go. (may be less in some cases)"
+""
+"DocType:","Print Format","","","","","",""
+"Column Labels:","ID","DocType","Module","Standard","Print Format Type","Disabled","HTML"
+"Column Name:","name","doc_type","module","standard","print_format_type","disabled","html"
+"Mandatory:","Yes","Yes","Yes","Yes","No","No","No"
+"Type:","Data (text)","Link","Link","Select","Select","Check","Code"
+"Info:","","Valid DocType","Valid Module Def","One of: No, Yes","One of: Server, Client","0 or 1",""
+"Start entering data below this line"
+"","""Consignment Note""","Sales Invoice","Accounts","Yes","Server",0,"<div class=""container"">
+
+{% if letter_head and not no_letterhead %}
+    <p class=""text-left"">
+
+    <div class=""letter-head"">{{ letter_head }}</div>
+    <div class=""print-heading"">
+        <h3>{{ doc.select_print_heading or (doc.print_heading if doc.print_heading != None
+			else _(doc.doctype)) }}</h3>
+    </div>
+
+    </p>
+    <br/>
+    <br/>
+{% endif %}
+
+
+<div class=""row clearfix"">
+    <div class=""col-xs-12 column"">
+
+        <table class=""table table-condensed"">
+
+            <thead>
+            <tr>
+                <th>
+                    Date
+                </th>
+                <th>
+                    LR Number
+                </th>
+            </tr>
+            </thead>
+
+
+            <tbody>
+            <tr>
+                <td>{{ doc.get_formatted(""posting_date"") }}</td>
+                <td>{{ doc.get_formatted(""name"") }}</td>
+            </tr>
+            </tbody>
+
+        </table>
+
+    </div>
+</div>
+
+<div class=""row clearfix"">
+
+    <div class=""col-xs-6 column"">
+        <p class=""text-left"">
+            <strong>CONSIGNEE</strong>
+
+        <div>
+            {{ doc.customer }}
+            {% if doc.address_display %}
+                <br/>{{ doc.get_formatted(""address_display"") }}
+            {% endif %}
+        </div>
+
+        <div>
+            {% set customer =  frappe.get_doc(""Customer"", doc.customer) %}
+            {% if customer.tin_number %}
+                TIN No. {{ customer.tin_number }}
+            {% endif %}
+        </div>
+        </p>
+
+
+    </div>
+
+    <div class=""col-xs-6 column"">
+        <p class=""text-left"">
+            <strong>CONSIGNOR</strong>
+        </p>
+
+        <div>
+            {{ doc.consignor }}
+            {% set consignor_addr = doc.consignor | get_address_display('Billing') %}
+            {% if consignor_addr %}
+                <br/>{{ consignor_addr }}
+            {% endif %}
+            <div/>
+
+            <div>
+                {% set consignor = frappe.get_doc(""Supplier"", doc.consignor) %}
+                {% if consignor.tin_number %}
+                    TIN No. {{ consignor.tin_number }}
+                {% endif %}
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class=""row clearfix"">
+    <div class=""col-xs-12 column"">
+        <table class=""table table-condensed"">
+
+            <thead>
+            <tr>
+                <th>
+                    #
+                </th>
+                <th>
+                    Particulars
+                </th>
+                <th>
+                    Qty
+                </th>
+                <th>
+                    Rate
+                </th>
+                <th>
+                    Charges
+                </th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for row in doc.entries %}
+                <tr>
+                    <td>
+                        {{ row.idx }}
+                    </td>
+                    <td width=""70%"">
+                        <strong>{{ row.get_formatted(""item_name"") }}</strong><br/>
+                        {{ row.get_formatted(""description"") }}
+                    </td>
+                    <td>
+                        {{ row.get_formatted(""qty"") }}
+                    </td>
+                    <td>
+                        {{ row.get_formatted(""rate"") }}
+                    </td>
+                    <td>
+                        {{ row.get_formatted(""amount"") }}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+
+        </table>
+
+    </div>
+</div>
+
+
+<div class=""row clearfix"">
+
+    <div class=""col-xs-6 column"">
+        <p class=""text-left"">
+        </p>
+
+        <div>
+            {{ doc.get_formatted(""terms"") }}
+        </div>
+
+    </div>
+
+    <div class=""col-xs-6 column"">
+
+        <table class=""table table-condensed"">
+            <tbody>
+
+            <tr class=""active"">
+                <td width=""70%"">
+                    <strong>Net Total</strong>
+                </td>
+                <td>
+                    {{ doc.get_formatted(""net_total_export"") }}
+                </td>
+            </tr>
+
+            {% for row in doc.other_charges %}
+                <tr>
+                    <td width=""70%"">
+                        <strong>{{ row.get_formatted(""description"") }} @ {{ row.get_formatted(""rate"") }}%</strong>
+                    </td>
+                    <td>
+                        {{ row.get_formatted(""tax_amount"") }}
+                    </td>
+                </tr>
+            {% endfor %}
+
+            <tr class=""active"">
+                <td width=""70%"">
+                    <strong>Grand Total</strong>
+                </td>
+                <td>
+                    {{ doc.get_formatted(""grand_total_export"") }}
+                </td>
+            </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<div class=""row clearfix"">
+    <div class=""col-xs-12 column"">
+
+        <p class=""text-right"">
+            For Arun Logistics
+            </br>
+            </br>
+            Authorised Signatory
+        </p>
+    </div>
+</div>
+
+</div>"
+"","""Indent with ERV""","Indent","Flows","No","Server",0,"Source in HTML file"
+"","""Payment Receipt Voucher""","Journal Voucher","Accounts","Yes","Server","","{%- from ""templates/print_formats/standard_macros.html"" import add_header -%}
+<div class=""page-break"">
+    {%- if not doc.get(""print_heading"") and not doc.get(""select_print_heading"") 
+        and doc.set(""select_print_heading"", _(""Payment Receipt Note"")) -%}{%- endif -%}
+    {{ add_header(0, 1, doc, letter_head, no_letterhead) }}
+
+    {%- for label, value in (
+        (_(""Received On""), frappe.utils.formatdate(doc.voucher_date)),
+        (_(""Received From""), doc.pay_to_recd_from),
+        (_(""Amount""), ""<strong>"" + frappe.utils.cstr(doc.total_amount or 0) + ""</strong><br>"" + (doc.total_amount_in_words or """") + ""<br>""),
+        (_(""Remarks""), doc.remark)
+    ) -%}
+    <div class=""row"">
+        <div class=""col-xs-3""><label class=""text-right"">{{ label }}</label></div>
+        <div class=""col-xs-9"">{{ value }}</div>
+    </div>
+
+    {%- endfor -%}
+
+    <hr>
+    <br>
+    <p class=""strong"">
+        {{ _(""For"") }} {{ doc.company }},<br>
+        <br>
+        <br>
+        <br>
+        {{ _(""Authorized Signatory"") }}
+    </p>
+</div>
+
+"
+"","""Cheque Printing Format""","Journal Voucher","Accounts","Yes","Server","","<div style=""position: relative"">
+
+	{%- from ""templates/print_formats/standard_macros.html"" import add_header -%}
+<div class=""page-break"">
+    {%- if not doc.get(""print_heading"") and not doc.get(""select_print_heading"") 
+        and doc.set(""select_print_heading"", _(""Payment Advice"")) -%}{%- endif -%}
+    {{ add_header(0, 1, doc, letter_head, no_letterhead) }}
+
+{%- for label, value in (
+        (_(""Voucher Date""), frappe.utils.formatdate(doc.voucher_date)),
+        (_(""Reference / Cheque No.""), doc.cheque_no),
+        (_(""Reference / Cheque Date""), frappe.utils.formatdate(doc.cheque_date))
+    ) -%}
+    <div class=""row"">
+        <div class=""col-xs-4""><label class=""text-right"">{{ label }}</label></div>
+        <div class=""col-xs-8"">{{ value }}</div>
+    </div>
+{%- endfor -%}
+	<hr>
+	<p>{{ _(""This amount is in full / part settlement of the listed bills"") }}:</p>
+{%- for label, value in (
+         (_(""Amount""), ""<strong>"" + (doc.total_amount or """") + ""</strong><br>"" + (doc.total_amount_in_words or """") + ""<br>""),
+        (_(""References""), doc.remark)
+    ) -%}
+    <div class=""row"">
+        <div class=""col-xs-4""><label class=""text-right"">{{ label }}</label></div>
+        <div class=""col-xs-8"">{{ value }}</div>
+    </div>
+    {%- endfor -%}
+    <hr>
+	<div style=""position: absolute; top: 14cm; left: 0cm;"">
+		Prepared By</div>
+	<div style=""position: absolute; top: 14cm; left: 5.5cm;"">
+		Authorised Signatory</div>
+	<div style=""position: absolute; top: 14cm; left: 11cm;"">
+		Received Payment as Above</div>
+	<div style=""position: absolute; top: 16.4cm; left: 5.9cm;"">
+		<strong>_____________</strong></div>
+	<div style=""position: absolute; top: 16.7cm; left: 6cm;"">
+		<strong>A/C Payee</strong></div>
+	<div style=""position: absolute; top: 16.7cm; left: 5.9cm;"">
+		<strong>_____________</strong></div>
+	<div style=""position: absolute; top: 16.9cm; left: 12cm;"">
+		{{ frappe.utils.formatdate(doc.cheque_date) }}</div>
+	<div style=""position: absolute; top: 17.9cm; left: 1cm;"">
+		{{ doc.pay_to_recd_from }}</div>
+	<div style=""position: absolute; top: 18.6cm; left: 1cm; width: 7cm;"">
+		{{ doc.total_amount_in_words }}</div>
+	<div style=""position: absolute; top: 19.7cm; left: 12cm;"">
+		{{ doc.total_amount }}</div>
+</div>"
+"","""Credit Note""","Journal Voucher","Accounts","Yes","Server",0,"{%- from ""templates/print_formats/standard_macros.html"" import add_header -%}
+
+<div class=""page-break"">
+    {%- if not doc.get(""print_heading"") and not doc.get(""select_print_heading"") 
+        and doc.set(""select_print_heading"", _(""Credit Note"")) -%}{%- endif -%}
+    {{ add_header(0, 1, doc, letter_head, no_letterhead) }}
+
+    {%- for label, value in (
+        (_(""Credit To""), doc.pay_to_recd_from),
+        (_(""Date""), frappe.utils.formatdate(doc.voucher_date)),
+        (_(""Amount""), ""<strong>"" + frappe.utils.cstr(doc.total_amount) + ""</strong><br>"" + (doc.total_amount_in_words or """") + ""<br>""),
+        (_(""Remarks""), doc.remark)
+    ) -%}
+
+    <div class=""row"">
+        <div class=""col-xs-3""><label class=""text-right"">{{ label }}</label></div>
+        <div class=""col-xs-9"">{{ value }}</div>
+    </div>
+
+    {%- endfor -%}
+
+    <hr>
+    <br>
+    <p class=""strong"">
+        {{ _(""For"") }} {{ doc.company }},<br>
+        <br>
+        <br>
+        <br>
+        {{ _(""Authorized Signatory"") }}
+    </p>
+</div>
+
+
+"
+"","""POS Invoice""","Sales Invoice","Accounts","Yes","Server","","<style>
+	.print-format table, .print-format tr, 
+	.print-format td, .print-format div, .print-format p {
+		font-family: Monospace;
+		line-height: 200%;
+		vertical-align: middle;
+	}
+	@media screen {
+		.print-format {
+			width: 4in;
+			padding: 0.25in;
+			min-height: 8in;
+		}
+	}
+</style>
+
+<p class=""text-center"">
+	{{ doc.company }}<br>
+	{{ doc.select_print_heading or _(""Invoice"") }}<br>
+</p>
+<p>
+	<b>{{ _(""Receipt No"") }}:</b> {{ doc.name }}<br>
+	<b>{{ _(""Date"") }}:</b> {{ doc.get_formatted(""posting_date"") }}<br>
+	<b>{{ _(""Customer"") }}:</b> {{ doc.customer_name }}
+</p>
+
+<hr>
+<table class=""table table-condensed cart no-border"">
+	<thead>
+		<tr>
+			<th width=""60%"">{{ _(""Item"") }}</b></th>
+			<th width=""10%"" class=""text-right"">{{ _(""Qty"") }}</th>
+			<th width=""30%"" class=""text-right"">{{ _(""Rate"") }}</th>
+		</tr>
+	</thead>
+	<tbody>
+		{%- for item in doc.entries -%}
+		<tr>
+			<td>
+				{{ item.item_code }}
+				{%- if item.item_name != item.item_code -%}
+					<br>{{ item.item_name }}{%- endif -%}
+			</td>
+			<td class=""text-right"">{{ item.qty }}</td>
+			<td class=""text-right"">{{ item.amount }}</td>
+		</tr>
+		{%- endfor -%}
+	</tbody>
+</table>
+<table class=""table table-condensed no-border"">
+	<tbody>
+		<tr>
+			<td class=""text-right"" style=""width: 70%"">
+				{{ _(""Net Total"") }}
+			</td>
+			<td class=""text-right"">
+				{{ doc.get_formatted(""net_total_export"") }}
+			</td>
+		</tr>
+		{%- for row in doc.other_charges -%}
+		{%- if not row.included_in_print_rate -%}
+		<tr>
+			<td class=""text-right"" style=""width: 70%"">
+				{{ row.description }}
+			</td>
+			<td class=""text-right"">
+				{{ row.get_formatted(""tax_amount"", doc) }}
+			</td>
+		</tr>
+		{%- endif -%}
+		{%- endfor -%}
+		{%- if doc.discount_amount -%}
+		<tr>
+			<td class=""text-right"" style=""width: 70%"">
+				{{ _(""Discount"") }}
+			</td>
+			<td class=""text-right"">
+				{{ doc.get_formatted(""discount_amount"") }}
+			</td>
+		</tr>
+		{%- endif -%}
+		<tr>
+			<td class=""text-right"" style=""width: 70%"">
+				<b>{{ _(""Grand Total"") }}</b>
+			</td>
+			<td class=""text-right"">
+				{{ doc.get_formatted(""grand_total_export"") }}
+			</td>
+		</tr>
+	</tbody>
+</table>
+{% if doc.get(""other_charges"", filters={""included_in_print_rate"": 1}) %}
+<hr>
+<p><b>Taxes Included:</b></p>
+<table class=""table table-condensed no-border"">
+	<tbody>
+		{%- for row in doc.other_charges -%}
+		{%- if row.included_in_print_rate -%}
+		<tr>
+			<td class=""text-right"" style=""width: 70%"">
+				{{ row.description }}
+			</td>
+			<td class=""text-right"">
+				{{ row.get_formatted(""tax_amount_after_discount_amount"", doc) }}
+			</td>
+		<tr>
+		{%- endif -%}
+		{%- endfor -%}
+	</tbody>
+</table>
+{%- endif -%}
+<hr>
+<p>{{ doc.terms or """" }}</p>
+<p class=""text-center"">{{ _(""Thank you, please visit again."") }}</p>"
+"","""Delivery Note Packing List Wise""","","Stock","Yes","Client","","<html>
+<head>
+
+<script>
+function replaceAll(s,s1,s2){ return s.split(s1).join(s2);}
+
+function get_letter_head() {
+	// add letter head
+	var cp = locals['Control Panel']['Control Panel'];
+	if(doc.letter_head)
+		var lh= cstr(_p.letter_heads[doc.letter_head]);
+	else if(cp.letter_head)
+		var lh= cp.letter_head;
+	else 
+		var lh= '';
+		
+	return lh;
+}
+
+</script>
+<style>
+.cust_tbl { border-collapse:collapse; }
+.cust_tbl td { border:1px solid #848484; font-size: 13px}
+.large_font td {font-size: 13px}
+</style>
+</head>
+
+<body>
+<script>
+replaceAll(doc.print_packing_slip,'[HEADER GOES HERE]',get_letter_head());
+</script>
+</body>
+</html>"

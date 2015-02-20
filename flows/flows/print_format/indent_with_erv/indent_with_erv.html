@@ -10,14 +10,14 @@
 {% endif %}
 
 <div class="row clearfix">
-    <div class="col-md-6 column">
+    <div class="col-xs-6 column">
         <p class="text-left">
             Vehicle No. {{ doc.vehicle }}<br/>
             Summery for lifting <span>cylinders from {{ doc.plant }}</span>
         </p>
     </div>
 
-    <div class="col-md-6 column">
+    <div class="col-xs-6 column">
         <p class="text-right">
             Indent No. {{ doc.name }}<br/>
             Date: {{doc.posting_date}}
@@ -29,7 +29,7 @@
 
 <div class="row clearfix">
     <br/>
-    <div class="col-md-12 column">
+    <div class="col-xs-12 column">
         <p>
             We are sending vehicle no. {{ doc.vehicle }} &amp; we hear by authorise Mr. {{ doc.driver|capitalize }} as
             driver (whose signature has been attested below) to the above mentioned vehicle.
@@ -39,7 +39,7 @@
 
 
 <div class="row clearfix">
-    <div class="col-md-12 column">
+    <div class="col-xs-12 column">
         <table class="table table-striped">
             <thead>
             <tr>
@@ -154,7 +154,7 @@
     </div>
 </div>
 <div class="row clearfix">
-    <div class="col-md-12 column">
+    <div class="col-xs-12 column">
         <h3 class="text-center">
         </h3>
 
@@ -190,7 +190,7 @@
     </div>
 </div>
 <div class="row clearfix">
-    <div class="col-md-6 column">
+    <div class="col-xs-6 column">
         <p class="text-left">
             <br/>
             <br/>
@@ -198,7 +198,7 @@
             Signature Of The Driver
         </p>
     </div>
-    <div class="col-md-6 column">
+    <div class="col-xs-6 column">
         <p class="text-right">
             For {{ doc.letter_head }}
             <br/>

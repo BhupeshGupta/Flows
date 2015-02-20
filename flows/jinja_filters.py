@@ -108,3 +108,7 @@ def get_cenvat_status(customer_name, date, plant):
         return ''
 
     return 'MODVAT' if rs[0][0] == 1 else 'NONMODVAT'
+
+def get_address_display(address_of, address_type):
+    from erpnext.utilities.doctype.address.address import get_address_display as gda
+    return gda('{}-{}'.format(address_of.strip(), address_type))

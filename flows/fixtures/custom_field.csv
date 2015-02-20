@@ -22,6 +22,12 @@
 "","""Customer-bpcl_sap_code""","Customer","Data","BPCL SAP Code","","","","","bpcl_sap_code",0,0,0,0,"","",0,"",0,0,0,0,0,0
 "","""Customer-iocl_sap_code""","Customer","Data","IOCL SAP Code","","","","","iocl_sap_code",0,0,0,0,"","",0,"",0,0,0,0,0,0
 "","""Customer-cbreak2""","Customer","Column Break","cbreak2","","","","","cbreak2",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-service_tax_liability""","Customer","Select","Service Tax Liability","","","Transporter
+Consignee(Customer)","Service Tax To Be Paid By","service_tax_liability",0,0,0,0,"","Transporter",0,"",0,0,0,0,0,0
+"","""Supplier-tin_number""","Supplier","Data","Tin Number","","","","","tin_number",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Supplier-pan_number""","Supplier","Data","Pan Number","","","","","pan_number",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Supplier-registrations_number""","Supplier","Section Break","Registrations Number","","","","","registrations_number",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Sales Invoice-consignor""","Sales Invoice","Link","Consignor","","","Supplier","","consignor",0,0,0,0,"","",0,"",0,0,0,0,0,0
 "","""Customer-ecc_number""","Customer","Data","ECC Number","","","","","ecc_number",0,0,0,0,"","",0,"",0,0,0,0,0,0
 "","""Customer-tin_number""","Customer","Data","TIN Number","","","","","tin_number",0,0,0,0,"","",0,"",0,0,0,0,0,0
 "","""Customer-pan_number""","Customer","Data","PAN Number","","","","","pan_number",0,0,0,0,"","",0,"",0,0,0,0,0,0

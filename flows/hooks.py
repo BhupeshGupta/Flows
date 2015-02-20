@@ -20,7 +20,8 @@ fixtures = [
     "Workflow Action",
     "Workflow",
     "Letter Head",
-    "Print Heading"
+    "Print Heading",
+    "Print Format"
 ]
 
 # Includes in <head>
@@ -134,4 +135,5 @@ jenv_filter = [
     'get_registration_code:flows.jinja_filters.get_registration_code',
     'get_customer_tin_number:flows.jinja_filters.get_customer_tin_number',
     'get_cenvat_status:flows.jinja_filters.get_cenvat_status',
+    'get_address_display:flows.jinja_filters.get_address_display'
 ]
