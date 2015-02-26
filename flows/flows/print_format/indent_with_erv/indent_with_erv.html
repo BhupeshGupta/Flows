@@ -1,12 +1,12 @@
 <div class="container">
 
 {% if letter_head and not no_letterhead %}
-<p class="text-left">
+    <p class="text-left">
 
-<div class="letter-head">{{ letter_head }}</div>
-</p>
-<br/>
-<br/>
+    <div class="letter-head">{{ letter_head }}</div>
+    </p>
+    <br/>
+    <br/>
 {% endif %}
 
 <div class="row clearfix">
@@ -20,7 +20,7 @@
     <div class="col-xs-6 column">
         <p class="text-right">
             Indent No. {{ doc.name }}<br/>
-            Date: {{doc.posting_date}}
+            Date: {{ doc.posting_date }}
         </p>
 
     </div>
@@ -29,6 +29,7 @@
 
 <div class="row clearfix">
     <br/>
+
     <div class="col-xs-12 column">
         <p>
             We are sending vehicle no. {{ doc.vehicle }} &amp; we hear by authorise Mr. {{ doc.driver|capitalize }} as
@@ -83,52 +84,52 @@
             </thead>
             <tbody>
             {% for indent_item in doc.indent %}
-            <tr>
-                <td>
-                    {{ indent_item.idx }}
-                </td>
-                <td>
-                    {{ indent_item.customer }}
-                </td>
-                <td>
-                    {{ indent_item.customer | get_registration_code(doc.naming_series) }}
-                </td>
-                <td>
-                    {{ indent_item.customer | get_contract_number(doc.posting_date, doc.plant) or ''}}
-                </td>
-                <td>
-                    {{ indent_item.customer | get_customer_tin_number }}
-                </td>
-                <td>
-                    {{ indent_item.item.replace('FC', '') + ' Kg'}}
-                </td>
-                <td>
-                    {% if indent_item.load_type == 'Oneway' %}
-                    {{ indent_item.qty }}
-                    {% endif %}
-                </td>
-                <td>
-                    {% if indent_item.load_type == 'Refill' %}
-                    {{ indent_item.qty }}
-                    {% endif %}
-                </td>
-                <td>
-                    {{ indent_item.customer | get_cenvat_status(doc.posting_date, doc.plant) or ''}}
-                </td>
-                <td>
-                    {% if indent_item.payment_type == 'Indirect' %}
-                    PAYER
-                    {% else %}
-                    BAL SAP
-                    {% endif %}
-                </td>
-                <td>
-                    {{ indent_item.rate }}
-                </td>
-                <td>
-                    {{ indent_item.amount }}
-                </td>
-            </tr>
+                <tr>
+                    <td>
+                        {{ indent_item.idx }}
+                    </td>
+                    <td>
+                        {{ indent_item.customer }}
+                    </td>
+                    <td>
+                        {{ indent_item.customer | get_registration_code(doc.naming_series) }}
+                    </td>
+                    <td>
+                        {{ indent_item.customer | get_contract_number(doc.posting_date, doc.plant) or '' }}
+                    </td>
+                    <td>
+                        {{ indent_item.customer | get_customer_tin_number }}
+                    </td>
+                    <td>
+                        {{ indent_item.item.replace('FC', '') + ' Kg' }}
+                    </td>
+                    <td>
+                        {% if indent_item.load_type == 'Oneway' %}
+                            {{ indent_item.qty }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if indent_item.load_type == 'Refill' %}
+                            {{ indent_item.qty }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ indent_item.customer | get_cenvat_status(doc.posting_date, doc.plant) or '' }}
+                    </td>
+                    <td>
+                        {% if indent_item.payment_type == 'Indirect' %}
+                            PAYER
+                        {% else %}
+                            BAL SAP
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ indent_item.rate }}
+                    </td>
+                    <td>
+                        {{ indent_item.amount }}
+                    </td>
+                </tr>
 
             {% endfor %}
 
@@ -168,18 +169,18 @@
             <thead>
             <tr>
                 {% for key in map.keys() %}
-                <th>
-                    {{ key }}
-                </th>
+                    <th>
+                        {{ key }}
+                    </th>
                 {% endfor %}
             </tr>
             </thead>
             <tbody>
             <tr>
                 {% for value in map.values() %}
-                <td>
-                    {{ value }}
-                </td>
+                    <td>
+                        {{ value }}
+                    </td>
                 {% endfor %}
             </tr>
             </tbody>

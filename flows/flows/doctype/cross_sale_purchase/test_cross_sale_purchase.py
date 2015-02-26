@@ -6,8 +6,8 @@ import unittest
 import frappe
 
 
-test_records = frappe.get_test_records('Goods Receipt Book')
+test_records = frappe.get_test_records('Cross Sale Purchase')
 
 
-class TestGoodsReceiptBook(unittest.TestCase):
+class TestCrossSalePurchase(unittest.TestCase):
 	pass

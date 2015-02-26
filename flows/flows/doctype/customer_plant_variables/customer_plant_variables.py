@@ -6,9 +6,9 @@ from frappe.model.document import Document
 
 
 class CustomerPlantVariables(Document):
-    def autoname(self):
-        self.name = '{}#{}#{}'.format(
-            str(self.customer).strip(),
-            str(self.plant).strip(),
-            self.with_effect_from
-        )
+	def autoname(self):
+		self.name = '{}#{}#{}'.format(
+			str(self.customer).strip(),
+			str(self.plant).strip(),
+			self.with_effect_from
+		)

@@ -6,8 +6,8 @@ from frappe.model.document import Document
 
 
 class PlantRate(Document):
-    def autoname(self):
-        self.name = '{}#{}'.format(
-            str(self.plant).strip(),
-            self.with_effect_from
-        )
+	def autoname(self):
+		self.name = '{}#{}'.format(
+			str(self.plant).strip(),
+			self.with_effect_from
+		)

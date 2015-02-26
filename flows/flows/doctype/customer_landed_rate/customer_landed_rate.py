@@ -6,5 +6,5 @@ from frappe.model.document import Document
 
 
 class CustomerLandedRate(Document):
-    def autoname(self):
-        self.name = '{}-{}'.format(self.customer.strip(), self.with_effect_from)
+	def autoname(self):
+		self.name = '{}-{}'.format(self.customer.strip(), self.with_effect_from)

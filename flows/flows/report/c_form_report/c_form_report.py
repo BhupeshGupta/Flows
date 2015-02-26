@@ -6,9 +6,9 @@ import frappe
 
 
 def execute(filters=None):
-    columns, data = [], []
-    return columns, data
+	columns, data = [], []
+	return columns, data
 
 
 def get_data():
-    frappe.db.sql("Select customer, sum(actual_amount) from `tabIndent Invoice`;")
+	frappe.db.sql("Select customer, sum(actual_amount) from `tabIndent Invoice`;")

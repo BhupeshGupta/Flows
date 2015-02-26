@@ -7,5 +7,5 @@ from frappe.model.naming import make_autoname
 
 
 class IndentItem(Document):
-    def autoname(self):
-        self.name = make_autoname(self.parent + '.##')
+	def autoname(self):
+		self.name = make_autoname(self.parent + '.##')

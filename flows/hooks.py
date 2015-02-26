@@ -9,19 +9,19 @@ app_url = "No URL yet"
 app_version = "0.0.1"
 
 fixtures = [
-    "Custom Field",
-    "Supplier Type",
-    "Item Group",
-    "Warehouse",
-    "Item",
-    "Item Conversion",
-    "Company",
-    "Workflow State",
-    "Workflow Action",
-    "Workflow",
-    "Letter Head",
-    "Print Heading",
-    "Print Format"
+	"Custom Field",
+	"Supplier Type",
+	"Item Group",
+	"Warehouse",
+	"Item",
+	"Item Conversion",
+	"Company",
+	"Workflow State",
+	"Workflow Action",
+	"Workflow",
+	"Letter Head",
+	"Print Heading",
+	"Print Format"
 ]
 
 # Includes in <head>
@@ -43,7 +43,7 @@ fixtures = [
 
 # website user home page (by Role)
 # role_home_page = {
-#	"Role": "home_page"
+# "Role": "home_page"
 # }
 
 # Generators
@@ -125,15 +125,13 @@ fixtures = [
 
 boot_session = "flows.flows.startup_boot_info.boot_session"
 
-
-
 jenv_filter = [
-    'indent_refill_qty:flows.jinja_filters.indent_refill_qty',
-    'indent_oneway_qty:flows.jinja_filters.indent_oneway_qty',
-    'compute_erv_for_refill_in_indent:flows.jinja_filters.compute_erv_for_refill_in_indent',
-    'get_contract_number:flows.jinja_filters.get_contract_number',
-    'get_registration_code:flows.jinja_filters.get_registration_code',
-    'get_customer_tin_number:flows.jinja_filters.get_customer_tin_number',
-    'get_cenvat_status:flows.jinja_filters.get_cenvat_status',
-    'get_address_display:flows.jinja_filters.get_address_display'
+	'indent_refill_qty:flows.jinja_filters.indent_refill_qty',
+	'indent_oneway_qty:flows.jinja_filters.indent_oneway_qty',
+	'compute_erv_for_refill_in_indent:flows.jinja_filters.compute_erv_for_refill_in_indent',
+	'get_contract_number:flows.jinja_filters.get_contract_number',
+	'get_registration_code:flows.jinja_filters.get_registration_code',
+	'get_customer_tin_number:flows.jinja_filters.get_customer_tin_number',
+	'get_cenvat_status:flows.jinja_filters.get_cenvat_status',
+	'get_address_display:flows.jinja_filters.get_address_display'
 ]

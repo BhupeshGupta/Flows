@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 
 frappe.query_reports["C Form Report"] = {
-	"filters": [
+    "filters": [
 
-	]
+    ]
 }

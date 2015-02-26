@@ -6,5 +6,5 @@ from frappe.model.document import Document
 
 
 class RouteCost(Document):
-    def autoname(self):
-        self.name = '{}-{}-{}'.format(self.route, self.with_effect_from, self.vehicle_type)
+	def autoname(self):
+		self.name = '{}-{}-{}'.format(self.route, self.with_effect_from, self.vehicle_type)
