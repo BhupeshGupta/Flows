@@ -21,7 +21,8 @@ fixtures = [
 	"Workflow",
 	"Letter Head",
 	"Print Heading",
-	"Print Format"
+	"Print Format",
+    "Property Setter"
 ]
 
 # Includes in <head>
