@@ -17,6 +17,27 @@
    "precision": ""
   }, 
   {
+   "fieldname": "posting_time", 
+   "fieldtype": "Time", 
+   "hidden": 0, 
+   "label": "Posting Time", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1, 
+   "reqd": 0
+  }, 
+  {
+   "default": "Today", 
+   "fieldname": "posting_date", 
+   "fieldtype": "Data", 
+   "hidden": 0, 
+   "label": "Posting Date", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1, 
+   "reqd": 1
+  }, 
+  {
    "fieldname": "warehouse", 
    "fieldtype": "Link", 
    "label": "Warehouse", 
@@ -184,27 +205,6 @@
    "reqd": 1
   }, 
   {
-   "default": "Today", 
-   "fieldname": "posting_date", 
-   "fieldtype": "Data", 
-   "hidden": 0, 
-   "label": "Posting Date", 
-   "permlevel": 0, 
-   "precision": "", 
-   "read_only": 1, 
-   "reqd": 1
-  }, 
-  {
-   "fieldname": "posting_time", 
-   "fieldtype": "Time", 
-   "hidden": 0, 
-   "label": "Posting Time", 
-   "permlevel": 0, 
-   "precision": "", 
-   "read_only": 1, 
-   "reqd": 0
-  }, 
-  {
    "fieldname": "owner", 
    "fieldtype": "Link", 
    "label": "Owner", 
@@ -221,7 +221,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-03-03 23:45:47.620448", 
+ "modified": "2015-03-03 23:51:37.662265", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Goods Receipt", 
