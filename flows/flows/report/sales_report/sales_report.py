@@ -24,17 +24,19 @@ def get_data():
 		gp_dict[gatepass.gatepass_type].total += gatepass.qty
 
 	for gr in gr_to_customers:
-		map.setdefault(gr.item_delivered, frappe._dict({}))
-		gr_dict = map[gr.item_delivered]
-		gr_dict.setdefault('Out', frappe._dict({'total': 0, 'gatepass': [], 'gr': []}))
-		gr_dict['Out'].gr.append(gr)
-		gr_dict['Out'].total += gr.delivered_quantity
+		if gr.item_delivered and gr.delivered_quantity:
+			map.setdefault(gr.item_delivered, frappe._dict({}))
+			gr_dict = map[gr.item_delivered]
+			gr_dict.setdefault('Out', frappe._dict({'total': 0, 'gatepass': [], 'gr': []}))
+			gr_dict['Out'].gr.append(gr)
+			gr_dict['Out'].total += gr.delivered_quantity
 
-		map.setdefault(gr.item_received, frappe._dict({}))
-		gr_dict = map[gr.item_received]
-		gr_dict.setdefault('In', frappe._dict({'total': 0, 'gatepass': [], 'gr': []}))
-		gr_dict['In'].gr.append(gr)
-		gr_dict['In'].total += gr.delivered_quantity
+		if gr.item_received and gr.received_quantity:
+			map.setdefault(gr.item_received, frappe._dict({}))
+			gr_dict = map[gr.item_received]
+			gr_dict.setdefault('In', frappe._dict({'total': 0, 'gatepass': [], 'gr': []}))
+			gr_dict['In'].gr.append(gr)
+			gr_dict['In'].total += gr.received_quantity
 
 	rows = []
 	for item in map.keys():
