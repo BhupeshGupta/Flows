@@ -62,7 +62,7 @@ def gatepass_issued_to_sales_person():
 def gr_issued():
 	sql = """
 	SELECT warehouse, customer, item_delivered, delivered_quantity, item_received, received_quantity
-	FROM `tabGood Receipt`
+	FROM `tabGoods Receipt`
 	WHERE docstatus = 1 AND
 	posting_date = '2015-03-01'
 	ORDER BY warehouse;
