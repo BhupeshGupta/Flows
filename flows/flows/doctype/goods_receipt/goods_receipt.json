@@ -19,7 +19,7 @@
   {
    "default": "Today", 
    "fieldname": "posting_date", 
-   "fieldtype": "Data", 
+   "fieldtype": "Date", 
    "hidden": 0, 
    "label": "Posting Date", 
    "permlevel": 0, 
@@ -221,7 +221,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-03-04 10:44:41.133653", 
+ "modified": "2015-03-04 10:54:57.527739", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Goods Receipt", 
