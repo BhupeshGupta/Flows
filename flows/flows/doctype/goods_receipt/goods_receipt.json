@@ -17,16 +17,6 @@
    "precision": ""
   }, 
   {
-   "fieldname": "posting_time", 
-   "fieldtype": "Time", 
-   "hidden": 0, 
-   "label": "Posting Time", 
-   "permlevel": 0, 
-   "precision": "", 
-   "read_only": 1, 
-   "reqd": 0
-  }, 
-  {
    "default": "Today", 
    "fieldname": "posting_date", 
    "fieldtype": "Data", 
@@ -34,8 +24,18 @@
    "label": "Posting Date", 
    "permlevel": 0, 
    "precision": "", 
-   "read_only": 1, 
+   "read_only": 0, 
    "reqd": 1
+  }, 
+  {
+   "fieldname": "posting_time", 
+   "fieldtype": "Time", 
+   "hidden": 0, 
+   "label": "Posting Time", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 0, 
+   "reqd": 0
   }, 
   {
    "fieldname": "warehouse", 
@@ -221,7 +221,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-03-03 23:51:37.662265", 
+ "modified": "2015-03-04 10:44:41.133653", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Goods Receipt", 
