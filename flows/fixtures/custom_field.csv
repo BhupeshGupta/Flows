@@ -18,6 +18,9 @@
 "Type:","Data (text)","Link","Select","Data","Select","Select","Text","Text","Data","Int","Check","Check","Check","Data","Text","Check","Data","Check","Check","Check","Check","Check","Check"
 "Info:","","Valid DocType","One of: Button, Check, Code, Column Break, Currency, Data, Date, Datetime, Dynamic Link, Float, HTML, Image, Int, Link, Long Text, Password, Percent, Read Only, Section Break, Select, Small Text, Table, Text, Text Editor, Time","","","One of: 1, 2, 3, 4, 5, 6, 7, 8, 9","","","","Integer","0 or 1","0 or 1","0 or 1","","","0 or 1","","0 or 1","0 or 1","0 or 1","0 or 1","0 or 1","0 or 1"
 "Start entering data below this line"
+"","""Warehouse-warehouse_parent_name""","Warehouse","Dynamic Link","Warehouse Parent Name","","","warehouse_parent","","warehouse_parent_name",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Warehouse-warehouse_parent""","Warehouse","Link","Warehouse Parent","","","DocType","","warehouse_parent",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Warehouse-warehouse_type""","Warehouse","Select","Warehouse Type","","","Land(Property)
 "","""Customer-hpcl_erp_number""","Customer","Data","HPCL ERP Number","","","","","hpcl_erp_number",0,0,0,0,"","",0,"",0,0,0,0,0,0
 "","""Customer-bpcl_sap_code""","Customer","Data","BPCL SAP Code","","","","","bpcl_sap_code",0,0,0,0,"","",0,"",0,0,0,0,0,0
 "","""Customer-iocl_sap_code""","Customer","Data","IOCL SAP Code","","","","","iocl_sap_code",0,0,0,0,"","",0,"",0,0,0,0,0,0
