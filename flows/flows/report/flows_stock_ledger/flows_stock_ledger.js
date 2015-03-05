@@ -29,7 +29,16 @@ frappe.query_reports["Flows Stock Ledger"] = {
             "fieldname": "warehouse",
             "label": __("Warehouse"),
             "fieldtype": "Link",
-            "options": "Warehouse"
+            "options": "Warehouse",
+            "get_query": function() {
+				var company = frappe.query_report.filters_by_name.company.get_value();
+				return {
+					"doctype": "Warehouse",
+					"filters": {
+						"company": company
+					}
+				}
+			}
         },
         {
             "fieldname": "item_code",

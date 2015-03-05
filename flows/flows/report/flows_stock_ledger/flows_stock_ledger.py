@@ -9,11 +9,9 @@ from frappe import _
 def execute(filters=None):
 	columns = get_columns()
 	sl_entries = get_stock_ledger_entries(filters)
-	item_details = get_item_details(filters)
 
 	data = []
 	for sle in sl_entries:
-		item_detail = item_details[sle.item_code]
 
 		data.append([sle.date, sle.item_code,
 		             sle.warehouse,
@@ -38,8 +36,8 @@ def get_stock_ledger_entries(filters):
 	if filters.get('conjugate_entries'):
 		return frappe.db.sql("""
 			select concat_ws(" ", posting_date, posting_time) as date,
-				item_code, warehouse, actual_qty, qty_after_transaction, incoming_rate, valuation_rate,
-				stock_value, voucher_type, voucher_no, batch_no, serial_no, company, process
+				item_code, warehouse, actual_qty, qty_after_transaction, process,
+				voucher_type, voucher_no, company
 			from `tabStock Ledger Entry`
 			where (voucher_type, voucher_no) in (
 						select voucher_type, voucher_no
@@ -51,13 +49,12 @@ def get_stock_ledger_entries(filters):
 			order by posting_date desc, posting_time desc, name desc""" \
 			                     .format(sle_conditions=get_sle_conditions(filters)),
 		                     filters,
-		                     as_dict=1,
-		                     debug=True
+		                     as_dict=1
 		)
 	else:
 		return frappe.db.sql("""select concat_ws(" ", posting_date, posting_time) as date,
-				item_code, warehouse, actual_qty, qty_after_transaction, incoming_rate, valuation_rate,
-				stock_value, voucher_type, voucher_no, batch_no, serial_no, company, process
+				item_code, warehouse, actual_qty, qty_after_transaction, process,
+				voucher_type, voucher_no, company
 			from `tabStock Ledger Entry`
 			where company = %(company)s and
 				posting_date between %(from_date)s and %(to_date)s
