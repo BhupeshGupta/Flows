@@ -41,6 +41,12 @@ frappe.query_reports["Flows Stock Ledger"] = {
             "fieldname": "voucher_no",
             "label": __("Voucher #"),
             "fieldtype": "Data"
+        },
+        {
+            "fieldname": "conjugate_entries",
+            "label": __("Show Conjugate Entries"),
+            "fieldtype": "Check",
+            "default": 0
         }
     ]
 }

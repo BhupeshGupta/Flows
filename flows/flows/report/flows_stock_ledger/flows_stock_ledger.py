@@ -35,21 +35,41 @@ def get_columns():
 
 
 def get_stock_ledger_entries(filters):
-	return frappe.db.sql("""select concat_ws(" ", posting_date, posting_time) as date,
-			item_code, warehouse, actual_qty, qty_after_transaction, incoming_rate, valuation_rate,
-			stock_value, voucher_type, voucher_no, batch_no, serial_no, company, process
-		from `tabStock Ledger Entry`
-		where company = %(company)s and
-			posting_date between %(from_date)s and %(to_date)s
-			{sle_conditions}
+	if filters.get('conjugate_entries'):
+		return frappe.db.sql("""
+			select concat_ws(" ", posting_date, posting_time) as date,
+				item_code, warehouse, actual_qty, qty_after_transaction, incoming_rate, valuation_rate,
+				stock_value, voucher_type, voucher_no, batch_no, serial_no, company, process
+			from `tabStock Ledger Entry`
+			where (voucher_type, voucher_no) in (
+						select voucher_type, voucher_no
+						from `tabStock Ledger Entry` where
+						company = %(company)s and
+						posting_date between %(from_date)s and %(to_date)s
+						{sle_conditions}
+					)
 			order by posting_date desc, posting_time desc, name desc""" \
-		                     .format(sle_conditions=get_sle_conditions(filters)), filters, as_dict=1)
+			                     .format(sle_conditions=get_sle_conditions(filters)),
+		                     filters,
+		                     as_dict=1,
+		                     debug=True
+		)
+	else:
+		return frappe.db.sql("""select concat_ws(" ", posting_date, posting_time) as date,
+				item_code, warehouse, actual_qty, qty_after_transaction, incoming_rate, valuation_rate,
+				stock_value, voucher_type, voucher_no, batch_no, serial_no, company, process
+			from `tabStock Ledger Entry`
+			where company = %(company)s and
+				posting_date between %(from_date)s and %(to_date)s
+				{sle_conditions}
+				order by posting_date desc, posting_time desc, name desc""" \
+			                     .format(sle_conditions=get_sle_conditions(filters)), filters, as_dict=1)
 
 
 def get_item_details(filters):
 	item_details = {}
-	for item in frappe.db.sql("""select name, item_name, description, item_group,
-			brand, stock_uom from `tabItem` {item_conditions}""" \
+	for item in frappe.db.sql("""SELECT name, item_name, description, item_group,
+			brand, stock_uom FROM `tabItem` {item_conditions}""" \
 			                          .format(item_conditions=get_item_conditions(filters)), filters, as_dict=1):
 		item_details.setdefault(item.name, item)
 
