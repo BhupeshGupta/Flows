@@ -113,9 +113,18 @@
    "reqd": 1
   }, 
   {
+   "default": "Today", 
+   "fieldname": "posting_date", 
+   "fieldtype": "Date", 
+   "hidden": 0, 
+   "label": "Posting Date", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "posting_time", 
    "fieldtype": "Time", 
-   "hidden": 1, 
+   "hidden": 0, 
    "label": "Posting Time", 
    "permlevel": 0, 
    "precision": ""
@@ -126,15 +135,6 @@
    "hidden": 1, 
    "label": "Fiscal Year", 
    "options": "Fiscal Year", 
-   "permlevel": 0, 
-   "precision": ""
-  }, 
-  {
-   "default": "Today", 
-   "fieldname": "posting_date", 
-   "fieldtype": "Date", 
-   "hidden": 1, 
-   "label": "Posting Date", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -168,7 +168,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-03-01 22:51:29.722394", 
+ "modified": "2015-03-05 16:13:20.666318", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Cash Receipt", 
