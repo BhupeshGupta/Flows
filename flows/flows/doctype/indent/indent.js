@@ -100,7 +100,11 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
                             console.log("compute_base_rate callback");
                             if (!r.exc) {
                                 console.log(r.message);
-                                indent_item.rate = r.message
+
+                                // Do not change rate if we dont have value
+                                if (r.message <= 0) return;
+
+                                indent_item.rate = r.message;
                                 refresh_field("rate", indent_item.name, indent_item.parentfield);
                                 if (me.rate) {
                                     me.rate(indent_item, indent_item.doctype, indent_item.name);

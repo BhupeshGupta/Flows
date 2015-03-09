@@ -8,8 +8,8 @@ erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
     set_plant_query: function (field) {
         if (this.frm.fields_dict[field]) {
             this.frm.set_query(field, function () {
-                return{
-                    filters: { 'supplier_type': 'Gas Plant' }
+                return {
+                    filters: {'supplier_type': 'Gas Plant'}
                 }
             });
         }
@@ -24,9 +24,25 @@ erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
 
             return {
                 query: "flows.flows.doctype.indent_invoice.indent_invoice.get_indent_for_vehicle",
-                filters: { vehicle: doc.vehicle },
+                filters: {vehicle: doc.vehicle},
                 searchfield: "customer"
             };
+        });
+    },
+
+    indent: function (doc, cdt, cdn) {
+        var me = this;
+        this.frm.call({
+            "method": "frappe.client.get_value",
+            "args": {
+                "doctype": "Indent",
+                "filters": {
+                    "name": doc.indent
+                }, "fieldname": "posting_date"
+            },
+            callback: function(r, rt) {
+                me.frm.set_value("indent_date", r.message.posting_date)
+			}
         });
     }
 

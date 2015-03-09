@@ -6,18 +6,22 @@ from flows.stdlogger import root
 
 @frappe.whitelist()
 def get_landed_rate(customer, posting_date, item):
-	landed_rate_per_kg = frappe.db.sql("""
+	rs = frappe.db.sql("""
 	SELECT landed_rate FROM `tabCustomer Landed Rate`
 	WHERE with_effect_from <= '{posting_date}'
 	AND customer = '{customer}'
 	ORDER BY with_effect_from DESC LIMIT 1;
-	""".format(posting_date=posting_date, customer=customer))[0][0]
+	""".format(posting_date=posting_date, customer=customer))
 
-	conversion_factor = frappe.db.sql("""
+	landed_rate_per_kg = rs[0][0] if rs and len(rs) > 0 else 0
+
+	rs = frappe.db.sql("""
     select conversion_factor
     from `tabItem Conversion`
     where item='{item}';
-    """.format(item=item))[0][0]
+    """.format(item=item))
+
+	conversion_factor = rs[0][0] if rs and len(rs) > 0 else 0
 
 	return landed_rate_per_kg * conversion_factor
 
@@ -39,10 +43,11 @@ def compute_base_rate_for_a_customer(customer, plant, item, sales_tax_type, post
     order by with_effect_from desc limit 1;
     """.format(**context)
 
-	rs = frappe.db.sql(base_rate_query)
-	base_rate_for_plant = rs[0][0]
+	transportation = discount = tax_percentage = surcharge_percentage = base_rate_for_plant = conversion_factor = 0
 
-	transportation = discount = 0
+	rs = frappe.db.sql(base_rate_query)
+	if rs and len(rs) > 0:
+		base_rate_for_plant = rs[0][0]
 
 	discount_transportation_query = """
     select transportation, discount, tax_percentage, surcharge_percentage
@@ -52,7 +57,7 @@ def compute_base_rate_for_a_customer(customer, plant, item, sales_tax_type, post
     """.format(**context)
 
 	rs = frappe.db.sql(discount_transportation_query)
-	if len(rs) > 0:
+	if rs and len(rs) > 0:
 		transportation, discount, tax_percentage, surcharge_percentage = rs[0]
 
 	round_off_digit = 4 if extra_precision == 0 else 5
@@ -68,7 +73,9 @@ def compute_base_rate_for_a_customer(customer, plant, item, sales_tax_type, post
     where item='{item}';
     """.format(**context)
 
-	conversion_factor = frappe.db.sql(conversion_factor_query)[0][0]
+	rs = frappe.db.sql(conversion_factor_query)
+	if rs and len(rs) > 0:
+		conversion_factor = rs[0][0]
 
 	root.debug({
 	"base_rate_for_plant": base_rate_for_plant,
@@ -104,10 +111,12 @@ def get_customer_payment_info(customer, plant, posting_date):
 	if len(rs) > 0:
 		sales_tax_type, cenvat, tax_percentage, surcharge_percentage, payment_mode = rs[0]
 
-	return {
-	"sales_tax_type": sales_tax_type,
-	"cenvat": cenvat,
-	"tax_percentage": tax_percentage,
-	"surcharge_percentage": surcharge_percentage,
-	"payment_mode": payment_mode
-	}
+		return {
+		"sales_tax_type": sales_tax_type,
+		"cenvat": cenvat,
+		"tax_percentage": tax_percentage,
+		"surcharge_percentage": surcharge_percentage,
+		"payment_mode": payment_mode
+		}
+
+	return {}
