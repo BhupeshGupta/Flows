@@ -7,7 +7,7 @@ from frappe.utils import flt
 
 
 def execute(filters=None):
-	data_map = get_data_map()
+	data_map = get_data_map(filters)
 
 	data = []
 
@@ -43,53 +43,65 @@ def get_columns():
 	]
 
 
-def get_invoices():
+def get_invoices(filters):
 	return frappe.db.sql(
 		"""
 		select customer, item, qty
 		from `tabIndent Invoice`
 		where docstatus = 1
-		order by posting_date, posting_time, name""",
-		as_dict=1
+		and posting_date <= '{to_date}'
+		order by posting_date, posting_time, name""".format(**filters),
+		as_dict=1,
+	    debug=True
 	)
 
 
-def get_indents_which_are_not_invoiced_yet():
+def get_indents_which_are_not_invoiced_yet(filters):
 	return frappe.db.sql(
 		"""
-		select customer, item, qty
-		from `tabIndent Item`
-		where docstatus != 2
-		and name not in (
+		select indent_item.customer, indent_item.item, indent_item.qty
+		from `tabIndent Item` indent_item,
+		`tabIndent` indent
+		where indent_item.parent = indent.name
+		and indent_item.docstatus != 2
+		and indent.docstatus != 2
+		and indent.posting_date <= '{to_date}'
+		and indent_item.name not in (
 			select indent_item
 			from `tabIndent Invoice`
 			where docstatus = 1
-		)""",
-		as_dict=1
+		)""".format(**filters),
+		as_dict=1,
+	    debug=True
 	)
 
 
-def get_goods_receipts():
+def get_goods_receipts(filters):
 	return frappe.db.sql(
 		"""
 		select customer, item_delivered as item, ifnull(delivered_quantity, 0) as qty
 		from `tabGoods Receipt`
-		where item_delivered != '' and docstatus = 1;""",
-		as_dict=1
+		where item_delivered != ''
+		and docstatus = 1
+		and posting_date <= '{to_date}';""".format(**filters),
+		as_dict=1,
+	    debug=True
 	)
 
 
-def get_sale_purchase_entries():
+def get_sale_purchase_entries(filters):
 	return frappe.db.sql(
 		"""
 		select item, qty, from_customer, to_customer
 		from `tabCross Sale Purchase`
-		where docstatus != 2;""",
-		as_dict=1
+		where docstatus != 2
+		and posting_date <= '{to_date}';""".format(**filters),
+		as_dict=1,
+	    debug=True
 	)
 
 
-def get_data_map():
+def get_data_map(filters):
 	default = {
 	"i_requested": 0,
 	"i_issued": 0,
@@ -104,10 +116,10 @@ def get_data_map():
 
 	map = {}
 
-	invoices = get_invoices()
-	indents = get_indents_which_are_not_invoiced_yet()
-	gr = get_goods_receipts()
-	csps = get_sale_purchase_entries()
+	invoices = get_invoices(filters)
+	indents = get_indents_which_are_not_invoiced_yet(filters)
+	gr = get_goods_receipts(filters)
+	csps = get_sale_purchase_entries(filters)
 
 	for i in indents:
 		map.setdefault(i.customer, {}).setdefault(i.item, frappe._dict(default))
