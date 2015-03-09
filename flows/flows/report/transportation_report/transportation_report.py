@@ -126,7 +126,7 @@ def get_gatepasses():
 
 def get_fuel_cost(date, fuel_qty):
 	if not fuel_qty:
-		return 0
+		return 0, 0
 
 	context = {
 		"date": date,
