@@ -31,6 +31,7 @@ def get_gatepasses(filters=None):
     SELECT *
     FROM `tabGatepass`
     WHERE
+    docstatus = 1 and
     fuel_pump IS NOT Null AND
     fuel_pump != ''
     ORDER BY posting_date ASC;

@@ -119,7 +119,7 @@ def initialize_gatepasses_map(gatepasses):
 
 def get_gatepasses():
 	return frappe.db.sql(
-		"select * from tabGatepass where dispatch_destination = 'Plant' order by posting_date asc;",
+		"select * from tabGatepass where docstatus = 1 and dispatch_destination = 'Plant' order by posting_date asc;",
 		as_dict=True
 	)
 
