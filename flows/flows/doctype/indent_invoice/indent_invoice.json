@@ -112,6 +112,15 @@
    "reqd": 1
   }, 
   {
+   "default": "0", 
+   "fieldname": "handling_charges", 
+   "fieldtype": "Currency", 
+   "label": "Handling Charges", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
    "fieldname": "actual_amount", 
    "fieldtype": "Currency", 
    "label": "Actual Amount", 
@@ -172,7 +181,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-03-09 19:31:59.412098", 
+ "modified": "2015-03-12 08:06:38.763300", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 

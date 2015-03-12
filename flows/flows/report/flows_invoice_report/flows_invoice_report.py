@@ -67,7 +67,7 @@ def get_indents_which_are_not_invoiced_yet(filters):
 		and indent.docstatus != 2
 		and indent.posting_date <= '{to_date}'
 		and indent_item.name not in (
-			select indent_item
+			select ifnull(indent_item, '')
 			from `tabIndent Invoice`
 			where docstatus = 1
 		)""".format(**filters),
