@@ -255,59 +255,96 @@ class IndentInvoice(StockController):
 		return sl_dict
 
 	def cancel_transport_bill(self):
-		sales_invoice = frappe.get_doc("Sales Invoice", self.transportation_invoice)
-		if sales_invoice.docstatus != 2:
-			sales_invoice.docstatus = 2
-			sales_invoice.save()
+		if self.transportation_invoice and self.transportation_invoice != '':
+			sales_invoice = frappe.get_doc("Sales Invoice", self.transportation_invoice)
+			if sales_invoice.docstatus != 2:
+				sales_invoice.docstatus = 2
+				sales_invoice.save()
 
 	def raise_transportation_bill(self):
+
+		indent_invoice_settings = frappe.db.get_values_from_single(
+			'*', None, 'Indent Invoice Settings', as_dict=True)[0]
+
+		root.debug(indent_invoice_settings)
+
+		if not indent_invoice_settings.auto_raise_consignment_notes == '1':
+			return
 
 		qty_in_kg = get_conversion_factor(self.item) * float(self.qty)
 		per_kg_rate_in_invoice = self.actual_amount / qty_in_kg
 
 		landed_rate, transportation_rate = get_landed_rate_for_customer(self.customer, self.posting_date)
-		rate_diff = landed_rate - per_kg_rate_in_invoice
+		rate_diff = per_kg_rate_in_invoice + transportation_rate - landed_rate
 
-		actual_transportation_rate = rate_diff if rate_diff > 0 else 0
+		credit_note = None
 
-		visible_transportation_rate = max(transportation_rate, rate_diff)
+		if rate_diff < 0:
+			# Bump up transportation Rate
+			transportation_rate += (-1 * rate_diff)
+		elif rate_diff > 0:
+			# Raise a credit note
+			logistics_company_object = frappe.get_doc("Company", self.indent_object.logistics_partner)
 
-		discount = visible_transportation_rate - actual_transportation_rate
+			credit_note_doc = {
+			"docstatus": 0,
+			"doctype": "Journal Voucher",
+			"naming_series": "SCN-",
+			"voucher_type": "Credit Note",
+			"is_opening": "No",
+			"write_off_based_on": "Accounts Receivable",
+			"company": logistics_company_object.name,
+			"posting_date": self.posting_date,
+			"entries": [
+				{
+				"docstatus": 0,
+				"doctype": "Journal Voucher Detail",
+				"is_advance": "No",
+				"idx": 1,
+				"account": get_party_account(logistics_company_object.name, self.customer, "Customer"),
+				"credit": rate_diff
+				},
+				{
+				"docstatus": 0,
+				"doctype": "Journal Voucher Detail",
+				"is_advance": "No",
+				"idx": 2,
+				"account": indent_invoice_settings.credit_note_write_off_account,
+				"cost_center": indent_invoice_settings.credit_note_write_off_cost_center,
+				"debit": rate_diff,
+				"user_remark": "Credit Note Against Bill No: {bill_no} Dt: {invoice_date}".format(
+					bill_no=self.name, invoice_date=self.posting_date, item=self.item, qty=self.qty,
+					amt=self.actual_amount
+				)
+				}
+			],
+			}
 
-		credit_note_amount = -1 * rate_diff if rate_diff < 0 else 0
-		if credit_note_amount > 0:
-			# TODO: Raise a CN
-			pass
+			root.debug(credit_note_doc)
 
-
-		# Invoice Description
-		invoice_description = ''
-		if discount > 0:
-			invoice_description += "Rate per KG: {rate} Discount per KG: {discount}\n".format(
-				rate=visible_transportation_rate, discount=discount
-			)
-		invoice_description += """(Bill No: {bill_no} Dt: {invoice_date} Item: {item} Qty: {qty} Amt: {amt})""".format(
-			bill_no=self.name, invoice_date=self.posting_date, item=self.item, qty=self.qty, amt=self.actual_amount
-		)
+			credit_note = frappe.get_doc(credit_note_doc)
+			credit_note.save()
 
 		consignment_note_json_doc = {
 		"doctype": "Sales Invoice",
 		"customer": self.customer,
 		"customer_name": self.customer.strip(),
-		"customer_address": "{}-Billing".format(self.customer.strip()),
 		"posting_date": today(),
 		"posting_time": now(),
 		"entries": [
 			{
 			"qty": qty_in_kg,
-			"rate": actual_transportation_rate,
+			"rate": transportation_rate,
 			"item_code": "LPG Transport",
 			"item_name": "LPG Transport",
 			"stock_uom": "Kg",
 			"doctype": "Sales Invoice Item",
-			"description": invoice_description,
+			"description": """(Bill No: {bill_no} Dt: {invoice_date} Item: {item} Qty: {qty} Amt: {amt})""".format(
+				bill_no=self.name, invoice_date=self.posting_date, item=self.item, qty=self.qty, amt=self.actual_amount
+			),
 			"idx": 1,
 			"income_account": "Service - AL",
+			"cost_center": "Main - AL",
 			"parenttype": "Sales Invoice",
 			"parentfield": "entries",
 			}
@@ -323,10 +360,16 @@ class IndentInvoice(StockController):
 		"plc_conversion_rate": 1,
 		"tc_name": "Consignment Note",
 		"consignor": self.indent_object.plant,
+		"territory": frappe.defaults.get_global_default('default_territory'),
 		"remarks": "Consignment Note Against Invoice no. {}".format(self.name)
 		}
 
 		customer_object = frappe.get_doc("Customer", self.customer)
+		if not customer_object.territory:
+			consignment_note_json_doc["territory"] = indent_invoice_settings.default_territory
+
+		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
+			consignment_note_json_doc["customer_address"] = "{}-Billing".format(self.customer.strip())
 
 		if customer_object.service_tax_liability == "Transporter":
 			consignment_note_json_doc["taxes_and_charges"] = "Road Transport"
@@ -335,24 +378,35 @@ class IndentInvoice(StockController):
 
 		transportation_invoice.save()
 
-		transportation_invoice.terms = self.get_terms_for_commercial_invoice(transportation_invoice, customer_object)
+		transportation_invoice.terms = self.get_terms_for_commercial_invoice(
+			transportation_invoice, customer_object, indent_invoice_settings
+		)
+
+		if credit_note:
+			credit_note.user_remark = "Consignment Note Against Invoice no. {} and Consignment Note {}".format(
+				self.name, transportation_invoice.name
+			)
+			credit_note.docstatus = 1
+			credit_note.save()
 
 		transportation_invoice.docstatus = 1
-
 		transportation_invoice.save()
 
 		frappe.db.sql("UPDATE `tabIndent Invoice` SET transportation_invoice='{}'".format(
 			transportation_invoice.name
 		))
 
-	def get_terms_for_commercial_invoice(self, commercial_invoice, customer_object):
+	def get_terms_for_commercial_invoice(self, commercial_invoice, customer_object, settings):
+		if not ("terms_and_condition" in settings and settings['terms_and_condition'] != ''):
+			return ""
+
+		terms_template = frappe.get_doc('Terms and Conditions', settings['terms_and_condition']).terms
+
 		payment_type = frappe.db.sql("""
                 SELECT payment_type
                 FROM `tabIndent Item`
                 WHERE name = '{}'""".format(self.indent_item)
 		)[0][0]
-
-		terms_template = frappe.get_doc('Terms and Conditions', 'Consignment Note').terms
 
 		payable_amount = '{} ({} + {})'.format(
 			self.actual_amount + commercial_invoice.grand_total_export,
@@ -372,7 +426,7 @@ def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
         FROM `tabIndent Item`
 		WHERE parent IN (SELECT name FROM tabIndent WHERE vehicle = "{vehicle}" AND docstatus = 1)
 		AND {search_key} LIKE "{search_val}%"
-		AND name NOT IN (SELECT indent_item FROM `tabIndent Invoice` WHERE docstatus = 1)
+		AND name NOT IN (SELECT ifnull(indent_item, '') FROM `tabIndent Invoice` WHERE docstatus = 1)
 		ORDER BY customer ASC limit {start}, {page_len}
 		""".format(
 		vehicle=filters["vehicle"],
@@ -387,9 +441,9 @@ def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
 
 def get_conversion_factor(item):
 	conversion_factor_query = """
-        select conversion_factor
-        from `tabItem Conversion`
-        where item='{item}';
+        SELECT conversion_factor
+        FROM `tabItem Conversion`
+        WHERE item='{item}';
         """.format(item=item)
 
 	val = frappe.db.sql(conversion_factor_query)[0][0]

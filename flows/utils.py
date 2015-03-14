@@ -34,9 +34,9 @@ def get_or_create_warehouse(warehouse_name, company):
 	except frappe.DoesNotExistError as e:
 		warehouse_account = frappe.get_doc(
 			{
-				"doctype": "Warehouse",
-				"company": company,
-				"warehouse_name": warehouse_name
+			"doctype": "Warehouse",
+			"company": company,
+			"warehouse_name": warehouse_name
 			})
 		warehouse_account.insert(ignore_permissions=True)
 		return warehouse_account
@@ -49,8 +49,8 @@ from frappe import _
 
 def get_or_or_create_customer_like_gl_account(company, account):
 	acc_head = frappe.db.get_value("Account", {
-		"master_name": account,
-		"company": company
+	"master_name": account,
+	"company": company
 	})
 
 	if acc_head:
@@ -62,14 +62,14 @@ def get_or_or_create_customer_like_gl_account(company, account):
 
 	# create
 	account = frappe.get_doc({
-		"doctype": "Account",
-		'account_name': account,
-		'parent_account': company_details.receivables_group,
-		'group_or_ledger': 'Ledger',
-		'company': company,
-		'master_name': account,
-		"freeze_account": "No",
-		"report_type": "Balance Sheet"
+	"doctype": "Account",
+	'account_name': account,
+	'parent_account': company_details.receivables_group,
+	'group_or_ledger': 'Ledger',
+	'company': company,
+	'master_name': account,
+	"freeze_account": "No",
+	"report_type": "Balance Sheet"
 	}).insert(ignore_permissions=True)
 
 	frappe.msgprint(_("Account Created: {0}").format(account))
@@ -84,6 +84,11 @@ def get_party_account(company, party, party_type):
 	                                           "master_type": party_type, "company": company})
 	if not acc_head:
 		print "missing act head"
+		from stdlogger import root
+
+		root.debug({"master_name": party,
+		            "master_type": party_type,
+		            "company": company})
 		from erpnext.accounts.party import create_party_account
 
 		acc_head = create_party_account(party, party_type, company)

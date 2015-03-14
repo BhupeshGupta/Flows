@@ -8,6 +8,10 @@ from frappe.utils import flt
 
 def execute(filters=None):
 	data_map = get_data_map(filters)
+	customer_map = get_customer_map()
+
+	from flows.stdlogger import root
+	root.debug(customer_map)
 
 	data = []
 
@@ -15,6 +19,7 @@ def execute(filters=None):
 		for item in sorted(data_map[customer]):
 			qty_dict = data_map[customer][item]
 			data.append([
+				customer_map.get(customer.strip(), frappe._dict({'customer_group': 'CNF'})).customer_group,
 				customer,
 				item,
 			    qty_dict.opening,
@@ -31,6 +36,7 @@ def execute(filters=None):
 
 def get_columns():
 	return [
+		"Group:Link/Customer Group:50",
 		"Customer:Link/Customer:200",
 		"Item:Link/Item:100",
 	    "Opening:Float:150",
@@ -192,3 +198,16 @@ def compute_closing(active_map):
 			qty_dict['closing'] = diff
 
 	return active_map
+
+
+def get_customer_map():
+	result_map = frappe._dict({})
+
+	list_of_map = frappe.db.sql("""
+	SELECT name, customer_group from `tabCustomer`;
+	""", as_dict=True);
+
+	for instance in list_of_map:
+		result_map[instance.name.strip()] = instance
+
+	return result_map
