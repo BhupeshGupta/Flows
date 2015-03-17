@@ -15,6 +15,48 @@ erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
         }
     },
 
+    set_fields: function (doc, cdt, cdn) {
+        var me = this;
+
+        feilds_to_autofill_on_linking = [
+            "customer", "item", "qty",
+            "supplier", "rate", "load_type",
+            "warehouse", "logistics_partner",
+            "payment_type", "company"
+        ];
+
+        feilds_mandatory_for_linking = ["vehicle", "indent_item"];
+        feilds_autofilled_on_linking = ["tentative_amount", "indent", "indent_date"];
+
+        $.each(feilds_to_autofill_on_linking, function (i, feild) {
+            me.frm.set_df_property(feild, "read_only", doc.indent_linked == '1');
+        });
+
+        $.each(feilds_mandatory_for_linking, function (i, feild) {
+            me.frm.set_df_property(feild, "reqd", doc.indent_linked == '1');
+        });
+
+        if (doc.indent_linked != '1') {
+            $.each(feilds_mandatory_for_linking, function (i, feild) {
+                me.frm.set_value(feild, "");
+            });
+            $.each(feilds_autofilled_on_linking, function (i, feild) {
+                me.frm.set_value(feild, "");
+            });
+        }
+
+        $.each(feilds_mandatory_for_linking, function (i, feild) {
+            me.frm.set_df_property(feild, "hidden", doc.indent_linked != '1');
+        });
+        $.each(feilds_autofilled_on_linking, function (i, feild) {
+            me.frm.set_df_property(feild, "hidden", doc.indent_linked != '1');
+        });
+    },
+
+    indent_linked: function (doc, cdt, cdn) {
+        this.set_fields(doc, cdt, cdn);
+    },
+
     setup_queries: function () {
         this.set_plant_query("plant");
 
@@ -31,6 +73,7 @@ erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
     },
 
     indent: function (doc, cdt, cdn) {
+        // "{"message":{"posting_date":"2015-03-06","plant":"IOCL una","logistics_partner":"Arun Logistics","vehicle":"HR58D4473"}}"
         var me = this;
         this.frm.call({
             "method": "frappe.client.get_value",
@@ -38,14 +81,33 @@ erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
                 "doctype": "Indent",
                 "filters": {
                     "name": doc.indent
-                }, "fieldname": "posting_date"
+                }, "fieldname": '["posting_date", "logistics_partner", "plant", "vehicle", "company"]'
             },
-            callback: function(r, rt) {
-                me.frm.set_value("indent_date", r.message.posting_date)
-			}
+            callback: function (r, rt) {
+                me.frm.set_value("indent_date", r.message.posting_date);
+                me.frm.set_value("logistics_partner", r.message.logistics_partner);
+                me.frm.set_value("supplier", r.message.plant);
+                me.frm.set_value("company", r.message.company);
+            }
         });
     }
 
 });
 
 $.extend(cur_frm.cscript, new erpnext.flows.IndentInvoice({frm: cur_frm}));
+
+cur_frm.add_fetch('item', 'description', 'description');
+cur_frm.add_fetch('gatepass', 'plant', 'plant');
+cur_frm.add_fetch('vehicle', 'driver', 'driver');
+
+cur_frm.add_fetch('indent_item', 'customer', 'customer');
+cur_frm.add_fetch('indent_item', 'item', 'item');
+cur_frm.add_fetch('indent_item', 'qty', 'qty');
+cur_frm.add_fetch('indent_item', 'rate', 'rate');
+
+cur_frm.add_fetch('indent_item', 'parent', 'indent');
+cur_frm.add_fetch('indent_item', 'load_type', 'load_type');
+cur_frm.add_fetch('indent_item', 'payment_type', 'payment_type');
+
+
+cur_frm.cscript.set_fields(cur_frm.doc, null, null);
