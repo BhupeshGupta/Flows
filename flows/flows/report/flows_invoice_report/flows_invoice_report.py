@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import flt
+from frappe.utils import flt, cint
 
 
 def execute(filters=None):
@@ -52,7 +52,8 @@ def get_columns():
 def get_invoices(filters):
 	rs = frappe.db.sql(
 		"""
-		select posting_date, customer, item, qty
+		select posting_date, customer, item, qty,
+		sub_contracted, supplier
 		from `tabIndent Invoice`
 		where docstatus = 1
 		and posting_date <= '{to_date}'
@@ -146,6 +147,12 @@ def get_data_map(filters):
 		active_map.setdefault(i.customer, {}).setdefault(i.item, frappe._dict(default))
 		qty_dict = active_map[i.customer][i.item]
 		qty_dict.i_issued += flt(i.qty)
+
+		# Subcontracted, add to supplier's sale
+		if cint(i.sub_contracted) == 1:
+			active_map.setdefault(i.supplier, {}).setdefault(i.item, frappe._dict(default))
+			qty_dict = active_map[i.supplier][i.item]
+			qty_dict.m_sold += i.qty
 
 	for i in csps:
 		active_map = opening_map if i.posting_date < filters['from_date'] else current_map

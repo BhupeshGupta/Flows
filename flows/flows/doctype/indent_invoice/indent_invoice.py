@@ -17,6 +17,7 @@ from erpnext.accounts.general_ledger import make_gl_entries
 
 from erpnext.stock.stock_ledger import make_sl_entries
 from frappe.utils import today, now
+from frappe.utils import cint
 
 
 class IndentInvoice(StockController):
@@ -113,12 +114,15 @@ class IndentInvoice(StockController):
 
 		if self.supplier and self.supplier != '' and\
 			self.company and self.company != '' and\
-			self.indent_linked == '1':
+			self.indent_linked == '1' and self.sub_contracted != '1':
 			warehouse_object = flow_utils.get_suppliers_warehouse_account(self.supplier, self.company)
 			self.warehouse = warehouse_object.name
 			root.debug("Warehouse: {}".format(self.warehouse))
 
 	def make_stock_refill_entry(self):
+		if cint(self.sub_contracted) == 1:
+			return
+
 		supplier_warehouse_account = frappe.get_doc("Warehouse", self.warehouse)
 
 		stock_refill_entries = self.convert_stock_in_place(

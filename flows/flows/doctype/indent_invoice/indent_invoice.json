@@ -216,6 +216,21 @@
    "precision": ""
   }, 
   {
+   "default": "0", 
+   "fieldname": "sub_contracted", 
+   "fieldtype": "Check", 
+   "label": "Sub Contracted", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
+   "fieldname": "column_break_26", 
+   "fieldtype": "Section Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "warehouse", 
    "fieldtype": "Link", 
    "label": "Warehouse", 
@@ -342,7 +357,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-03-16 18:08:53.254321", 
+ "modified": "2015-03-18 12:40:13.236109", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 
