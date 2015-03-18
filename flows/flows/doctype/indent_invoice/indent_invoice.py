@@ -114,7 +114,7 @@ class IndentInvoice(StockController):
 
 		if self.supplier and self.supplier != '' and\
 			self.company and self.company != '' and\
-			self.indent_linked == '1' and self.sub_contracted != '1':
+			cint(self.indent_linked) == 1 and cint(self.sub_contracted) == 0:
 			warehouse_object = flow_utils.get_suppliers_warehouse_account(self.supplier, self.company)
 			self.warehouse = warehouse_object.name
 			root.debug("Warehouse: {}".format(self.warehouse))
