@@ -118,9 +118,10 @@
    "reqd": 1
   }, 
   {
+   "description": "Business Associate Company", 
    "fieldname": "company", 
    "fieldtype": "Link", 
-   "label": "Company", 
+   "label": "BA", 
    "options": "Company", 
    "permlevel": 0, 
    "precision": "", 
@@ -209,6 +210,22 @@
    "reqd": 1
   }, 
   {
+   "fieldname": "reports", 
+   "fieldtype": "Section Break", 
+   "label": "Reports", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "default": "0", 
+   "fieldname": "handling_charges", 
+   "fieldtype": "Currency", 
+   "label": "Handling Charges", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
    "fieldname": "stock", 
    "fieldtype": "Section Break", 
    "label": "Stock", 
@@ -217,6 +234,7 @@
   }, 
   {
    "default": "0", 
+   "description": "Used when we enter Aggarwal bill", 
    "fieldname": "sub_contracted", 
    "fieldtype": "Check", 
    "label": "Sub Contracted", 
@@ -282,39 +300,6 @@
    "precision": ""
   }, 
   {
-   "fieldname": "reports", 
-   "fieldtype": "Section Break", 
-   "label": "Reports", 
-   "permlevel": 0, 
-   "precision": ""
-  }, 
-  {
-   "default": "0", 
-   "fieldname": "handling_charges", 
-   "fieldtype": "Currency", 
-   "label": "Handling Charges", 
-   "permlevel": 0, 
-   "precision": "", 
-   "reqd": 1
-  }, 
-  {
-   "fieldname": "posting_time", 
-   "fieldtype": "Time", 
-   "hidden": 1, 
-   "label": "Posting Time", 
-   "permlevel": 0, 
-   "precision": ""
-  }, 
-  {
-   "fieldname": "fiscal_year", 
-   "fieldtype": "Link", 
-   "hidden": 1, 
-   "label": "Fiscal Year", 
-   "options": "Fiscal Year", 
-   "permlevel": 0, 
-   "precision": ""
-  }, 
-  {
    "fieldname": "references", 
    "fieldtype": "Section Break", 
    "label": "References", 
@@ -348,6 +333,23 @@
    "permlevel": 0, 
    "print_hide": 1, 
    "read_only": 1
+  }, 
+  {
+   "fieldname": "posting_time", 
+   "fieldtype": "Time", 
+   "hidden": 1, 
+   "label": "Posting Time", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "fiscal_year", 
+   "fieldtype": "Link", 
+   "hidden": 1, 
+   "label": "Fiscal Year", 
+   "options": "Fiscal Year", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "hide_heading": 0, 
@@ -357,7 +359,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-03-18 12:40:13.236109", 
+ "modified": "2015-03-18 18:30:01.357615", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 

@@ -54,13 +54,14 @@ class IndentInvoice(StockController):
 		if self.docstatus == 0:
 			self.transportation_invoice = ''
 
-		if self.indent_linked == '1':
-			for mandatory in ['vehicle', 'indent_item']:
-				if not (self[mandatory] and self[mandatory] != ''):
-					frappe.throw('{} is required if invoice is linked with indent'.format(self[mandatory]))
+		if cint(self.indent_linked) == 1:
+			if not (self.indent_item and self.indent_item != ''):
+				frappe.throw('{} is required if invoice is linked with indent'.format('indent_item'))
 
 			indent_item = frappe.get_doc("Indent Item", self.indent_item)
-			indent = frappe.get_doc("Indent", self.indent)
+			indent = frappe.get_doc("Indent", indent_item.parent)
+
+			self.vehicle = indent.vehicle
 
 			self.customer = indent_item.customer
 			self.item = indent_item.item
@@ -77,6 +78,8 @@ class IndentInvoice(StockController):
 			self.logistics_partner = indent.logistics_partner
 			self.supplier = indent.plant
 			self.company = indent.company
+
+			self.set_missing_values()
 
 		return super(IndentInvoice, self).validate()
 
@@ -120,6 +123,12 @@ class IndentInvoice(StockController):
 			root.debug("Warehouse: {}".format(self.warehouse))
 
 	def make_stock_refill_entry(self):
+
+		root.debug({
+		"func": "make_stock_refill_entry",
+		"sub_contracted": cint(self.sub_contracted) == 1,
+		})
+
 		if cint(self.sub_contracted) == 1:
 			return
 
@@ -133,6 +142,12 @@ class IndentInvoice(StockController):
 			self.qty,
 			process='Refill'
 		)
+
+		root.debug({
+		"stock_refill_entries": stock_refill_entries,
+		"supplier_warehouse_account": supplier_warehouse_account.name,
+		})
+
 		make_sl_entries(stock_refill_entries)
 
 	def convert_stock_in_place(self, warehouse, from_item, from_item_quantity, to_item, to_item_quantity, process=''):
@@ -474,7 +489,7 @@ def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
 		AND name NOT IN (SELECT ifnull(indent_item, '') FROM `tabIndent Invoice` WHERE docstatus = 1)
 		ORDER BY customer ASC limit {start}, {page_len}
 		""".format(
-		vehicle=filters["vehicle"],
+		vehicle=filters.get("vehicle"),
 		start=start,
 		page_len=page_len,
 		search_key=searchfield,

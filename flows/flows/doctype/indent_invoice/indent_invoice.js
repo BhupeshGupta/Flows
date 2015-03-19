@@ -3,6 +3,7 @@ frappe.provide("erpnext.flows");
 erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
     onload: function () {
         this.setup_queries();
+        this.set_fields(this.frm.doc, null, null);
     },
 
     set_plant_query: function (field) {
@@ -17,16 +18,19 @@ erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
 
     set_fields: function (doc, cdt, cdn) {
         var me = this;
+        console.log("test");
 
         feilds_to_autofill_on_linking = [
             "customer", "item", "qty",
             "supplier", "rate", "load_type",
             "warehouse", "logistics_partner",
-            "payment_type", "company"
+            "payment_type", "company",
+            "sub_contracted"
         ];
 
         feilds_mandatory_for_linking = ["vehicle", "indent_item"];
         feilds_autofilled_on_linking = ["tentative_amount", "indent", "indent_date"];
+        feilds_to_clear_on_indent_linking = ["sub_contracted", "warehouse"];
 
         $.each(feilds_to_autofill_on_linking, function (i, feild) {
             me.frm.set_df_property(feild, "read_only", doc.indent_linked == '1');
@@ -37,12 +41,25 @@ erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
         });
 
         if (doc.indent_linked != '1') {
-            $.each(feilds_mandatory_for_linking, function (i, feild) {
-                me.frm.set_value(feild, "");
+            if (doc.docstatus == 0) {
+                $.each(feilds_mandatory_for_linking, function (i, feild) {
+                    me.frm.set_value(feild, "");
+                });
+                $.each(feilds_autofilled_on_linking, function (i, feild) {
+                    me.frm.set_value(feild, "");
+                });
+            }
+        } else {
+            $.each(feilds_to_clear_on_indent_linking, function (i, feild) {
+                if (feild == "sub_contracted") {
+                    me.frm.set_value(feild, 0);
+                } else {
+                    if (doc.docstatus == 0) {
+                        me.frm.set_value(feild, "");
+                    }
+                }
             });
-            $.each(feilds_autofilled_on_linking, function (i, feild) {
-                me.frm.set_value(feild, "");
-            });
+
         }
 
         $.each(feilds_mandatory_for_linking, function (i, feild) {
@@ -51,9 +68,22 @@ erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
         $.each(feilds_autofilled_on_linking, function (i, feild) {
             me.frm.set_df_property(feild, "hidden", doc.indent_linked != '1');
         });
+
+        // Subcontracting data sanity
+        feilds_to_clear_and_disable_on_sub_contract = ["warehouse", "load_type"];
+        $.each(feilds_to_clear_and_disable_on_sub_contract, function (i, feild) {
+            me.frm.set_df_property(feild, "read_only", doc.sub_contracted == '1' || doc.indent_linked == '1');
+            if (doc.sub_contracted == '1') {
+                me.frm.set_value(feild, "");
+            }
+        });
     },
 
     indent_linked: function (doc, cdt, cdn) {
+        this.set_fields(doc, cdt, cdn);
+    },
+
+    sub_contracted: function (doc, cdt, cdn) {
         this.set_fields(doc, cdt, cdn);
     },
 
@@ -108,6 +138,3 @@ cur_frm.add_fetch('indent_item', 'rate', 'rate');
 cur_frm.add_fetch('indent_item', 'parent', 'indent');
 cur_frm.add_fetch('indent_item', 'load_type', 'load_type');
 cur_frm.add_fetch('indent_item', 'payment_type', 'payment_type');
-
-
-cur_frm.cscript.set_fields(cur_frm.doc, null, null);

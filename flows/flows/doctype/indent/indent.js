@@ -8,6 +8,8 @@ frappe.provide("erpnext.flows");
 erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
     onload: function () {
         this.setup_queries();
+        // Set company according to naming series
+        this.naming_series(this.frm.doc, null, null);
     },
 
     set_plant_query: function (field) {
