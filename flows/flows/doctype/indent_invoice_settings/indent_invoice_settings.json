@@ -70,6 +70,15 @@
    "reqd": 1
   }, 
   {
+   "default": "10", 
+   "fieldname": "min_amount_for_credit_note", 
+   "fieldtype": "Currency", 
+   "label": "Min Amount For Credit Note", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
    "fieldname": "terms_and_condition", 
    "fieldtype": "Link", 
    "label": "Terms For Consignment Note", 
@@ -86,7 +95,7 @@
  "is_submittable": 0, 
  "issingle": 1, 
  "istable": 0, 
- "modified": "2015-03-14 17:14:46.958916", 
+ "modified": "2015-03-20 21:37:18.303340", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice Settings", 
