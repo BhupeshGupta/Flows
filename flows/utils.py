@@ -111,3 +111,8 @@ def get_stock_owner_via_sales_person_tree(person):
 
 	return sales_person.name if sales_person.is_group == 'Yes' else \
 		nestedset.get_ancestors_of("Sales Person", person)[0]
+
+
+class FormatDict(dict):
+	def __missing__(self, k):
+		return '{' + k + '}'

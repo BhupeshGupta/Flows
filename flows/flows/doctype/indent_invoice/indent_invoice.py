@@ -115,9 +115,9 @@ class IndentInvoice(StockController):
 		if not self.fiscal_year:
 			self.fiscal_year = account_utils.get_fiscal_year(date=self.posting_date)[0]
 
-		if self.supplier and self.supplier != '' and\
-			self.company and self.company != '' and\
-			cint(self.indent_linked) == 1 and cint(self.sub_contracted) == 0:
+		if self.supplier and self.supplier != '' and \
+				self.company and self.company != '' and \
+						cint(self.indent_linked) == 1 and cint(self.sub_contracted) == 0:
 			warehouse_object = flow_utils.get_suppliers_warehouse_account(self.supplier, self.company)
 			self.warehouse = warehouse_object.name
 			root.debug("Warehouse: {}".format(self.warehouse))
@@ -377,10 +377,12 @@ class IndentInvoice(StockController):
 			commercial_invoice.grand_total_export,
 		) if self.payment_type == 'Indirect' else commercial_invoice.grand_total_export
 
-		return terms_template.format(
+		from flows.utils import FormatDict
+
+		return terms_template.format(FormatDict(
 			customer=customer_object,
 			total_payable_amount=payable_amount
-		)
+		))
 
 
 	def raise_credit_note(self, from_company, amount, indent_invoice_settings):
