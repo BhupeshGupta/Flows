@@ -53,6 +53,7 @@ class IndentInvoice(StockController):
 		root.debug("Validate")
 		if self.docstatus == 0:
 			self.transportation_invoice = ''
+			self.credit_note = ''
 
 		if cint(self.indent_linked) == 1:
 			if not (self.indent_item and self.indent_item != ''):
