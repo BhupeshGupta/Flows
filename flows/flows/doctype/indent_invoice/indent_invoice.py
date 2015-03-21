@@ -314,6 +314,10 @@ class IndentInvoice(StockController):
 
 	def raise_transportation_bill(self):
 
+		# Hard code skip for now, will fix this later
+		if self.supplier == 'Aggarwal Enterprises':
+			return
+
 		# Pull out config
 		indent_invoice_settings = frappe.db.get_values_from_single(
 			'*', None, 'Indent Invoice Settings', as_dict=True)[0]
