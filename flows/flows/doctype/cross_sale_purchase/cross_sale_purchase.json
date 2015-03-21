@@ -277,7 +277,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-03-20 23:53:52.701409", 
+ "modified": "2015-03-21 07:45:23.944090", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Cross Sale Purchase", 
@@ -297,7 +297,7 @@
    "print": 0, 
    "read": 1, 
    "report": 1, 
-   "role": "Administrator", 
+   "role": "All", 
    "set_user_permissions": 0, 
    "submit": 1, 
    "write": 1
