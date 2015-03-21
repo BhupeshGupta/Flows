@@ -11,6 +11,7 @@ from erpnext.accounts.general_ledger import make_gl_entries
 
 class CrossSalePurchase(Document):
 	def cancel(self):
+		super(CrossSalePurchase, self).cancel()
 		self.update_gl()
 
 
