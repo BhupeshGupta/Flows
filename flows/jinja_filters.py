@@ -86,7 +86,7 @@ def get_customer_field(customer_name, field):
 	rs = frappe.db.sql("""
     SELECT {}
     FROM `tabCustomer`
-    WHERE name = '{}'
+    WHERE name = "{}"
     """.format(field, customer_name)
 	)
 

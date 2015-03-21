@@ -336,6 +336,7 @@ class IndentInvoice(StockController):
 
 		# Customers purchase - landed rate
 		rate_diff = per_kg_rate_in_invoice + transportation_rate - landed_rate
+		rate_diff = round(rate_diff, 2)
 
 		# Discount & Credit Note
 		# Credit Note Only
