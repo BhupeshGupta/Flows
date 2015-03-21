@@ -12,7 +12,7 @@
 <div class="row clearfix">
     <div class="col-xs-6 column">
         <p class="text-left">
-            Vehicle No. {{ doc.vehicle }}<br/>
+            <h4>Vehicle No. {{ doc.vehicle }}</h4><br/>
             Summery for lifting <span>cylinders from {{ doc.plant }}</span>
         </p>
     </div>
@@ -28,20 +28,8 @@
 
 
 <div class="row clearfix">
-    <br/>
-
     <div class="col-xs-12 column">
-        <p>
-            We are sending vehicle no. {{ doc.vehicle }} &amp; we hear by authorise Mr. {{ doc.driver|capitalize }} as
-            driver (whose signature has been attested below) to the above mentioned vehicle.
-        </p>
-    </div>
-</div>
-
-
-<div class="row clearfix">
-    <div class="col-xs-12 column">
-        <table class="table table-striped">
+        <table class="table table-bordered table-striped">
             <thead>
             <tr>
                 <th>
@@ -190,6 +178,18 @@
         </p>
     </div>
 </div>
+
+<div class="row clearfix">
+    <br/>
+
+    <div class="col-xs-12 column">
+        <p>
+            We are sending vehicle no. {{ doc.vehicle }} &amp; we hear by authorise Mr. {{ doc.driver|capitalize }} as
+            driver (whose signature has been attested below) to the above mentioned vehicle.
+        </p>
+    </div>
+</div>
+
 <div class="row clearfix">
     <div class="col-xs-6 column">
         <p class="text-left">
