@@ -120,6 +120,15 @@ erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
                 me.frm.set_value("company", r.message.company);
             }
         });
+    },
+
+    // Pre fill most used options to aid data entry
+    supplier: function (doc, cdt, cdn) {
+        if (doc.supplier == "Aggarwal Enterprises") {
+            this.frm.set_value("company", "Aggarwal Enterprises");
+            this.frm.set_value("logistics_partner", "Arun Logistics");
+            this.frm.set_value("sub_contracted", 1);
+        }
     }
 
 });

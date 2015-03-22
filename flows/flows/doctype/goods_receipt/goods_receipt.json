@@ -17,25 +17,16 @@
    "precision": ""
   }, 
   {
-   "default": "Today", 
+   "default": "", 
    "fieldname": "posting_date", 
    "fieldtype": "Date", 
    "hidden": 0, 
    "label": "Posting Date", 
+   "options": "TransactionDate", 
    "permlevel": 0, 
    "precision": "", 
    "read_only": 0, 
    "reqd": 1
-  }, 
-  {
-   "fieldname": "posting_time", 
-   "fieldtype": "Time", 
-   "hidden": 0, 
-   "label": "Posting Time", 
-   "permlevel": 0, 
-   "precision": "", 
-   "read_only": 0, 
-   "reqd": 0
   }, 
   {
    "fieldname": "warehouse", 
@@ -183,6 +174,23 @@
    "set_only_once": 0
   }, 
   {
+   "fieldname": "references", 
+   "fieldtype": "Section Break", 
+   "label": "References", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "posting_time", 
+   "fieldtype": "Time", 
+   "hidden": 0, 
+   "label": "Posting Time", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 0, 
+   "reqd": 0
+  }, 
+  {
    "fieldname": "amended_from", 
    "fieldtype": "Link", 
    "label": "Amended From", 
@@ -221,7 +229,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-03-09 19:32:57.183594", 
+ "modified": "2015-03-23 01:02:42.462013", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Goods Receipt", 

@@ -127,6 +127,7 @@ fixtures = [
 
 
 boot_session = "flows.flows.startup_boot_info.boot_session"
+startup_js = "flows.flows.startup_boot_info.get_startup_js"
 
 jenv_filter = [
 	'indent_refill_qty:flows.jinja_filters.indent_refill_qty',

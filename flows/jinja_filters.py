@@ -105,7 +105,7 @@ def get_cenvat_status(customer_name, date, plant):
 	)
 
 	if not rs:
-		return ""
+		return "NONMODVAT"
 
 	return "MODVAT" if rs[0][0] == 1 else "NONMODVAT"
 
