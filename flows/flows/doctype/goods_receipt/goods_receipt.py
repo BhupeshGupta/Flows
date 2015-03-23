@@ -145,7 +145,7 @@ class GoodsReceipt(Document):
 	def get_sl_entry(self, args):
 		sl_dict = frappe._dict(
 			{
-				"posting_date": self.transaction_date,
+				"posting_date": self.posting_date,
 				"posting_time": self.posting_time,
 				"voucher_type": self.doctype,
 				"voucher_no": self.name,

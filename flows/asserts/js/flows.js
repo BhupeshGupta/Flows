@@ -45,7 +45,7 @@ $(document).on('startup', function () {
     });
 
 
-    $(document).keydown("meta+a ctrl+a", function (e) {
+    $(document).keydown("meta+shift+a ctrl+shift+a", function (e) {
         var route = frappe.get_route();
         if (route[0] == 'Form') {
             frappe.set_route("Form", route[1], frappe.model.make_new_doc_and_get_name(route[1]))
