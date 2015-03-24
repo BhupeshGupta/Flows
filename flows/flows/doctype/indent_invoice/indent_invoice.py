@@ -45,7 +45,6 @@ class IndentInvoice(StockController):
 		super(IndentInvoice, self).cancel()
 		self.set_missing_values()
 		self.make_gl_entries()
-		root.debug("Canceled {}".format(self.name))
 		self.make_stock_refill_entry()
 		self.cancel_transport_bill()
 
@@ -220,7 +219,7 @@ class IndentInvoice(StockController):
 				"account": logistics_partner_account,
 				"against": supplier_plant,
 				"debit": self.actual_amount,
-				"remarks": "Against Invoice Id {}".format(self.name),
+				"remarks": "Against Invoice Id {}".format(self.invoice_number),
 				"against_voucher": self.name,
 				"against_voucher_type": self.doctype,
 				})
@@ -231,7 +230,7 @@ class IndentInvoice(StockController):
 				"account": supplier_plant,
 				"against": logistics_partner_account,
 				"credit": self.actual_amount,
-				"remarks": "Against Invoice Id {}".format(self.name),
+				"remarks": "Against Invoice Id {}".format(self.invoice_number),
 				"against_voucher": self.name,
 				"against_voucher_type": self.doctype,
 				})
@@ -244,7 +243,7 @@ class IndentInvoice(StockController):
 					"account": customer_account,
 					"against": ba_account,
 					"debit": self.actual_amount,
-					"remarks": "Against Invoice no. {}".format(self.name),
+					"remarks": "Against Invoice no. {}".format(self.invoice_number),
 					"against_voucher": self.name,
 					"against_voucher_type": self.doctype,
 					"company": self.logistics_partner
@@ -256,7 +255,7 @@ class IndentInvoice(StockController):
 					"account": ba_account,
 					"against": customer_account,
 					"credit": self.actual_amount,
-					"remarks": "Against Invoice no. {}".format(self.name),
+					"remarks": "Against Invoice no. {}".format(self.invoice_number),
 					"against_voucher": self.name,
 					"against_voucher_type": self.doctype,
 					"company": self.logistics_partner
@@ -376,7 +375,7 @@ class IndentInvoice(StockController):
 		# Save and Submit Credit Note and Consignment Note
 		if credit_note:
 			credit_note.user_remark = "Against Invoice no. {} and Consignment Note {}".format(
-				self.name, transportation_invoice.name
+				self.invoice_number, transportation_invoice.name
 			)
 			credit_note.docstatus = 1
 			credit_note.save()
@@ -473,7 +472,7 @@ class IndentInvoice(StockController):
 			description += "Rate per KG: {}, Discount per KG: {}\n".format(transportation_rate_per_kg, discount_per_kg)
 
 		description += """(Bill No: {bill_no} Dt: {invoice_date} Item: {item} Qty: {qty} Amt: {amt})""".format(
-			bill_no=self.name, invoice_date=self.posting_date, item=self.item, qty=self.qty, amt=self.actual_amount
+			bill_no=self.invoice_number, invoice_date=self.posting_date, item=self.item, qty=self.qty, amt=self.actual_amount
 		)
 
 		consignment_note_json_doc = {
@@ -510,7 +509,8 @@ class IndentInvoice(StockController):
 		"tc_name": "Consignment Note",
 		"consignor": self.supplier,
 		"territory": customer_object.territory if customer_object.territory else
-		indent_invoice_settings.default_territory
+		indent_invoice_settings.default_territory,
+		"remarks": "Against Bill No. """.format(self.invoice_number)
 		}
 
 		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
