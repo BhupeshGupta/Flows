@@ -510,7 +510,7 @@ class IndentInvoice(StockController):
 		"consignor": self.supplier,
 		"territory": customer_object.territory if customer_object.territory else
 		indent_invoice_settings.default_territory,
-		"remarks": "Against Bill No. """.format(self.invoice_number)
+		"remarks": "Against Bill No. {}""".format(self.invoice_number)
 		}
 
 		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
