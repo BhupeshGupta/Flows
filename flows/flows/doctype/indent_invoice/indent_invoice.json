@@ -336,12 +336,14 @@
    "read_only": 1
   }, 
   {
-   "default": "Today", 
+   "default": "", 
    "fieldname": "posting_date", 
    "fieldtype": "Date", 
+   "hidden": 0, 
    "label": "Posting Date", 
    "permlevel": 0, 
-   "precision": ""
+   "precision": "", 
+   "read_only": 1
   }, 
   {
    "fieldname": "posting_time", 
@@ -368,7 +370,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-03-23 01:43:48.617801", 
+ "modified": "2015-03-24 08:43:05.625043", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 
