@@ -18,7 +18,6 @@ erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
 
     set_fields: function (doc, cdt, cdn) {
         var me = this;
-        console.log("test");
 
         feilds_to_autofill_on_linking = [
             "customer", "item", "qty",

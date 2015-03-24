@@ -52,6 +52,15 @@
    "set_only_once": 0
   }, 
   {
+   "default": "0", 
+   "fieldname": "auto_raise_credit_note", 
+   "fieldtype": "Check", 
+   "label": "Auto Raise Credit Note", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
    "fieldname": "credit_note_write_off_account", 
    "fieldtype": "Link", 
    "label": "Credit Note Write Off Account", 
@@ -86,6 +95,15 @@
    "permlevel": 0, 
    "precision": "", 
    "reqd": 0
+  }, 
+  {
+   "default": "0.10", 
+   "fieldname": "min_rate_diff_for_discount", 
+   "fieldtype": "Currency", 
+   "label": "Min Rate Diff For Discount", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
   }
  ], 
  "hide_heading": 0, 
@@ -95,7 +113,7 @@
  "is_submittable": 0, 
  "issingle": 1, 
  "istable": 0, 
- "modified": "2015-03-20 21:37:18.303340", 
+ "modified": "2015-03-24 08:19:11.413255", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice Settings", 

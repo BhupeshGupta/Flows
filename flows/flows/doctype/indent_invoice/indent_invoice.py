@@ -338,6 +338,9 @@ class IndentInvoice(StockController):
 		rate_diff = per_kg_rate_in_invoice + transportation_rate - landed_rate
 		rate_diff = round(rate_diff, 2)
 
+		if rate_diff < indent_invoice_settings.min_rate_diff_for_discount:
+			rate_diff = 0
+
 		# Discount & Credit Note
 		# Credit Note Only
 		algo = frappe.db.get_value("Customer", self.customer, "rate_match_algorithm")
@@ -352,7 +355,8 @@ class IndentInvoice(StockController):
 
 		logistics_company_object = frappe.get_doc("Company", self.logistics_partner)
 
-		if rate_diff > 0 and rate_diff * qty_in_kg > float(indent_invoice_settings.min_amount_for_credit_note):
+		if rate_diff > 0 and rate_diff * qty_in_kg > float(indent_invoice_settings.min_amount_for_credit_note)\
+				and cint(indent_invoice_settings.auto_raise_credit_note) == 1:
 			# Raise a credit note
 			credit_note = self.raise_credit_note(
 				logistics_company_object.name, rate_diff * qty_in_kg, indent_invoice_settings
@@ -545,7 +549,7 @@ def get_conversion_factor(item):
 	conversion_factor_query = """
         SELECT conversion_factor
         FROM `tabItem Conversion`
-        WHERE item='{item}';
+        WHERE item="{item}";
         """.format(item=item)
 
 	val = frappe.db.sql(conversion_factor_query)[0][0]
@@ -556,10 +560,14 @@ def get_conversion_factor(item):
 
 
 def get_landed_rate_for_customer(customer, date):
-	return frappe.db.sql("""
+	rs = frappe.db.sql("""
     SELECT landed_rate, local_transport_rate
     FROM `tabCustomer Landed Rate`
-    WHERE customer='{customer}' AND
-    with_effect_from<='{date}'
+    WHERE customer="{customer}" AND
+    with_effect_from<="{date}"
     ORDER BY with_effect_from DESC LIMIT 1;
-    """.format(customer=customer, date=date))[0]
+    """.format(customer=customer, date=date))
+	if rs:
+		return rs[0]
+	frappe.throw('Landed Rate Not Found For Customer {} for date {}'.format(customer, date))
+
