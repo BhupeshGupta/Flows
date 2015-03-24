@@ -31,6 +31,8 @@ def execute(filters=None):
 				qty_dict.closing,
 			])
 
+	data = sorted(data, key = lambda x: (x[0], x[1]))
+
 	return get_columns(), data
 
 
