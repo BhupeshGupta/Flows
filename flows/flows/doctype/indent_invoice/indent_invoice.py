@@ -337,7 +337,7 @@ class IndentInvoice(StockController):
 		rate_diff = per_kg_rate_in_invoice + transportation_rate - landed_rate
 		rate_diff = round(rate_diff, 2)
 
-		if rate_diff < indent_invoice_settings.min_rate_diff_for_discount:
+		if rate_diff < float(indent_invoice_settings.min_rate_diff_for_discount):
 			rate_diff = 0
 
 		# Discount & Credit Note
