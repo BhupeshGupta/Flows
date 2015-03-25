@@ -15,7 +15,6 @@ fixtures = [
 	"Warehouse",
 	"Item",
 	"Item Conversion",
-	"Company",
 	"Workflow State",
 	"Workflow Action",
 	"Workflow",

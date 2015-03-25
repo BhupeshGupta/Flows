@@ -59,4 +59,12 @@ $(document).on('startup', function () {
         }
     });
 
+    $(document).keydown("meta+shift+s ctrl+shift+s", function (e) {
+        e.preventDefault();
+        if (cur_frm) {
+            cur_frm.savesubmit();
+        }
+        return false;
+    });
+
 });

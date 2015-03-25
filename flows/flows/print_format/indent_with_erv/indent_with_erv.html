@@ -111,10 +111,14 @@
 							{{ indent_item.customer | get_cenvat_status(doc.posting_date, doc.plant) or '' }}
 						</td>
 						<td>
-							{% if indent_item.payment_type == 'Indirect' %}
-								PAYER
+							{% if doc.naming_series != 'HPC' %}
+								{% if indent_item.payment_type == 'Indirect' %}
+									PAYER
+								{% else %}
+									BAL SAP
+								{% endif %}
 							{% else %}
-								BAL SAP
+								Bal Pending
 							{% endif %}
 						</td>
 						<td>

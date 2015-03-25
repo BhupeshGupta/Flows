@@ -8,8 +8,8 @@ from flows.stdlogger import root
 def get_landed_rate(customer, posting_date, item):
 	rs = frappe.db.sql("""
 	SELECT landed_rate FROM `tabCustomer Landed Rate`
-	WHERE with_effect_from <= '{posting_date}'
-	AND customer = '{customer}'
+	WHERE with_effect_from <= "{posting_date}"
+	AND customer = "{customer}"
 	ORDER BY with_effect_from DESC LIMIT 1;
 	""".format(posting_date=posting_date, customer=customer))
 
@@ -18,7 +18,7 @@ def get_landed_rate(customer, posting_date, item):
 	rs = frappe.db.sql("""
     select conversion_factor
     from `tabItem Conversion`
-    where item='{item}';
+    where item="{item}";
     """.format(item=item))
 
 	conversion_factor = rs[0][0] if rs and len(rs) > 0 else 0
@@ -39,7 +39,7 @@ def compute_base_rate_for_a_customer(customer, plant, item, sales_tax_type, post
 	base_rate_query = """
     select base_rate
     from `tabPlant Rate`
-    where plant='{plant}' and with_effect_from <= DATE('{posting_date}')
+    where plant="{plant}" and with_effect_from <= DATE("{posting_date}")
     order by with_effect_from desc limit 1;
     """.format(**context)
 
@@ -52,7 +52,7 @@ def compute_base_rate_for_a_customer(customer, plant, item, sales_tax_type, post
 	discount_transportation_query = """
     select transportation, discount, tax_percentage, surcharge_percentage
     from `tabCustomer Plant Variables`
-    where plant='{plant}' and with_effect_from <= DATE('{posting_date}') and customer='{customer}'
+    where plant="{plant}" and with_effect_from <= DATE("{posting_date}") and customer="{customer}"
     order by with_effect_from desc limit 1;
     """.format(**context)
 
@@ -70,7 +70,7 @@ def compute_base_rate_for_a_customer(customer, plant, item, sales_tax_type, post
 	conversion_factor_query = """
     select conversion_factor
     from `tabItem Conversion`
-    where item='{item}';
+    where item="{item}";
     """.format(**context)
 
 	rs = frappe.db.sql(conversion_factor_query)
@@ -103,7 +103,7 @@ def get_customer_payment_info(customer, plant, posting_date):
 	discount_transportation_query = """
     select sales_tax_type, cenvat, tax_percentage, surcharge_percentage, payment_mode
     from `tabCustomer Plant Variables`
-    where plant='{plant}' and with_effect_from <= DATE('{posting_date}') and customer='{customer}'
+    where plant="{plant}" and with_effect_from <= DATE("{posting_date}") and customer="{customer}"
     order by with_effect_from desc limit 1;
     """.format(**context)
 
@@ -119,4 +119,6 @@ def get_customer_payment_info(customer, plant, posting_date):
 		"payment_mode": payment_mode
 		}
 
-	return {}
+	frappe.throw("""Customer Plant Master Not Found For Customer {}, Plant {} and Date {}.
+	Please enter details in customer plant master and reload this customer in indent before proceeding further""".format(
+		customer, plant, posting_date))
