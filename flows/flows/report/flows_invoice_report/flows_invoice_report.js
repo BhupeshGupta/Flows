@@ -18,4 +18,4 @@ frappe.query_reports["Flows Invoice Report"] = {
             "reqd": 1
         }
     ]
-}
+};
