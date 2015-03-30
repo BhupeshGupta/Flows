@@ -16,6 +16,7 @@
    "fieldtype": "Date", 
    "in_list_view": 1, 
    "label": "Date", 
+   "options": "TransactionDate", 
    "permlevel": 0, 
    "precision": "", 
    "reqd": 1
@@ -90,6 +91,26 @@
    "permlevel": 0, 
    "precision": "", 
    "reqd": 1
+  }, 
+  {
+   "fieldname": "section_break_10", 
+   "fieldtype": "Section Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "indent", 
+   "fieldtype": "Link", 
+   "label": "Indent", 
+   "options": "Indent", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "column_break_12", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
   }, 
   {
    "depends_on": "eval:doc.dispatch_destination=='Plant'", 
@@ -213,7 +234,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-03-02 23:11:55.862821", 
+ "modified": "2015-03-30 07:35:19.075594", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Gatepass", 
