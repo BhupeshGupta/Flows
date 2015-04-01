@@ -12,15 +12,16 @@ from erpnext.accounts.utils import get_fiscal_year
 
 class GoodsReceipt(Document):
 	def validate(self):
+		pass
 
-		verify_book_query = """
-        SELECT name FROM `tabGoods Receipt Book` where serial_start <= {0} and serial_end >= {0}
-        """.format(self.goods_receipt_number)
-
-		if len(frappe.db.sql(verify_book_query)) == 0:
-			throw(
-				_("Invalid serial. Can not find any receipt book for this serial {}").format(self.goods_receipt_number)
-			)
+		# verify_book_query = """
+		# SELECT name FROM `tabGoods Receipt Book` where serial_start <= {0} and serial_end >= {0}
+		# """.format(self.goods_receipt_number)
+		#
+		# if len(frappe.db.sql(verify_book_query)) == 0:
+		# 	throw(
+		# 		_("Invalid serial. Can not find any receipt book for this serial {}").format(self.goods_receipt_number)
+		# 	)
 
 	def on_submit(self):
 		self.transfer_stock()
