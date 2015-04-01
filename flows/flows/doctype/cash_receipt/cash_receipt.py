@@ -27,27 +27,28 @@ class CashReceipt(Document):
 
 	def transfer_stock(self):
 		stock_owner = utils.get_stock_owner_via_sales_person_tree(self.stock_owner)
-		stock_owner_warehouse = utils.get_or_create_warehouse(stock_owner, self.company)
+		stock_owner_warehouse = utils.get_or_create_warehouse(stock_owner, self.stock_owner_company)
 
 		sl_entries = []
 
-		sl_entries.append(
-			self.get_sl_entry({
-				"item_code": self.item,
-				"actual_qty": -1 * self.qty,
-				"warehouse": stock_owner_warehouse.name,
-				"process": "New Connection" if self.new_connection == 1 else "Refill"
-			})
-		)
+		if self.transaction_type in ("Refill", "New Connection"):
+			sl_entries.append(
+				self.get_sl_entry({
+					"item_code": self.item,
+					"actual_qty": -1 * self.qty,
+					"warehouse": stock_owner_warehouse.name,
+					"process": self.transaction_type
+				})
+			)
 
-		# if not a new connection
-		if not self.new_connection == 1:
+		# if refill sale or tv-out
+		if self.transaction_type in ('Refill', 'TV Out'):
 			sl_entries.append(
 				self.get_sl_entry({
 					"item_code": self.item.replace('F', 'E'),
 					"actual_qty": self.qty,
 					"warehouse": stock_owner_warehouse.name,
-					"process": "New Connection" if self.new_connection == 1 else "Refill"
+					"process": self.transaction_type
 				})
 			)
 
@@ -63,7 +64,7 @@ class CashReceipt(Document):
 				"voucher_no": self.name,
 				"actual_qty": 0,
 				"incoming_rate": 0,
-				"company": self.company,
+				"company": self.stock_owner_company,
 				"fiscal_year": self.fiscal_year,
 				"is_cancelled": self.docstatus == 2 and "Yes" or "No"
 			})
@@ -101,16 +102,17 @@ class CashReceipt(Document):
 
 		cost_center = 'Main - {}'.format(company_abbr)
 
-		root.debug("owners account name {}".format(owners_account))
+		assert_dr_or_cr = "debit" if self.transaction_type in ("Refill", "New Connection") else "credit"
+		sales_dr_or_cr = "debit" if assert_dr_or_cr == "credit" else "credit"
 
 		if self.total:
 			gl_entries.append(
 				self.get_gl_dict({
 					"account": owners_account,
-					"debit": self.total,
+					assert_dr_or_cr: self.total,
 					"remarks": "Against CR {}{}".format(
 						self.name,
-						" for NC" if self.new_connection == 1 else ""
+						" (NC)" if self.new_connection == 1 else ""
 					),
 				})
 			)
@@ -118,14 +120,17 @@ class CashReceipt(Document):
 			gl_entries.append(
 				self.get_gl_dict({
 					"account": sales_account,
-					"credit": self.total,
+					sales_dr_or_cr: self.total,
 					"cost_center": cost_center,
 					"remarks": "Against CR {}{}".format(
 						self.name,
-						" for NC" if self.new_connection == 1 else ""
+						" (NC)" if self.new_connection == 1 else ""
 					),
 				})
 			)
+
+		root.debug(gl_entries)
+		root.debug(self.total)
 
 		if gl_entries:
 			make_gl_entries(

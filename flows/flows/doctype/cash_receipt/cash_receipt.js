@@ -39,3 +39,12 @@ if (frappe.boot.cash_receipt && frappe.boot.cash_receipt.stock_owner) {
 } else {
     cur_frm.set_df_property("stock_owner", "reqd", true);
 }
+
+cur_frm.set_value("company", "VK Logistics");
+cur_frm.set_value("stock_owner_company", "Arun Logistics");
+cur_frm.set_df_property("company", "read_only", true);
+cur_frm.set_df_property("stock_owner_company", "read_only", true);
+
+if (cur_frm.doc.owner == "Administrator") {
+    cur_frm.set_df_property("owner", "read_only", false);
+}
