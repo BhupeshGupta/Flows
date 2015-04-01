@@ -94,11 +94,14 @@ class IndentInvoice(StockController):
 
 	def set_missing_values(self, *args, **kwargs):
 
-		root.debug("set_missing_values before super")
+		if not self.posting_date:
+			self.posting_date = today()
+		if not self.posting_time:
+			self.posting_time = now()
+		if not self.fiscal_year:
+			self.fiscal_year = account_utils.get_fiscal_year(date=self.transaction_date)[0]
 
 		super(IndentInvoice, self).set_missing_values(*args, **kwargs)
-
-		root.debug("set_missing_values after super")
 
 		root.debug({
 		"indent_item_name": self.indent_item,
@@ -107,13 +110,6 @@ class IndentInvoice(StockController):
 		"company": self.company,
 		"supplier": self.supplier
 		})
-
-		if not self.posting_date:
-			self.posting_date = today()
-		if not self.posting_time:
-			self.posting_time = now()
-		if not self.fiscal_year:
-			self.fiscal_year = account_utils.get_fiscal_year(date=self.posting_date)[0]
 
 		if self.supplier and self.supplier != '' and \
 				self.company and self.company != '' and \
@@ -354,7 +350,7 @@ class IndentInvoice(StockController):
 
 		logistics_company_object = frappe.get_doc("Company", self.logistics_partner)
 
-		if rate_diff > 0 and rate_diff * qty_in_kg > float(indent_invoice_settings.min_amount_for_credit_note)\
+		if rate_diff > 0 and rate_diff * qty_in_kg > float(indent_invoice_settings.min_amount_for_credit_note) \
 				and cint(indent_invoice_settings.auto_raise_credit_note) == 1:
 			# Raise a credit note
 			credit_note = self.raise_credit_note(
@@ -462,7 +458,8 @@ class IndentInvoice(StockController):
 		credit_note.save()
 		return credit_note
 
-	def raise_consignment_note(self, qty_in_kg, transportation_rate_per_kg, indent_invoice_settings, discount_per_kg=0):
+	def raise_consignment_note(self, qty_in_kg, transportation_rate_per_kg, indent_invoice_settings,
+	                           discount_per_kg=0):
 
 		customer_object = frappe.get_doc("Customer", self.customer)
 
@@ -472,7 +469,8 @@ class IndentInvoice(StockController):
 			description += "Rate per KG: {}, Discount per KG: {}\n".format(transportation_rate_per_kg, discount_per_kg)
 
 		description += """(Bill No: {bill_no} Dt: {invoice_date} Item: {item} Qty: {qty} Amt: {amt})""".format(
-			bill_no=self.invoice_number, invoice_date=self.posting_date, item=self.item, qty=self.qty, amt=self.actual_amount
+			bill_no=self.invoice_number, invoice_date=self.posting_date, item=self.item, qty=self.qty,
+			amt=self.actual_amount
 		)
 
 		consignment_note_json_doc = {
