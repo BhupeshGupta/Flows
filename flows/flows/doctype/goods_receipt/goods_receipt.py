@@ -165,8 +165,8 @@ class GoodsReceipt(Document):
 			if not self.get(fieldname):
 				self.set(fieldname, today())
 
-		if not self.get("fiscal_year"):
-			self.fiscal_year = get_fiscal_year(today())[0]
-
 		if not self.get("posting_time"):
 			self.posting_time = now()
+
+		if not self.get("fiscal_year"):
+			self.fiscal_year = get_fiscal_year(self.posting_date)[0]
