@@ -49,7 +49,6 @@ class IndentInvoice(StockController):
 		self.cancel_transport_bill()
 
 	def validate(self):
-		root.debug("Validate")
 		if self.docstatus == 0:
 			self.transportation_invoice = ''
 			self.credit_note = ''
@@ -79,7 +78,7 @@ class IndentInvoice(StockController):
 			self.supplier = indent.plant
 			self.company = indent.company
 
-			self.set_missing_values()
+		self.set_missing_values()
 
 		return super(IndentInvoice, self).validate()
 
@@ -99,17 +98,11 @@ class IndentInvoice(StockController):
 		if not self.posting_time:
 			self.posting_time = now()
 
-		self.fiscal_year = account_utils.get_fiscal_year(date=self.transaction_date)[0]
+		self.fiscal_year = account_utils.get_fiscal_year(self.get("transaction_date"))[0]
+
+		root.debug((self.get("transaction_date"), self.fiscal_year))
 
 		super(IndentInvoice, self).set_missing_values(*args, **kwargs)
-
-		root.debug({
-		"indent_item_name": self.indent_item,
-		"indent_name": self.indent,
-		"customer": self.customer,
-		"company": self.company,
-		"supplier": self.supplier
-		})
 
 		if self.supplier and self.supplier != '' and \
 				self.company and self.company != '' and \
