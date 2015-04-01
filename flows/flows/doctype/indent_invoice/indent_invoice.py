@@ -98,8 +98,8 @@ class IndentInvoice(StockController):
 			self.posting_date = today()
 		if not self.posting_time:
 			self.posting_time = now()
-		if not self.fiscal_year:
-			self.fiscal_year = account_utils.get_fiscal_year(date=self.transaction_date)[0]
+
+		self.fiscal_year = account_utils.get_fiscal_year(date=self.transaction_date)[0]
 
 		super(IndentInvoice, self).set_missing_values(*args, **kwargs)
 
