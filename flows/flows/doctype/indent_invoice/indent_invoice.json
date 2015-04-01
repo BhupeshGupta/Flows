@@ -10,6 +10,16 @@
  "document_type": "Master", 
  "fields": [
   {
+   "allow_on_submit": 1, 
+   "default": "0", 
+   "fieldname": "cross_sold", 
+   "fieldtype": "Check", 
+   "label": "Cross Sold", 
+   "permlevel": 0, 
+   "precision": "", 
+   "print_hide": 1
+  }, 
+  {
    "fieldname": "linking", 
    "fieldtype": "Section Break", 
    "label": "Linking", 
@@ -370,7 +380,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-03-24 08:43:05.625043", 
+ "modified": "2015-04-01 08:42:55.424771", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 
