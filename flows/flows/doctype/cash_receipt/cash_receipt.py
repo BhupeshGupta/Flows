@@ -110,9 +110,9 @@ class CashReceipt(Document):
 				self.get_gl_dict({
 					"account": owners_account,
 					assert_dr_or_cr: self.total,
-					"remarks": "Against CR {}{}".format(
+					"remarks": "Against CR {}({})".format(
 						self.name,
-						" (NC)" if self.new_connection == 1 else ""
+						self.transaction_type
 					),
 				})
 			)
@@ -122,9 +122,9 @@ class CashReceipt(Document):
 					"account": sales_account,
 					sales_dr_or_cr: self.total,
 					"cost_center": cost_center,
-					"remarks": "Against CR {}{}".format(
+					"remarks": "Against CR {}({})".format(
 						self.name,
-						" (NC)" if self.new_connection == 1 else ""
+						self.transaction_type
 					),
 				})
 			)
