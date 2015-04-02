@@ -120,9 +120,9 @@ fixtures = [
 # Overriding Whitelisted Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.core.doctype.event.event.get_events": "flows.event.get_events"
-# }
+override_whitelisted_methods = {
+	"frappe.model.rename_doc.rename_doc": "flows.flows.customer.rename_doc"
+}
 
 
 boot_session = "flows.flows.startup_boot_info.boot_session"
