@@ -144,12 +144,11 @@ class CashReceipt(Document):
 		from frappe.utils import today, now
 		from erpnext.accounts.utils import get_fiscal_year
 
-		for fieldname in ["posting_date", "posting_time"]:
+		for fieldname in ["posting_date"]:
 			if not self.get(fieldname):
 				self.set(fieldname, today())
 
-		if not self.get("fiscal_year"):
-			self.fiscal_year = get_fiscal_year(today())[0]
+		self.fiscal_year = get_fiscal_year(self.posting_date)[0]
 
 		if not self.get("posting_time"):
 			self.posting_time = now()

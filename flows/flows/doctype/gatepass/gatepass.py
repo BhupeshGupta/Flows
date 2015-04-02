@@ -80,12 +80,11 @@ class Gatepass(Document):
 		return sl_dict
 
 	def set_missing_values(self):
-		for fieldname in ["posting_date", "posting_time" "transaction_date"]:
+		for fieldname in ["posting_date", "transaction_date"]:
 			if not self.get(fieldname):
 				self.set(fieldname, today())
 
-		if not self.get("fiscal_year"):
-			self.fiscal_year = get_fiscal_year(today())[0]
+		self.fiscal_year = get_fiscal_year(self.posting_date)[0]
 
 		if not self.get("posting_time"):
 			self.posting_time = now()
