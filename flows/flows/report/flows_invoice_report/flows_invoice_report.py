@@ -6,12 +6,16 @@ import frappe
 from frappe.utils import flt, cint
 
 
+## Need report via transaction_date
+
 def execute(filters=None):
+	# Pull out config
+	indent_invoice_settings = frappe.db.get_values_from_single(
+		'*', None, 'Cross Sale Purchase Settings', as_dict=True)[0]
+	filters.indent_invoice_settings = indent_invoice_settings
+
 	data_map = get_data_map(filters)
 	customer_map = get_customer_map()
-
-	from flows.stdlogger import root
-	root.debug(customer_map)
 
 	data = []
 
@@ -54,12 +58,12 @@ def get_columns():
 def get_invoices(filters):
 	rs = frappe.db.sql(
 		"""
-		select posting_date, customer, item, qty,
-		sub_contracted, supplier
+		select transaction_date as posting_date, customer, item, qty,
+		sub_contracted, supplier, cross_sold
 		from `tabIndent Invoice`
 		where docstatus = 1
-		and posting_date <= '{to_date}'
-		order by posting_date, posting_time, name""".format(**filters),
+		and transaction_date <= '{to_date}'
+		order by transaction_date, posting_time, name""".format(**filters),
 		as_dict=1,
 	    debug=True
 	)
@@ -155,6 +159,19 @@ def get_data_map(filters):
 			active_map.setdefault(i.supplier, {}).setdefault(i.item, frappe._dict(default))
 			qty_dict = active_map[i.supplier][i.item]
 			qty_dict.m_sold += i.qty
+
+		# Cross Sold
+		# if cint(i.cross_sold) == 1:
+		# 	# Sold by customer
+		# 	active_map.setdefault(i.customer, {}).setdefault(i.item, frappe._dict(default))
+		# 	qty_dict = active_map[i.customer][i.item]
+		# 	qty_dict.m_sold += flt(i.qty)
+		#
+		# 	# Purchased by Cross Sale Purchase balance account
+		# 	c_account = filters.indent_invoice_settings.customer_account
+		# 	active_map.setdefault(c_account, {}).setdefault(i.item, frappe._dict(default))
+		# 	qty_dict = active_map[c_account][i.item]
+		# 	qty_dict.m_purchased += i.qty
 
 	for i in csps:
 		active_map = opening_map if i.posting_date < filters['from_date'] else current_map
