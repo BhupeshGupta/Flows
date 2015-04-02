@@ -10,9 +10,9 @@ from frappe.utils import flt, cint
 
 def execute(filters=None):
 	# Pull out config
-	indent_invoice_settings = frappe.db.get_values_from_single(
-		'*', None, 'Cross Sale Purchase Settings', as_dict=True)[0]
-	filters.indent_invoice_settings = indent_invoice_settings
+	# indent_invoice_settings = frappe.db.get_values_from_single(
+	# 	'*', None, 'Cross Sale Purchase Settings', as_dict=True)[0]
+	# filters.indent_invoice_settings = indent_invoice_settings
 
 	data_map = get_data_map(filters)
 	customer_map = get_customer_map()
