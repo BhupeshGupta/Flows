@@ -214,5 +214,4 @@ class Indent(Document):
 			self.posting_date = today()
 		if not self.posting_time:
 			self.posting_time = now()
-		if not self.fiscal_year:
-			self.fiscal_year = account_utils.get_fiscal_year(date=self.posting_date)[0]
+		self.fiscal_year = account_utils.get_fiscal_year(date=self.posting_date)[0]

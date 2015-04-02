@@ -49,6 +49,8 @@ class IndentInvoice(StockController):
 		self.cancel_transport_bill()
 
 	def validate(self):
+		self.set_missing_values()
+
 		if self.docstatus == 0:
 			self.transportation_invoice = ''
 			self.credit_note = ''
@@ -77,8 +79,6 @@ class IndentInvoice(StockController):
 			self.logistics_partner = indent.logistics_partner
 			self.supplier = indent.plant
 			self.company = indent.company
-
-		self.set_missing_values()
 
 		return super(IndentInvoice, self).validate()
 
@@ -109,7 +109,6 @@ class IndentInvoice(StockController):
 						cint(self.indent_linked) == 1 and cint(self.sub_contracted) == 0:
 			warehouse_object = flow_utils.get_suppliers_warehouse_account(self.supplier, self.company)
 			self.warehouse = warehouse_object.name
-			root.debug("Warehouse: {}".format(self.warehouse))
 
 	def make_stock_refill_entry(self):
 
