@@ -98,9 +98,9 @@ class IndentInvoice(StockController):
 		if not self.posting_time:
 			self.posting_time = now()
 
-		self.fiscal_year = account_utils.get_fiscal_year(self.get("transaction_date"))[0]
+		self.fiscal_year = account_utils.get_fiscal_year(self.get("posting_date"))[0]
 
-		root.debug((self.get("transaction_date"), self.fiscal_year))
+		root.debug((self.get("posting_date"), self.fiscal_year))
 
 		super(IndentInvoice, self).set_missing_values(*args, **kwargs)
 
@@ -277,7 +277,7 @@ class IndentInvoice(StockController):
 			"actual_qty": 0,
 			"incoming_rate": 0,
 			"company": self.company,
-			"fiscal_year": self.fiscal_year,
+			"fiscal_year": account_utils.get_fiscal_year(self.get("transaction_date"))[0],
 			"is_cancelled": self.docstatus == 2 and "Yes" or "No"
 			})
 
