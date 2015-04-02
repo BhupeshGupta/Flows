@@ -471,6 +471,7 @@ class IndentInvoice(StockController):
 		"customer_name": self.customer.strip(),
 		"posting_date": self.posting_date,
 		"posting_time": self.posting_time,
+		"fiscal_year": self.fiscal_year,
 		"entries": [
 			{
 			"qty": qty_in_kg,
