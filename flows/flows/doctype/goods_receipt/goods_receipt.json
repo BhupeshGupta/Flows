@@ -35,7 +35,7 @@
    "options": "Warehouse", 
    "permlevel": 0, 
    "precision": "", 
-   "reqd": 1
+   "reqd": 0
   }, 
   {
    "allow_on_submit": 0, 
@@ -229,7 +229,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-03-23 01:02:42.462013", 
+ "modified": "2015-04-03 09:57:20.849878", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Goods Receipt", 

@@ -14,10 +14,10 @@ class GoodsReceiptBook(Document):
 	def validate(self):
 
 		verify_book_query = """
-        SELECT name FROM `tabGoods Receipt Book` where serial_start <= {0} and serial_end >= {0}
+        SELECT name FROM `tabGoods Receipt Book` where serial_start <= {0} and serial_end >= {0} and name != "{1}"
         """
 
-		book = frappe.db.sql(verify_book_query.format(self.serial_start))
+		book = frappe.db.sql(verify_book_query.format(self.serial_start, self.name))
 
 		if len(book) > 0:
 			throw(
@@ -25,7 +25,7 @@ class GoodsReceiptBook(Document):
 				format(position="start", book=book[0][0], serial=self.serial_start)
 			)
 
-		book = frappe.db.sql(verify_book_query.format(self.serial_end))
+		book = frappe.db.sql(verify_book_query.format(self.serial_end, self.name))
 
 		if len(book) > 0:
 			throw(
