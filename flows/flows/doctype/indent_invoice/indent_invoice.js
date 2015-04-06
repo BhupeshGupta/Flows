@@ -127,6 +127,7 @@ erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
             this.frm.set_value("company", "Aggarwal Enterprises");
             this.frm.set_value("logistics_partner", "Arun Logistics");
             this.frm.set_value("sub_contracted", 1);
+            this.frm.set_value("payment_type", "Direct");
         }
     }
 
