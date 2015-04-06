@@ -110,9 +110,12 @@ class CashReceipt(Document):
 				self.get_gl_dict({
 					"account": owners_account,
 					assert_dr_or_cr: self.total,
-					"remarks": "Against CR {}({})".format(
-						self.name,
-						self.transaction_type
+					"remarks": "{qty}x{amount_per_item} [{stock_owner}] [CR {cr_id}({txn_type})]".format(
+						qty=self.qty,
+					    amount_per_item=self.amount_per_item,
+					    stock_owner=self.stock_owner,
+						cr_id=self.name,
+						txn_type=self.transaction_type
 					),
 				})
 			)
@@ -122,9 +125,12 @@ class CashReceipt(Document):
 					"account": sales_account,
 					sales_dr_or_cr: self.total,
 					"cost_center": cost_center,
-					"remarks": "Against CR {}({})".format(
-						self.name,
-						self.transaction_type
+					"remarks": "{qty}x{amount_per_item} [{stock_owner}] [CR {cr_id}({txn_type})]".format(
+						qty=self.qty,
+					    amount_per_item=self.amount_per_item,
+					    stock_owner=self.stock_owner,
+						cr_id=self.name,
+						txn_type=self.transaction_type
 					),
 				})
 			)
