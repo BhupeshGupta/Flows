@@ -6,6 +6,9 @@ frappe.provide("erpnext.flows");
 
 erpnext.flows.CashReceiptController = frappe.ui.form.Controller.extend({
     onload: function () {
+        if (this.frm.doc.owner == "Administrator") {
+            this.frm.set_df_property("owner", "read_only", false);
+        }
     },
 
     qty: function (doc, cdt, cdn) {
@@ -44,7 +47,3 @@ cur_frm.set_value("company", "VK Logistics");
 cur_frm.set_value("stock_owner_company", "Arun Logistics");
 cur_frm.set_df_property("company", "read_only", true);
 cur_frm.set_df_property("stock_owner_company", "read_only", true);
-
-if (cur_frm.doc.owner == "Administrator") {
-    cur_frm.set_df_property("owner", "read_only", false);
-}

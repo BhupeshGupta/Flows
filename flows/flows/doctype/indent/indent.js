@@ -177,7 +177,6 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
     compute_indent_item_amount: function (doc, cdt, cdn) {
 
         var indent_item = frappe.get_doc(cdt, cdn);
-        console.log("amount compute called");
         // If Rate and Quantity is derived, compute amount
         if (indent_item.rate && indent_item.qty) {
             indent_item.amount = flt(indent_item.rate) * flt(indent_item.qty);
@@ -213,8 +212,8 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
         });
 
         // Update
-        indent.grand_total = grand_total
-        indent.total_payable_by_us = total_payable_by_us
+        indent.grand_total = grand_total;
+        indent.total_payable_by_us = total_payable_by_us;
 
         refresh_field("grand_total", indent.name, indent.parentfield);
         refresh_field("total_payable_by_us", indent.name, indent.parentfield);
