@@ -10,9 +10,9 @@ from frappe.utils import flt, cint
 
 def execute(filters=None):
 	# Pull out config
-	# indent_invoice_settings = frappe.db.get_values_from_single(
-	# 	'*', None, 'Cross Sale Purchase Settings', as_dict=True)[0]
-	# filters.indent_invoice_settings = indent_invoice_settings
+	indent_invoice_settings = frappe.db.get_values_from_single(
+		'*', None, 'Cross Sale Purchase Settings', as_dict=True)[0]
+	filters.indent_invoice_settings = indent_invoice_settings
 
 	data_map = get_data_map(filters)
 	customer_map = get_customer_map()
@@ -65,7 +65,6 @@ def get_invoices(filters):
 		and transaction_date <= '{to_date}'
 		order by transaction_date, posting_time, name""".format(**filters),
 		as_dict=1,
-	    debug=True
 	)
 
 	# TODO find bug and remove hack
@@ -91,7 +90,6 @@ def get_indents_which_are_not_invoiced_yet(filters):
 			where docstatus = 1
 		)""".format(**filters),
 		as_dict=1,
-	    debug=True
 	)
 
 
@@ -104,19 +102,29 @@ def get_goods_receipts(filters):
 		and docstatus = 1
 		and posting_date <= '{to_date}';""".format(**filters),
 		as_dict=1,
-	    debug=True
 	)
 
 
-def get_sale_purchase_entries(filters):
+def get_sale_entries(filters):
 	return frappe.db.sql(
 		"""
-		select posting_date, item, qty, from_customer, to_customer
-		from `tabCross Sale Purchase`
-		where docstatus != 2
+		select posting_date, customer, item, qty
+		from `tabCross Sale`
+		where docstatus = 1
 		and posting_date <= '{to_date}';""".format(**filters),
 		as_dict=1,
-	    debug=True
+	)
+
+def get_cash_receipts(filters):
+	return frappe.db.sql(
+		"""
+		select posting_date, item, qty
+		from `tabCash Receipt`
+		where docstatus = 1 and
+	    transaction_type in ("Refill", "New Connection") and
+	    posting_date <= '{to_date}';
+		""".format(**filters),
+	    as_dict=True
 	)
 
 
@@ -140,7 +148,11 @@ def get_data_map(filters):
 	invoices = get_invoices(filters)
 	indents = get_indents_which_are_not_invoiced_yet(filters)
 	gr = get_goods_receipts(filters)
-	csps = get_sale_purchase_entries(filters)
+	cs = get_sale_entries(filters)
+	cr = get_cash_receipts(filters)
+
+	# a/c as suggested by cross sale purchase settings, used to balance VK sale/purchase
+	balance_customer_account = filters.indent_invoice_settings.customer_account
 
 	for i in indents:
 		active_map = opening_map if i.posting_date < filters['from_date'] else current_map
@@ -161,33 +173,39 @@ def get_data_map(filters):
 			qty_dict.m_sold += i.qty
 
 		# Cross Sold
-		# if cint(i.cross_sold) == 1:
-		# 	# Sold by customer
-		# 	active_map.setdefault(i.customer, {}).setdefault(i.item, frappe._dict(default))
-		# 	qty_dict = active_map[i.customer][i.item]
-		# 	qty_dict.m_sold += flt(i.qty)
-		#
-		# 	# Purchased by Cross Sale Purchase balance account
-		# 	c_account = filters.indent_invoice_settings.customer_account
-		# 	active_map.setdefault(c_account, {}).setdefault(i.item, frappe._dict(default))
-		# 	qty_dict = active_map[c_account][i.item]
-		# 	qty_dict.m_purchased += i.qty
+		if cint(i.cross_sold) == 1:
+			# Sold by customer
+			active_map.setdefault(i.customer, {}).setdefault(i.item, frappe._dict(default))
+			qty_dict = active_map[i.customer][i.item]
+			qty_dict.m_sold += flt(i.qty)
 
-	for i in csps:
+			# Purchased by Cross Sale Purchase balance account
+			active_map.setdefault(balance_customer_account, {}).setdefault(i.item, frappe._dict(default))
+			qty_dict = active_map[balance_customer_account][i.item]
+			qty_dict.m_purchased += i.qty
+
+	for i in cs:
 		active_map = opening_map if i.posting_date < filters['from_date'] else current_map
-		active_map.setdefault(i.from_customer, {}).setdefault(i.item, frappe._dict(default))
-		active_map.setdefault(i.to_customer, {}).setdefault(i.item, frappe._dict(default))
-
-		qty_dict = active_map[i.from_customer][i.item]
+		# Sold by Cross Sale Purchase balance account
+		active_map.setdefault(balance_customer_account, {}).setdefault(i.item, frappe._dict(default))
+		qty_dict = active_map[balance_customer_account][i.item]
 		qty_dict.m_sold += i.qty
 
-		qty_dict = active_map[i.to_customer][i.item]
-		qty_dict.m_purchased += i.qty
+		# Purchased by customer
+		active_map.setdefault(i.customer, {}).setdefault(i.item, frappe._dict(default))
+		qty_dict = active_map[i.customer][i.item]
+		qty_dict.m_purchased += flt(i.qty)
 
 	for i in gr:
 		active_map = opening_map if i.posting_date < filters['from_date'] else current_map
 		active_map.setdefault(i.customer, {}).setdefault(i.item, frappe._dict(default))
 		qty_dict = active_map[i.customer][i.item]
+		qty_dict.m_delivered += flt(i.qty)
+
+	for i in cr:
+		active_map = opening_map if i.posting_date < filters['from_date'] else current_map
+		active_map.setdefault(balance_customer_account, {}).setdefault(i.item, frappe._dict(default))
+		qty_dict = active_map[balance_customer_account][i.item]
 		qty_dict.m_delivered += flt(i.qty)
 
 	active_map = opening_map

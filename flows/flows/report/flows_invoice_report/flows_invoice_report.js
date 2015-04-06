@@ -14,7 +14,7 @@ frappe.query_reports["Flows Invoice Report"] = {
             "fieldname": "to_date",
             "label": __("To Date"),
             "fieldtype": "Date",
-            "default": frappe.datetime.get_today(),
+            "default": frappe.datetime.month_end(),
             "reqd": 1
         }
     ]
