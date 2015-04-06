@@ -373,6 +373,8 @@ class IndentInvoice(StockController):
 		transportation_invoice.save()
 
 		self.transportation_invoice = transportation_invoice.name
+		self.transportation_invoice_rate = transportation_rate
+		self.transportation_invoice_amount = transportation_rate * qty_in_kg
 
 
 	def get_terms_for_commercial_invoice(self, commercial_invoice, settings, *args, **kwargs):
