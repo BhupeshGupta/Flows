@@ -9,6 +9,16 @@
  "document_type": "", 
  "fields": [
   {
+   "fieldname": "seller_company", 
+   "fieldtype": "Link", 
+   "hidden": 0, 
+   "label": "Seller Company", 
+   "options": "Company", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
    "allow_on_submit": 0, 
    "description": "Cross Sale Purchase Adjustment Account", 
    "fieldname": "customer_account", 
@@ -25,9 +35,67 @@
    "print_hide": 0, 
    "read_only": 0, 
    "report_hide": 0, 
-   "reqd": 0, 
+   "reqd": 1, 
    "search_index": 0, 
    "set_only_once": 0
+  }, 
+  {
+   "default": "Cross Sale Company who buys products", 
+   "fieldname": "buyer_company", 
+   "fieldtype": "Link", 
+   "label": "Buyer Company", 
+   "options": "Company", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
+   "fieldname": "buyer_purchase_cost_center", 
+   "fieldtype": "Link", 
+   "label": "Buyer Purchase Cost Center", 
+   "options": "Cost Center", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
+   "default": "A/c for linking cross purchase", 
+   "fieldname": "buyer_purchase_head", 
+   "fieldtype": "Link", 
+   "label": "Buyer Purchase Head", 
+   "options": "Account", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
+   "fieldname": "buyer_sales_cost_center", 
+   "fieldtype": "Link", 
+   "label": "Buyer Sales Cost Center", 
+   "options": "Cost Center", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
+   "default": "A/c for linking sales head", 
+   "fieldname": "buyer_sale_head", 
+   "fieldtype": "Link", 
+   "label": "Buyer Sale Head", 
+   "options": "Account", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
+   "default": "Suppliers payment a/c in buyers books", 
+   "fieldname": "suppliers_payment_account", 
+   "fieldtype": "Link", 
+   "label": "Suppliers Payment Account", 
+   "options": "Account", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
   }
  ], 
  "hide_heading": 0, 
@@ -37,7 +105,7 @@
  "is_submittable": 0, 
  "issingle": 1, 
  "istable": 0, 
- "modified": "2015-03-29 16:50:55.190978", 
+ "modified": "2015-04-07 09:53:45.778984", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Cross Sale Purchase Settings", 

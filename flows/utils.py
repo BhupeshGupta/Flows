@@ -115,7 +115,7 @@ def get_stock_owner_via_sales_person_tree(person):
 
 def get_insight_depth_condition(depth=1, old_styp_format_escaped=False):
 
-	depth_2_doctypes = ['Cross Sale Purchase', 'Cash Receipt']
+	depth_2_doctypes = ['Cross Sale Purchase', 'Cross Sale', 'Cross Purchase', 'Cash Receipt']
 
 	basic_condition_for_depth_2 = '(voucher_type in ({}) or (voucher_type = "Journal Voucher" and voucher_no like "KJV-{}%"))'.format(
 		','.join(['"{}"'.format(x) for x in depth_2_doctypes]),
