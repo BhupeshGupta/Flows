@@ -77,10 +77,16 @@ def get_data():
 					"name": "Flows Empty Report",
 					"doctype": "Item",
 				},
+			    {
+					"type": "report",
+					"is_query_report": True,
+					"name": "Filled Ledger",
+					"doctype": "Item",
+				},
 				{
 					"type": "report",
 					"is_query_report": True,
-					"name": "Flows Invoice Report",
+					"name": "Purchase Sale Report",
 					"doctype": "Item",
 				},
 				{
