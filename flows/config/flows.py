@@ -86,7 +86,7 @@ def get_data():
 				{
 					"type": "report",
 					"is_query_report": True,
-					"name": "Purchase Sale Report",
+					"name": "Flows Invoice Report",
 					"doctype": "Item",
 				},
 				{
