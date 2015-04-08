@@ -18,9 +18,9 @@ fixtures = [
 	"Workflow State",
 	"Workflow Action",
 	"Workflow",
-	"Letter Head",
+	# "Letter Head",
 	"Print Heading",
-	"Print Format",
+	# "Print Format",
     "Property Setter",
     "Sales Taxes and Charges Master",
     "Terms and Conditions"
