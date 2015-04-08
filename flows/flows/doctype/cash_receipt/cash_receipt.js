@@ -6,7 +6,7 @@ frappe.provide("erpnext.flows");
 
 erpnext.flows.CashReceiptController = frappe.ui.form.Controller.extend({
     onload: function () {
-        if (this.frm.doc.owner == "Administrator") {
+        if (this.frm.doc.owner == "Administrator" || this.frm.doc.owner == "indermani1983@rediffmail.com") {
             this.frm.set_df_property("owner", "read_only", false);
         }
     },
