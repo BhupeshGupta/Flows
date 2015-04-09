@@ -50,6 +50,7 @@ class IndentInvoice(StockController):
 
 	def validate(self):
 		self.set_missing_values()
+		self.validate_branch_out_for_special_cases()
 
 		if self.docstatus == 0:
 			self.transportation_invoice = ''
@@ -111,12 +112,6 @@ class IndentInvoice(StockController):
 			self.warehouse = warehouse_object.name
 
 	def make_stock_refill_entry(self):
-
-		root.debug({
-		"func": "make_stock_refill_entry",
-		"sub_contracted": cint(self.sub_contracted) == 1,
-		})
-
 		if cint(self.sub_contracted) == 1:
 			return
 
@@ -173,9 +168,68 @@ class IndentInvoice(StockController):
 
 		return gl_entries
 
+	def validate_branch_out_for_special_cases(self):
+		# Pull out config
+		indent_invoice_settings = frappe.db.get_values_from_single(
+			'*', None, 'Cross Sale Purchase Settings', as_dict=True
+		)[0]
+
+		if self.customer == indent_invoice_settings.customer_account:
+			self.company = indent_invoice_settings.buyer_company
+			self.logistics_partner = indent_invoice_settings.buyer_company
+
+			self.handling_charges = 0
+			self.payment_type = 'Direct'
+			self.sub_contracted = 0
+			self.cross_sold = 0
+			self.indent_linked = 0
+
+	def submit_branch_out_for_special_cases(self, gl_entries):
+
+		# Pull out config
+		indent_invoice_settings = frappe.db.get_values_from_single(
+			'*', None, 'Cross Sale Purchase Settings', as_dict=True
+		)[0]
+
+		if self.customer == indent_invoice_settings.customer_account:
+			# a/c as suggested by cross sale purchase settings, used to balance VK sale/purchase
+			buyer_company = indent_invoice_settings.buyer_company
+			supplier_account = flow_utils.get_supplier_account(buyer_company, self.supplier)
+
+			gl_entries.append(
+				self.get_gl_dict({
+				"company": buyer_company,
+				"account": indent_invoice_settings.buyer_purchase_head,
+				"cost_center": indent_invoice_settings.buyer_purchase_cost_center,
+				"debit": self.actual_amount,
+				"remarks": "Against Invoice Id {}".format(self.invoice_number),
+				"against_voucher": self.name,
+				"against_voucher_type": self.doctype,
+				})
+			)
+
+			gl_entries.append(
+				self.get_gl_dict({
+				"company": buyer_company,
+				"account": supplier_account,
+				"against": indent_invoice_settings.buyer_purchase_head,
+				"credit": self.actual_amount,
+				"remarks": "Against Invoice Id {}".format(self.invoice_number),
+				"against_voucher": self.name,
+				"against_voucher_type": self.doctype,
+				})
+			)
+
+			return True
+
 	def make_customer_gl_entry(self, gl_entries):
 
 		self.set_missing_values()
+
+		# Is Anti Patten but have to use this for now
+		break_out = self.submit_branch_out_for_special_cases(gl_entries)
+		if break_out:
+			return
 
 		supplier_plant = flow_utils.get_supplier_account(self.company, self.supplier)
 		logistics_partner_account = flow_utils.get_supplier_account(self.company, self.logistics_partner)
@@ -302,7 +356,8 @@ class IndentInvoice(StockController):
 	def raise_transportation_bill(self):
 
 		# Hard code skip for now, will fix this later
-		if self.supplier == 'Aggarwal Enterprises':
+		if self.supplier == 'Aggarwal Enterprises' or\
+			self.customer == 'VK Logistics':
 			return
 
 		# Pull out config

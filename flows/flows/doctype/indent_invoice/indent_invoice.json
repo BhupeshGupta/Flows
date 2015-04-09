@@ -346,14 +346,16 @@
    "fieldtype": "Currency", 
    "label": "Transportation Invoice Rate", 
    "permlevel": 0, 
-   "precision": ""
+   "precision": "", 
+   "read_only": 1
   }, 
   {
    "fieldname": "transportation_invoice_amount", 
    "fieldtype": "Currency", 
    "label": "Transportation Invoice Amount", 
    "permlevel": 0, 
-   "precision": ""
+   "precision": "", 
+   "read_only": 1
   }, 
   {
    "fieldname": "references", 
@@ -407,7 +409,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-04-05 10:39:06.639938", 
+ "modified": "2015-04-09 16:27:35.158716", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 
