@@ -121,7 +121,8 @@ fixtures = [
 # ------------------------------
 #
 override_whitelisted_methods = {
-	"frappe.model.rename_doc.rename_doc": "flows.flows.customer.rename_doc"
+	"frappe.model.rename_doc.rename_doc": "flows.flows.customer.rename_doc",
+    "frappe.templates.pages.print.download_pdf": "flows.flows.print.download_pdf"
 }
 
 

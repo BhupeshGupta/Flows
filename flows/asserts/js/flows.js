@@ -67,4 +67,86 @@ $(document).on('startup', function () {
         return false;
     });
 
+
+    var DocListViewOriginal = frappe.views.DocListView;
+
+
+    frappe.ui.toolbar.MassPrintDialog = frappe.ui.toolbar.SelectorDialog.extend({
+
+        init: function (execute) {
+            this._super({
+                title: __("Download PDF"),
+                execute: execute
+            });
+        },
+
+        make_dialog: function () {
+            var fields = [
+                {fieldtype: 'Select', fieldname: 'doctype', options: 'Select...', label: __('Select Type')},
+                {"fieldname": "no_letterhead", "label": __("Letterhead"), "fieldtype": "Check"},
+                {fieldtype: 'Button', label: 'Go', fieldname: 'go'}
+            ];
+
+            this.dialog = new frappe.ui.Dialog({
+                title: this.opts.title,
+                fields: fields
+            });
+
+            if (this.opts.help) {
+                $("<div class='help'>" + this.opts.help + "</div>").appendTo(this.dialog.body);
+            }
+        }
+    });
+
+    frappe.views.DocListView = DocListViewOriginal.extend({
+        setup: function () {
+            this.can_print = frappe.model.can_print(this.doctype);
+            this._super();
+        },
+        init_minbar: function () {
+            this._super();
+            if (this.can_print) {
+                this.appframe.add_icon_btn("2", 'icon-print', __('Print'),
+                    function () {
+                        var print_dialog = new frappe.ui.toolbar.MassPrintDialog(
+                            function () {
+
+                                var checked_items = frappe.pages[frappe.get_route()[0] + "/" + frappe.get_route()[1]].doclistview.get_checked_items();
+
+                                if (!checked_items) {
+                                    return
+                                }
+
+                                checked_items = checked_items.map(function (obj) {
+                                    return obj.name;
+                                });
+
+                                var name = '["' + checked_items.join('","') + '"]';
+                                var format = print_dialog.dialog.fields_dict.doctype.get_value();
+                                var no_letterhead = print_dialog.dialog.fields_dict.no_letterhead.get_parsed_value();
+                                if (no_letterhead == 0) {
+                                    no_letterhead = 1;
+                                } else {
+                                    no_letterhead = 0;
+                                }
+
+                                var w = window.open("/api/method/frappe.templates.pages.print.download_pdf?"
+                                + "doctype=" + encodeURIComponent(frappe.get_route()[1])
+                                + "&name=" + encodeURIComponent(name)
+                                + "&format=" + encodeURIComponent(format)
+                                + "&no_letterhead="+ no_letterhead);
+                                if (!w) {
+                                    msgprint(__("Please enable pop-ups"));
+                                    return;
+                                }
+                            });
+                        print_dialog.set_values(frappe.meta.get_print_formats(frappe.get_route()[1]));
+                        print_dialog.show();
+
+                    });
+            }
+        }
+    });
+
+
 });
