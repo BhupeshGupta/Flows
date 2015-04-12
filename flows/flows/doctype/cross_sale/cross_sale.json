@@ -135,7 +135,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-04-06 06:56:01.415791", 
+ "modified": "2015-04-11 09:13:16.235902", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Cross Sale", 
@@ -157,6 +157,19 @@
    "report": 1, 
    "role": "All", 
    "set_user_permissions": 0, 
+   "submit": 1, 
+   "write": 1
+  }, 
+  {
+   "amend": 1, 
+   "cancel": 1, 
+   "create": 1, 
+   "delete": 1, 
+   "permlevel": 0, 
+   "print": 1, 
+   "read": 1, 
+   "report": 1, 
+   "role": "Administrator", 
    "submit": 1, 
    "write": 1
   }
