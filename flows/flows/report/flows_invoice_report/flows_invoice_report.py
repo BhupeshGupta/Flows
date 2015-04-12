@@ -127,6 +127,19 @@ def get_cash_receipts(filters):
 	    as_dict=True
 	)
 
+def get_patch_vouchers(filters):
+	return frappe.db.sql(
+		"""
+		select pv.posting_date as posting_date, pi.item as item, pi.qty as qty,
+		pi.to_customer as to_customer, pi.invoice_customer as invoice_customer
+		from `tabPatch Item` pi, `tabPatch Voucher` pv
+		where pv.docstatus = 1 and
+		pv.name = pi.parent and
+	    pv.posting_date <= '{to_date}';
+		""".format(**filters),
+	    as_dict=True
+	)
+
 
 def get_data_map(filters):
 	default = {
@@ -150,6 +163,7 @@ def get_data_map(filters):
 	gr = get_goods_receipts(filters)
 	cs = get_sale_entries(filters)
 	cr = get_cash_receipts(filters)
+	pv = get_patch_vouchers(filters)
 
 	# a/c as suggested by cross sale purchase settings, used to balance VK sale/purchase
 	balance_customer_account = filters.indent_invoice_settings.customer_account
@@ -207,6 +221,17 @@ def get_data_map(filters):
 		active_map.setdefault(balance_customer_account, {}).setdefault(i.item, frappe._dict(default))
 		qty_dict = active_map[balance_customer_account][i.item]
 		qty_dict.m_delivered += flt(i.qty)
+
+	for i in pv:
+		active_map = opening_map if i.posting_date < filters['from_date'] else current_map
+		active_map.setdefault(i.invoice_customer, {}).setdefault(i.item, frappe._dict(default))
+		active_map.setdefault(i.to_customer, {}).setdefault(i.item, frappe._dict(default))
+
+		qty_dict = active_map[i.to_customer][i.item]
+		qty_dict.i_issued += flt(i.qty)
+
+		qty_dict = active_map[i.invoice_customer][i.item]
+		qty_dict.i_issued -= flt(i.qty)
 
 	active_map = opening_map
 	for customer in sorted(active_map):
