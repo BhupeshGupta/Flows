@@ -8,7 +8,7 @@ frappe.query_reports["Filled Ledger"] = {
             "label": __("Customer"),
             "fieldtype": "Link",
             "options": "Customer",
-            "req": 1
+            "reqd": 1
         },
         {
             "fieldname": "from_date",

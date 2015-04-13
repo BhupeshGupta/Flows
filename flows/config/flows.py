@@ -115,6 +115,18 @@ def get_data():
 				},
 			]
 		},
+	    {
+			"label": _("Stock Reports"),
+			"icon": "icon-table",
+			"items": [
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "Stock Register",
+					"doctype": "Gatepass",
+				}
+			]
+		},
 		{
 			"label": _("Setup"),
 			"icon": "icon-cog",
