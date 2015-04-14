@@ -108,26 +108,19 @@ def get_item_warehouse_map(filters):
 				qty_dict.out_qty += abs(qty_diff)
 
 	last_balance = compute_openings_and_closings(opening_iwb_map)
-	iwb_map[sorted(iwb_map)[0]].opening_qty = last_balance
-	compute_openings_and_closings(iwb_map)
+	compute_openings_and_closings(iwb_map, last_balance=last_balance)
 
 	return iwb_map
 
 
-def compute_openings_and_closings(iwb_map):
-	last_balance = 0
+def compute_openings_and_closings(iwb_map, last_balance=None):
+	last_balance = last_balance if last_balance else 0
 	for posting_date in sorted(iwb_map):
 		qty_dict = iwb_map[posting_date]
+		qty_dict.opening_qty = last_balance
 		qty_dict.bal_qty = qty_dict.opening_qty + qty_dict.in_qty - qty_dict.out_qty
-
-		next_date = get_next_date(posting_date)
-		iwb_map.setdefault(next_date, frappe._dict({
-		"opening_qty": 0.0, "in_qty": 0.0,
-		"out_qty": 0.0, "bal_qty": 0.0
-		}))
-
-		iwb_map[next_date].opening_qty = qty_dict.bal_qty
 		last_balance = qty_dict.bal_qty
+
 	return last_balance
 
 
