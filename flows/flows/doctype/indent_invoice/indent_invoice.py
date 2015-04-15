@@ -515,7 +515,7 @@ class IndentInvoice(StockController):
 		description = ''
 
 		if discount_per_kg > 0:
-			description += "Rate per KG: {}, Discount per KG: {}\n".format(transportation_rate_per_kg, discount_per_kg)
+			description += "Rate: {} - {} (Paid By Consignor) per KG\n".format(transportation_rate_per_kg, discount_per_kg)
 
 		description += """(Bill No: {bill_no} Dt: {invoice_date} Item: {item} Qty: {qty} Amt: {amt})""".format(
 			bill_no=self.invoice_number, invoice_date=self.posting_date, item=self.item, qty=self.qty,
