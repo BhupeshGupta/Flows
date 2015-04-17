@@ -38,12 +38,11 @@
    "precision": ""
   }, 
   {
-   "fieldname": "mobile_number", 
+   "fieldname": "id", 
    "fieldtype": "Data", 
-   "label": "Customers Mobile Number", 
+   "label": "ID", 
    "permlevel": 0, 
-   "precision": "", 
-   "reqd": 1
+   "precision": ""
   }, 
   {
    "allow_on_submit": 0, 
@@ -177,7 +176,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-03-31 08:31:23.821293", 
+ "modified": "2015-04-17 11:08:32.593229", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Cash Receipt", 

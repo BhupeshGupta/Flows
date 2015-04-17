@@ -14,7 +14,8 @@
    "fieldtype": "Data", 
    "label": "Goods Receipt Number", 
    "permlevel": 0, 
-   "precision": ""
+   "precision": "", 
+   "reqd": 1
   }, 
   {
    "default": "", 
@@ -278,7 +279,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-04-09 16:30:51.423525", 
+ "modified": "2015-04-17 10:23:41.674739", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Goods Receipt", 

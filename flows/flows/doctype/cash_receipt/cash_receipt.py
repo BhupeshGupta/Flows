@@ -11,11 +11,14 @@ from flows.stdlogger import root
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.stock.stock_ledger import make_sl_entries
 
-
 class CashReceipt(Document):
 	def __init__(self, *args, **kwargs):
 		super(CashReceipt, self).__init__(*args, **kwargs)
 		self.set_missing_values()
+
+	def autoname(self):
+		if self.id and self.id != '':
+			self.name = self.id
 
 	def on_submit(self):
 		self.transfer_stock()
