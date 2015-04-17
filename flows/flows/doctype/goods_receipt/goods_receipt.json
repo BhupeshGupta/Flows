@@ -288,12 +288,12 @@
  "permissions": [
   {
    "amend": 1, 
-   "apply_user_permissions": 0, 
+   "apply_user_permissions": 1, 
    "cancel": 1, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 
-   "export": 0, 
+   "export": 1, 
    "import": 0, 
    "permlevel": 0, 
    "print": 1, 
@@ -302,6 +302,7 @@
    "role": "All", 
    "set_user_permissions": 0, 
    "submit": 1, 
+   "user_permission_doctypes": "[\"Customer\",\"Goods Receipt\",\"Warehouse\"]", 
    "write": 1
   }
  ], 
