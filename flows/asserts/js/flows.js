@@ -171,7 +171,7 @@ $(document).on('startup', function () {
 									var view = frappe.pages[frappe.get_route()[0] + "/" + frappe.get_route()[1]].doclistview;
 									view.dirty = true;
 									view.refresh();
-									console.log(view);
+									msgprint(__("Submission Done."))
 								}
 							}
 						});
