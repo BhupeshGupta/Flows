@@ -20,3 +20,21 @@
 "Start entering data below this line"
 "","""Journal Voucher-naming_series-options""","DocField","Journal Voucher","options","JV-
 KJV-","naming_series","Text",""
+"","""Account-account_type-options""","DocField","Account","options","
+Bank
+Cash
+Tax
+Chargeable
+Warehouse
+Receivable
+Payable
+Equity
+Fixed Asset
+Cost of Goods Sold
+Expense Account
+Income Account
+Stock Received But Not Billed
+Expenses Included In Valuation
+Stock Adjustment
+Stock
+Imprest","account_type","Text",""

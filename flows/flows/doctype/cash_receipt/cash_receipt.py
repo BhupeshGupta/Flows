@@ -100,7 +100,7 @@ class CashReceipt(Document):
 			"Company", self.company, "abbr"
 		)
 
-		owners_account = utils.get_or_or_create_customer_like_gl_account(self.company, self.owner)
+		owners_account = utils.get_imprest_or_get_or_create_customer_like_account(self.company, self.owner)
 		sales_account = 'Sales - {}'.format(company_abbr)
 
 		cost_center = 'Main - {}'.format(company_abbr)
