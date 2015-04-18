@@ -12,17 +12,26 @@ def execute(filters=None):
 		filters = {}
 
 	columns = get_columns(filters)
-	iwb_map = get_item_warehouse_map(filters)
+	filled_iwb_map = get_item_warehouse_map(filters)
+
+	filters.item_code = filters.item_code.replace('FC', 'EC')
+	empty_iwb_map = get_item_warehouse_map(filters)
 
 	data = []
-	for posting_date in sorted(iwb_map):
-		qty_dict = iwb_map[posting_date]
+	for posting_date in sorted(filled_iwb_map):
+		filled_qty_dict = filled_iwb_map[posting_date]
+		empty_qty_dict = empty_iwb_map[posting_date]
 		data.append([
 			posting_date,
-			qty_dict.opening_qty,
-			qty_dict.in_qty,
-			qty_dict.out_qty,
-			qty_dict.bal_qty,
+			filled_qty_dict.opening_qty,
+			filled_qty_dict.in_qty,
+			filled_qty_dict.out_qty,
+			filled_qty_dict.bal_qty,
+			"",
+			empty_qty_dict.opening_qty,
+			empty_qty_dict.in_qty,
+			empty_qty_dict.out_qty,
+			empty_qty_dict.bal_qty,
 		])
 
 	return columns, data
@@ -33,10 +42,15 @@ def get_columns(filters):
 
 	columns = [
 		"Date:Date:100",
-		"Opening Qty:Float:100",
-		"In Qty:Float:80",
-		"Out Qty:Float:80",
-		"Balance Qty:Float:100"
+		"Filled Opening Qty:Float:100",
+		"Filled In Qty:Float:80",
+		"Filled Out Qty:Float:80",
+		"Filled Closing Qty:Float:100",
+		"::100",
+		"Empty Opening Qty:Float:100",
+		"Empty In Qty:Float:80",
+		"Empty Out Qty:Float:80",
+		"Empty Closing Qty:Float:100"
 	]
 
 	return columns
