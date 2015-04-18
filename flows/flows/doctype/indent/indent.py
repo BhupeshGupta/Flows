@@ -54,10 +54,6 @@ class Indent(Document):
 
 		self.transfer_stock_back_to_logistics_partner(sl_entries, stock_transfer_map)
 
-		from flows.stdlogger import root
-
-		root.debug(sl_entries)
-
 		make_sl_entries(sl_entries)
 
 	def compute_items_to_be_moved_for_refill_and_return(self):
