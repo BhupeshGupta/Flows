@@ -47,6 +47,18 @@ def get_or_create_warehouse(warehouse_name, company):
 from frappe import _
 
 
+def get_imprest_or_get_or_create_customer_like_account(company, account_or_user):
+	acc_head = frappe.db.get_value("Account", {
+	"responsible_user": account_or_user,
+	"company": company,
+	"account_type": "Imprest"
+	})
+	if acc_head:
+		return acc_head
+
+	return get_or_or_create_customer_like_gl_account(company, account_or_user)
+
+
 def get_or_or_create_customer_like_gl_account(company, account):
 	acc_head = frappe.db.get_value("Account", {
 	"master_name": account,
