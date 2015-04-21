@@ -18,9 +18,19 @@ def execute(filters=None):
 	empty_iwb_map = get_item_warehouse_map(filters)
 
 	data = []
+	empty_dict = frappe._dict({
+	"opening_qty": "",
+	"in_qty": "",
+	"out_qty": "",
+	"bal_qty": ""
+	})
+
 	for posting_date in sorted(filled_iwb_map):
-		filled_qty_dict = filled_iwb_map[posting_date]
-		empty_qty_dict = empty_iwb_map[posting_date]
+		filled_qty_dict = filled_iwb_map.get(posting_date)
+		empty_qty_dict = empty_iwb_map.get(posting_date)
+		if not filled_qty_dict: filled_qty_dict = empty_dict
+		if not empty_qty_dict: empty_qty_dict = empty_dict
+
 		data.append([
 			posting_date,
 			filled_qty_dict.opening_qty,
@@ -86,7 +96,7 @@ def get_stock_ledger_entries(filters):
 		voucher_type, qty_after_transaction
 		from `tabStock Ledger Entry`
 		where docstatus < 2 %s order by posting_date, posting_time, name""" %
-	                     conditions, as_dict=1)
+						 conditions, as_dict=1)
 
 
 def get_item_warehouse_map(filters):
