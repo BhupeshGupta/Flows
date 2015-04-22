@@ -9,11 +9,16 @@ from erpnext.accounts.party import get_party_account
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.accounts import utils as account_utils
 
+
 class CrossPurchase(Document):
 	def get_pending_invoices(self):
 		self.set('invoice_items', [])
 		for invoice in get_pending_invoices(
-				None, None, None, None, None, {'customer': self.customer, 'to_date': self.to_date}, as_dict=True
+				None, None, None, None, None,
+				{
+				'customer': [x.customer for x in self.customer_list],
+				'to_date': self.to_date
+				}, as_dict=True
 		):
 			invoice_item = self.append('invoice_items', {})
 			invoice_item.invoice = invoice.name
@@ -95,7 +100,7 @@ class CrossPurchase(Document):
 		)
 
 		make_gl_entries(gl_entries, cancel=(self.docstatus == 2),
-		                update_outstanding='Yes', merge_entries=False)
+						update_outstanding='Yes', merge_entries=False)
 
 
 	def get_gl_dict(self, args):
@@ -115,15 +120,17 @@ class CrossPurchase(Document):
 		return gl_dict
 
 
-
 def get_pending_invoices(doctype, txt, searchfield, start, page_len, filters, as_dict=False):
 	rs = frappe.db.sql("""
 		SELECT name, transaction_date, item, qty, actual_amount, transportation_invoice, transportation_invoice_amount
 		FROM `tabIndent Invoice`
 		WHERE cross_sold = 1 AND
-		customer = "{customer}" AND
+		customer IN ({customer}) AND
 		transaction_date <= "{date}" AND
 		name NOT IN (SELECT invoice FROM `tabCross Purchase Item` WHERE docstatus = 1)
 		ORDER BY transaction_date ASC;
-		""".format(customer=filters['customer'], date=filters['to_date']), as_dict=as_dict)
+		""".format(
+		customer='"{}"'.format('","'.join(filters['customer'])),
+		date=filters['to_date']), as_dict=as_dict
+	)
 	return rs

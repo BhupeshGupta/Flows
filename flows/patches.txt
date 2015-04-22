@@ -3,3 +3,4 @@ execute:import unidecode # new requirement
 flows.patches.transportation_rate_amt_in_indent_invoice
 flows.patches.aggarwal_invoices_fix
 flows.patches.transportation_rate_amt_in_indent_invoice_resync
+flows.patches.cross_purchase_multi_customer
