@@ -25,7 +25,8 @@ def execute(filters=None):
 	"bal_qty": ""
 	})
 
-	for posting_date in sorted(filled_iwb_map):
+	posting_date = filters.from_date
+	while posting_date <= filters.to_date:
 		filled_qty_dict = filled_iwb_map.get(posting_date)
 		empty_qty_dict = empty_iwb_map.get(posting_date)
 		if not filled_qty_dict: filled_qty_dict = empty_dict
@@ -43,6 +44,8 @@ def execute(filters=None):
 			empty_qty_dict.out_qty,
 			empty_qty_dict.bal_qty,
 		])
+
+		posting_date = get_next_date(posting_date)
 
 	return columns, data
 
