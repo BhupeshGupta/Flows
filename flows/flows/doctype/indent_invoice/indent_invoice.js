@@ -147,3 +147,4 @@ cur_frm.add_fetch('indent_item', 'rate', 'rate');
 cur_frm.add_fetch('indent_item', 'parent', 'indent');
 cur_frm.add_fetch('indent_item', 'load_type', 'load_type');
 cur_frm.add_fetch('indent_item', 'payment_type', 'payment_type');
+cur_frm.add_fetch('indent_item', 'cross_sold', 'cross_sold');
