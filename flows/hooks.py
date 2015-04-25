@@ -21,7 +21,7 @@ fixtures = [
 	# "Letter Head",
 	"Print Heading",
 	# "Print Format",
-    "Property Setter",
+	# "Property Setter",
     "Sales Taxes and Charges Master",
     "Terms and Conditions"
 ]

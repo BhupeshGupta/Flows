@@ -318,6 +318,13 @@
    "precision": ""
   }, 
   {
+   "fieldname": "customer_po_number", 
+   "fieldtype": "Data", 
+   "label": "Customer's Po Number", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "transportation_invoice", 
    "fieldtype": "Link", 
    "label": "Transportation Invoice", 
@@ -344,7 +351,16 @@
   {
    "fieldname": "transportation_invoice_rate", 
    "fieldtype": "Currency", 
-   "label": "Transportation Invoice Rate", 
+   "label": "Base Transportation Invoice Rate", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "applicable_transportation_invoice_rate", 
+   "fieldtype": "Currency", 
+   "hidden": 0, 
+   "label": "Applicable Transportation Invoice Rate", 
    "permlevel": 0, 
    "precision": "", 
    "read_only": 1
@@ -409,7 +425,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-04-09 16:27:35.158716", 
+ "modified": "2015-04-24 09:03:44.171533", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 

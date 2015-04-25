@@ -18,6 +18,7 @@ from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.stock.stock_ledger import make_sl_entries
 from frappe.utils import today, now
 from frappe.utils import cint
+from frappe.utils import get_first_day
 
 
 class IndentInvoice(StockController):
@@ -40,6 +41,23 @@ class IndentInvoice(StockController):
 				frappe.throw("Indent {} not found. check if is canceled, amended or deleted".format(
 					self.indent
 				))
+
+	def on_update_after_submit(self):
+		if self.cross_sold == 0:
+			cp = frappe.db.sql("""
+			SELECT cp.name
+			FROM `tabCross Purchase` cp,
+			`tabCross Purchase Item` cpi
+			WHERE cpi.parent = cp.name
+			AND cpi.invoice = "{invoice}"
+			AND cp.docstatus = 1;
+			""".format(invoice=self.name), as_dict=True
+			)
+			if cp:
+				frappe.throw(
+					"This Indent Invoice is already settled in Cross Purchase {}".
+						format(", ".join([x.name for x in cp]))
+				)
 
 	def cancel(self):
 		super(IndentInvoice, self).cancel()
@@ -90,7 +108,7 @@ class IndentInvoice(StockController):
 
 		if gl_entries:
 			make_gl_entries(gl_entries, cancel=(self.docstatus == 2),
-			                update_outstanding='Yes', merge_entries=False)
+							update_outstanding='Yes', merge_entries=False)
 
 	def set_missing_values(self, *args, **kwargs):
 
@@ -100,8 +118,6 @@ class IndentInvoice(StockController):
 			self.posting_time = now()
 
 		self.fiscal_year = account_utils.get_fiscal_year(self.get("posting_date"))[0]
-
-		root.debug((self.get("posting_date"), self.fiscal_year))
 
 		super(IndentInvoice, self).set_missing_values(*args, **kwargs)
 
@@ -356,8 +372,8 @@ class IndentInvoice(StockController):
 	def raise_transportation_bill(self):
 
 		# Hard code skip for now, will fix this later
-		if self.supplier == 'Aggarwal Enterprises' or\
-			self.customer == 'VK Logistics':
+		if self.supplier == 'Aggarwal Enterprises' or \
+						self.customer == 'VK Logistics':
 			return
 
 		# Pull out config
@@ -429,7 +445,8 @@ class IndentInvoice(StockController):
 
 		self.transportation_invoice = transportation_invoice.name
 		self.transportation_invoice_rate = transportation_rate
-		self.transportation_invoice_amount = transportation_rate * qty_in_kg
+		self.applicable_transportation_invoice_rate = transportation_rate - discount
+		self.transportation_invoice_amount = self.applicable_transportation_invoice_rate * qty_in_kg
 
 
 	def get_terms_for_commercial_invoice(self, commercial_invoice, settings, *args, **kwargs):
@@ -459,7 +476,7 @@ class IndentInvoice(StockController):
 		'total_payable_amount': payable_amount,
 		'indent_invoice': self,
 		'crn_raised': True if credit_note else False,
-		'credit_note': credit_note
+		'credit_note': credit_note,
 		}
 
 		return render_template(terms_template, context)
@@ -508,14 +525,15 @@ class IndentInvoice(StockController):
 		return credit_note
 
 	def raise_consignment_note(self, qty_in_kg, transportation_rate_per_kg, indent_invoice_settings,
-	                           discount_per_kg=0):
+							   discount_per_kg=0):
 
 		customer_object = frappe.get_doc("Customer", self.customer)
 
 		description = ''
 
 		if discount_per_kg > 0:
-			description += "Rate: {} - {} (Paid By Consignor) per KG\n".format(transportation_rate_per_kg, discount_per_kg)
+			description += "Rate: {} - {} (Paid By Consignor) per KG\n".format(transportation_rate_per_kg,
+																			   discount_per_kg)
 
 		description += """(Bill No: {bill_no} Dt: {invoice_date} Item: {item} Qty: {qty} Amt: {amt})""".format(
 			bill_no=self.invoice_number, invoice_date=self.posting_date, item=self.item, qty=self.qty,
@@ -608,13 +626,16 @@ def get_conversion_factor(item):
 
 
 def get_landed_rate_for_customer(customer, date):
+	month_start = get_first_day(date).strftime('%Y-%m-%d')
+
 	rs = frappe.db.sql("""
     SELECT landed_rate, local_transport_rate
     FROM `tabCustomer Landed Rate`
     WHERE customer="{customer}" AND
-    with_effect_from<="{date}"
+    with_effect_from<="{date}" AND
+    with_effect_from>="{month_start_date}"
     ORDER BY with_effect_from DESC LIMIT 1;
-    """.format(customer=customer, date=date))
+    """.format(customer=customer, date=date, month_start_date=month_start))
 	if rs:
 		return rs[0]
 	frappe.throw('Landed Rate Not Found For Customer {} for date {}'.format(customer, date))
