@@ -2,6 +2,8 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+import json
+
 import frappe
 from frappe.utils import flt
 from frappe.model.document import Document
@@ -46,6 +48,19 @@ class CrossPurchase(Document):
 	def on_submit(self):
 		self.update_gl()
 
+	def validate(self):
+		invoices = frappe.db.sql("""
+		SELECT name
+		FROM `tabIndent Invoice`
+		WHERE name IN ({invoices})
+		AND cross_sold = 0;
+		""".format(invoices='"{}"'.format('","'.join([x.invoice for x in self.invoice_items]))),
+								 as_dict=True)
+
+		if invoices:
+			frappe.throw("{} is not cross sold anymore! Cant Not Save".format(", ".join([x.name for x in invoices])))
+
+
 	def update_gl(self):
 
 		# Pull out config
@@ -58,7 +73,7 @@ class CrossPurchase(Document):
 		buyer_company = indent_invoice_settings.buyer_company
 
 		gl_entries = []
-		remark = "Cross Purchase from {}".format(self.customer)
+		remark = "Cross Purchase from {}".format(", ".join([x.customer for x in self.customer_list]))
 
 		gl_entries.append(
 			self.get_gl_dict({
@@ -90,14 +105,36 @@ class CrossPurchase(Document):
 			})
 		)
 
-		gl_entries.append(
-			self.get_gl_dict({
-			"company": seller_company,
-			"account": get_party_account(seller_company, self.customer, "Customer"),
-			"credit": self.grand_total,
-			"remarks": remark
-			})
-		)
+		# Multi Party Support
+		invoice_map = {}
+		for (invoice_name, customer_name) in frappe.db.sql("""
+		SELECT name, `customer`
+		FROM `tabIndent Invoice`
+		WHERE name IN ({invoices})
+		""".format(invoices='"{}"'.format('","'.join([x.invoice for x in self.invoice_items])))):
+			invoice_map[invoice_name] = customer_name
+
+		amount_total_map = {}
+		for entry in self.invoice_items:
+			amount_total_map.setdefault(invoice_map[entry.invoice], 0)
+			amount_total_map[invoice_map[entry.invoice]] += entry.total
+
+		for customer, amount in amount_total_map.items():
+			gl_entries.append(
+				self.get_gl_dict({
+				"company": seller_company,
+				"account": get_party_account(seller_company, customer, "Customer"),
+				"credit": amount,
+				"remarks": remark
+				})
+			)
+
+		item_total_map = {}
+		for entry in self.invoice_items:
+			item_total_map.setdefault(entry.item, 0)
+			item_total_map[entry.item] += entry.qty
+
+		self.description = json.dumps({ 'amount total': amount_total_map, 'item total': item_total_map})
 
 		make_gl_entries(gl_entries, cancel=(self.docstatus == 2),
 						update_outstanding='Yes', merge_entries=False)
