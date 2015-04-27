@@ -46,7 +46,7 @@ def get_columns():
 		"Customer:Link/Customer:250",
 		"Item:Link/Item:75",
 	    "Opening:Float:85",
-		"Indent Placed::85",
+		"Indent Placed:Float:85",
 		"Purchase:Float:85",
 		"Invoices Issued:Float:85",
 		"Material Delivered:Float:85",
