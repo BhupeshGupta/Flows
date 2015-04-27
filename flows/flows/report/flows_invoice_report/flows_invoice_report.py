@@ -26,13 +26,13 @@ def execute(filters=None):
 				customer_map.get(customer.strip(), frappe._dict({'customer_group': 'CNF'})).customer_group,
 				customer,
 				item,
-			    qty_dict.opening,
-				qty_dict.i_requested,
-			    qty_dict.m_purchased,
-				qty_dict.i_issued,
-				qty_dict.m_delivered,
-			    qty_dict.m_sold,
-				qty_dict.closing,
+			    int(qty_dict.opening),
+				int(qty_dict.i_requested),
+			    int(qty_dict.m_purchased),
+				int(qty_dict.i_issued),
+				int(qty_dict.m_delivered),
+			    int(qty_dict.m_sold),
+				int(qty_dict.closing),
 			])
 
 	data = sorted(data, key = lambda x: (x[0], x[1]))
@@ -42,16 +42,16 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		"Group:Link/Customer Group:50",
-		"Customer:Link/Customer:200",
-		"Item:Link/Item:100",
-	    "Opening:Float:150",
-		"Indent Placed::",
-		"Purchase:Float:",
-		"Invoices Issued:Float:150",
-		"Material Delivered:Float:150",
-		"Sale:Float:",
-		"Closing:Float:150",
+		"Group:Link/Customer Group:100",
+		"Customer:Link/Customer:250",
+		"Item:Link/Item:75",
+	    "Opening:Float:85",
+		"Indent Placed::85",
+		"Purchase:Float:85",
+		"Invoices Issued:Float:85",
+		"Material Delivered:Float:85",
+		"Sale:Float:85",
+		"Closing:Float:85",
 	]
 
 
