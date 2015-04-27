@@ -77,7 +77,8 @@ def get_invoices(filters):
 def get_indents_which_are_not_invoiced_yet(filters):
 	return frappe.db.sql(
 		"""
-		select indent.posting_date as posting_date, indent_item.customer, indent_item.item, indent_item.qty
+		select indent.posting_date as posting_date, indent_item.customer, indent_item.item, indent_item.qty,
+		indent_item.cross_sold
 		from `tabIndent Item` indent_item,
 		`tabIndent` indent
 		where indent_item.parent = indent.name
@@ -170,8 +171,12 @@ def get_data_map(filters):
 
 	for i in indents:
 		active_map = opening_map if i.posting_date < filters['from_date'] else current_map
-		active_map.setdefault(i.customer, {}).setdefault(i.item, frappe._dict(default))
-		qty_dict = active_map[i.customer][i.item]
+		if cint(i.cross_sold) == 0:
+			active_map.setdefault(i.customer, {}).setdefault(i.item, frappe._dict(default))
+			qty_dict = active_map[i.customer][i.item]
+		else:
+			active_map.setdefault(balance_customer_account, {}).setdefault(i.item, frappe._dict(default))
+			qty_dict = active_map[balance_customer_account][i.item]
 		qty_dict.i_requested += flt(i.qty)
 
 	for i in invoices:
