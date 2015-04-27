@@ -5,3 +5,4 @@ flows.patches.aggarwal_invoices_fix
 flows.patches.transportation_rate_amt_in_indent_invoice_resync
 flows.patches.cross_purchase_multi_customer
 flows.patches.transportation_rate_amt_in_indent_invoice_resync1
+flows.patches.set_indent_invoices_as_received
