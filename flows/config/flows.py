@@ -113,6 +113,12 @@ def get_data():
 					"name": "Fuel Report",
 					"doctype": "Item",
 				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "GR Missing Report",
+					"doctype": "Item",
+				}
 			]
 		},
 	    {
