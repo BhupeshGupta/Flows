@@ -36,6 +36,13 @@ frappe.query_reports["Stock Register"] = {
 					]
 				}
 			}
+		},
+		{
+			"fieldname":"bifurcate",
+			"label":__("Bifurcate"),
+			"fieldtype":"Check",
+			"options":"Item",
+			default: 0
 		}
 	]
 };

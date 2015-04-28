@@ -4,12 +4,12 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import flt
+from frappe.utils import flt, cint
 
 
 def execute(filters=None):
-	if not filters:
-		filters = {}
+	if filters.bifurcate:
+		filters.bifurcate = cint(filters.bifurcate)
 
 	columns = get_columns(filters)
 	filled_iwb_map = get_item_warehouse_map(filters)
@@ -17,33 +17,29 @@ def execute(filters=None):
 	filters.item_code = filters.item_code.replace('FC', 'EC')
 	empty_iwb_map = get_item_warehouse_map(filters)
 
+	import json
+	from flows.stdlogger import root
+
+	root.debug(json.dumps(filled_iwb_map))
+
 	data = []
 	empty_dict = frappe._dict({
-	"opening_qty": "",
-	"in_qty": "",
-	"out_qty": "",
-	"bal_qty": ""
+	"opening_qty": 0.0,
+	"in": {'GR': 0, 'CR': 0, 'GP': 0, 'OTHER': 0},
+	"out": {'GR': 0, 'CR': 0, 'GP': 0, 'OTHER': 0},
+	"bal_qty": 0.0
 	})
 
 	posting_date = filters.from_date
 	while posting_date <= filters.to_date:
 		filled_qty_dict = filled_iwb_map.get(posting_date)
 		empty_qty_dict = empty_iwb_map.get(posting_date)
-		if not filled_qty_dict: filled_qty_dict = empty_dict
-		if not empty_qty_dict: empty_qty_dict = empty_dict
+		if not filled_qty_dict:
+			filled_qty_dict = empty_dict
+		if not empty_qty_dict:
+			empty_qty_dict = empty_dict
 
-		data.append([
-			posting_date,
-			filled_qty_dict.opening_qty,
-			filled_qty_dict.in_qty,
-			filled_qty_dict.out_qty,
-			filled_qty_dict.bal_qty,
-			"",
-			empty_qty_dict.opening_qty,
-			empty_qty_dict.in_qty,
-			empty_qty_dict.out_qty,
-			empty_qty_dict.bal_qty,
-		])
+		data.append(get_row(posting_date, filled_qty_dict, empty_qty_dict, filters))
 
 		posting_date = get_next_date(posting_date)
 
@@ -55,18 +51,102 @@ def get_columns(filters):
 
 	columns = [
 		"Date:Date:100",
-		"Filled Opening Qty:Float:100",
-		"Filled In Qty:Float:80",
-		"Filled Out Qty:Float:80",
-		"Filled Closing Qty:Float:100",
-		"::100",
-		"Empty Opening Qty:Float:100",
-		"Empty In Qty:Float:80",
-		"Empty Out Qty:Float:80",
-		"Empty Closing Qty:Float:100"
+		"Opening(F):Float:100",
 	]
 
+	columns.extend([
+	"GR IN(F):Float:80",
+	"CR IN(F):Float:80",
+	"GP IN(F):Float:80",
+	"OTHER IN(F):Float:80",
+	] if filters.bifurcate else ["IN(F):Float:80"])
+
+	columns.extend([
+	"GR OUT(F):Float:80",
+	"CR OUT(F):Float:80",
+	"GP OUT(F):Float:80",
+	"OTHER OUT(F):Float:80",
+	] if filters.bifurcate else ["OUT(F):Float:80"])
+
+	columns.extend([
+	"Closing(F):Float:100",
+	"::100",
+	"Opening(E):Float:100",
+	])
+
+	columns.extend([
+	"GR IN(E):Float:80",
+	"CR IN(E):Float:80",
+	"GP IN(E):Float:80",
+	"OTHER IN(E):Float:80",
+	] if filters.bifurcate else ["IN(E):Float:80"])
+
+	columns.extend([
+	"GR OUT(E):Float:80",
+	"CR OUT(E):Float:80",
+	"GP OUT(E):Float:80",
+	"OTHER OUT(E):Float:80",
+	] if filters.bifurcate else ["OUT(E):Float:80"])
+
+	columns.extend(["Closing(E):Float:100"])
+
 	return columns
+
+def get_row(posting_date, filled_qty_dict, empty_qty_dict, filters):
+	row = [
+		posting_date,
+		filled_qty_dict.opening_qty,
+	]
+
+	row.extend(
+		[
+			filled_qty_dict['in']['GR'],
+			filled_qty_dict['in']['CR'],
+			filled_qty_dict['in']['GP'],
+			filled_qty_dict['in']['OTHER']
+		] if filters.bifurcate else
+		[sum(filled_qty_dict['in'].values())]
+	)
+
+	row.extend(
+		[
+			filled_qty_dict['out']['GR'],
+			filled_qty_dict['out']['CR'],
+			filled_qty_dict['out']['GP'],
+			filled_qty_dict['out']['OTHER'],
+		] if filters.bifurcate else
+		[sum(filled_qty_dict['out'].values())]
+	)
+
+	row.extend([
+		filled_qty_dict.bal_qty,
+		"",
+		empty_qty_dict.opening_qty,
+	])
+
+	row.extend(
+		[
+			empty_qty_dict['in']['GR'],
+			empty_qty_dict['in']['CR'],
+			empty_qty_dict['in']['GP'],
+			empty_qty_dict['in']['OTHER'],
+		] if filters.bifurcate else
+		[sum(empty_qty_dict['in'].values())]
+	)
+
+	row.extend(
+		[
+			empty_qty_dict['out']['GR'],
+			empty_qty_dict['out']['CR'],
+			empty_qty_dict['out']['GP'],
+			empty_qty_dict['out']['OTHER'],
+		] if filters.bifurcate else
+		[sum(empty_qty_dict['out'].values())]
+	)
+
+	row.extend([empty_qty_dict.bal_qty])
+
+	return row
 
 
 def get_conditions(filters):
@@ -109,16 +189,20 @@ def get_item_warehouse_map(filters):
 
 	# Init Map To At least Show Opening
 	iwb_map.setdefault(filters.from_date, frappe._dict({
-	"opening_qty": 0.0, "in_qty": 0.0,
-	"out_qty": 0.0, "bal_qty": 0.0
+	"opening_qty": 0.0,
+	"in": {'GR': 0, 'CR': 0, 'GP': 0, 'OTHER': 0},
+	"out": {'GR': 0, 'CR': 0, 'GP': 0, 'OTHER': 0},
+	"bal_qty": 0.0
 	}))
 
 	for d in sle:
 		active_map = opening_iwb_map if d.posting_date < filters["from_date"] else iwb_map
 
 		active_map.setdefault(d.posting_date, frappe._dict({
-		"opening_qty": 0.0, "in_qty": 0.0,
-		"out_qty": 0.0, "bal_qty": 0.0
+		"opening_qty": 0.0,
+		"in": {'GR': 0, 'CR': 0, 'GP': 0, 'OTHER': 0},
+		"out": {'GR': 0, 'CR': 0, 'GP': 0, 'OTHER': 0},
+		"bal_qty": 0.0
 		}))
 
 		qty_dict = active_map[d.posting_date]
@@ -130,9 +214,11 @@ def get_item_warehouse_map(filters):
 
 		if d.posting_date <= filters["to_date"]:
 			if qty_diff > 0:
-				qty_dict.in_qty += qty_diff
+				qty_dict['in'].setdefault(get_voucher_key(d), 0)
+				qty_dict['in'][get_voucher_key(d)] += qty_diff
 			else:
-				qty_dict.out_qty += abs(qty_diff)
+				qty_dict['out'].setdefault(get_voucher_key(d), 0)
+				qty_dict['out'][get_voucher_key(d)] += abs(qty_diff)
 
 	last_balance = compute_openings_and_closings(opening_iwb_map)
 	compute_openings_and_closings(iwb_map, last_balance=last_balance)
@@ -145,10 +231,21 @@ def compute_openings_and_closings(iwb_map, last_balance=None):
 	for posting_date in sorted(iwb_map):
 		qty_dict = iwb_map[posting_date]
 		qty_dict.opening_qty = last_balance
-		qty_dict.bal_qty = qty_dict.opening_qty + qty_dict.in_qty - qty_dict.out_qty
+		qty_dict.bal_qty = qty_dict.opening_qty + sum(qty_dict['in'].values()) - sum(qty_dict['out'].values())
 		last_balance = qty_dict.bal_qty
 
 	return last_balance
+
+
+def get_voucher_key(voucher):
+	if voucher.voucher_type == "Cash Receipt":
+		return "CR"
+	elif voucher.voucher_type == "Goods Receipt":
+		return "GR"
+	elif voucher.voucher_type == "Gatepass":
+		return "GP"
+	else:
+		return "OTHER"
 
 
 import datetime
