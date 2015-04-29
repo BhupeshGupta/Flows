@@ -4,8 +4,8 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from frappe import throw, _
-
+from frappe import throw, _, msgprint
+from flows.flows.report.gr_missing_report.gr_missing_report import get_missing_map
 
 class GoodsReceiptBook(Document):
 	def autoname(self):
@@ -32,6 +32,19 @@ class GoodsReceiptBook(Document):
 				_("Invalid {position} serial. Receipt book {book} already include this {position} serial {serial}").
 				format(position="end", book=book[0][0], serial=self.serial_end)
 			)
+
+		missing_map, books_map, max_missing = get_missing_map()
+
+		from flows.stdlogger import root
+		root.debug(missing_map)
+
+		if self.state == "Closed/Received" and self.name in missing_map:
+			msg = "{} GRs are missing in this book. Did not not close".format(len(missing_map[self.name]))
+			if frappe.session.user == "Administrator":
+				msgprint(msg)
+			else:
+				throw(msg)
+
 
 	def on_trash(self):
 		verify_book_query = """

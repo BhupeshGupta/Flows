@@ -6,12 +6,33 @@ import frappe
 
 
 def execute(filters=None):
+	missing_map, books_map, max_missing = get_missing_map(filters)
+	columns = get_columns(max_missing)
+
+	data = []
+	for missing_book in sorted(missing_map.keys()):
+		book_ref = books_map[missing_book]
+		missing_list = missing_map[missing_book]
+		row = [
+			book_ref.name,
+			book_ref.warehouse,
+			book_ref.issued_to
+		]
+		row.extend(missing_list)
+		data.append(row)
+
+	data = sorted(data, key = lambda x: (x[1], x[2]))
+
+	return columns, data
+
+
+def get_missing_map(filters=None):
 	books = frappe.db.sql(
 		"""
 		SELECT name, warehouse, issued_to,
 		serial_start, serial_end
 		FROM `tabGoods Receipt Book` WHERE
-		name NOT IN ("GBR#0-500");
+		name NOT IN ("GBR#0-500") AND state != 'Closed/Received';
 		""", as_dict=True)
 
 	books_map = {}
@@ -37,28 +58,14 @@ def execute(filters=None):
 			if len(missing) > max_missing:
 				max_missing = len(missing)
 
-	columns = get_columns(max_missing)
-
-	data = []
-	for missing_book in missing_map.keys():
-		book_ref = books_map[missing_book]
-		missing_list = missing_map[missing_book]
-		row = [
-			book_ref.name,
-			book_ref.warehouse,
-			book_ref.issued_to
-		]
-		row.extend(missing_list)
-		data.append(row)
-
-	return columns, data
+	return missing_map, books_map, max_missing
 
 
 def get_columns(max_missing):
 	d = [
-		"Book Id::",
-		"Warehouse::",
-		"Issued To::",
+		"Book Id:Link/Goods Receipt Book:170",
+		"Warehouse:Warehouse:150",
+		"Issued To::100",
 	]
 	if max_missing > 0:
 		d.extend(["Missing {}".format(i) for i in xrange(1, max_missing)])

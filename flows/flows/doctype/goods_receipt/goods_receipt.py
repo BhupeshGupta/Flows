@@ -6,26 +6,40 @@ from frappe.model.document import Document
 import frappe
 from frappe import _, throw
 from flows import utils
-from frappe.utils import today, now
+from frappe.utils import today, now, cint
 from erpnext.accounts.utils import get_fiscal_year
 
 
 class GoodsReceipt(Document):
-	def validate(self):
+
+	def validate_book(self):
 		verify_book_query = """
-		SELECT name, warehouse FROM `tabGoods Receipt Book` where serial_start <= {0} and serial_end >= {0}
+		SELECT name, warehouse, state FROM `tabGoods Receipt Book` where serial_start <= {0} and serial_end >= {0}
 		""".format(self.goods_receipt_number)
 
-		rs = frappe.db.sql(verify_book_query)
+		rs = frappe.db.sql(verify_book_query, as_dict=True)
 
 		if len(rs) == 0:
 			throw(
 				_("Invalid serial. Can not find any receipt book for this serial {}").format(self.goods_receipt_number)
 			)
+		elif rs[0].state == "Closed/Received":
+			throw(
+				_("GR Book has been closed, no entry is amendment in this series").format(self.goods_receipt_number)
+			)
 
-		self.warehouse = rs[0][1]
+		self.warehouse = rs[0].warehouse
+
+
+	def validate(self):
+		# if self.amended_from:
+		# 	return
+		self.validate_book()
 
 	def on_submit(self):
+		if cint(self.cancelled) == 1:
+			return
+
 		if self.warehouse == '' or not self.warehouse:
 			throw(
 				_("Please specify warehouse, unable to find the same in GR book")
@@ -33,6 +47,7 @@ class GoodsReceipt(Document):
 		self.transfer_stock()
 
 	def on_cancel(self):
+		self.validate_book()
 		self.transfer_stock()
 
 	def transfer_stock(self):
