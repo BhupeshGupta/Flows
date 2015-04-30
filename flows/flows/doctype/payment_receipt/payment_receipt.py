@@ -23,8 +23,7 @@ class PaymentReceipt(Document):
 
 	def on_submit(self):
 		self.make_gl_entry()
-		if self.stock_date != '':
-			self.transfer_stock()
+		self.transfer_stock()
 
 	def on_update_after_submit(self):
 		from flows.stdlogger import root
@@ -39,6 +38,10 @@ class PaymentReceipt(Document):
 		self.transfer_stock(is_cancelled='Yes')
 
 	def transfer_stock(self, is_cancelled=None):
+
+		if not self.stock_date or self.stock_date.strip() == '':
+			return
+
 		is_cancelled = is_cancelled if is_cancelled is not None else (self.docstatus == 2 and "Yes" or "No")
 
 		stock_owner = utils.get_stock_owner_via_sales_person_tree(self.stock_owner)
