@@ -25,8 +25,8 @@ def execute(filters=None):
 	data = []
 	empty_dict = frappe._dict({
 	"opening_qty": 0.0,
-	"in": {'GR': 0, 'CR': 0, 'GP': 0, 'OTHER': 0},
-	"out": {'GR': 0, 'CR': 0, 'GP': 0, 'OTHER': 0},
+	"in": {'GR': 0, 'PR': 0, 'GP': 0, 'OTHER': 0},
+	"out": {'GR': 0, 'PR': 0, 'GP': 0, 'OTHER': 0},
 	"bal_qty": 0.0
 	})
 
@@ -56,14 +56,14 @@ def get_columns(filters):
 
 	columns.extend([
 	"GR IN(F):Float:80",
-	"CR IN(F):Float:80",
+	"PR IN(F):Float:80",
 	"GP IN(F):Float:80",
 	"OTHER IN(F):Float:80",
 	] if filters.bifurcate else ["IN(F):Float:80"])
 
 	columns.extend([
 	"GR OUT(F):Float:80",
-	"CR OUT(F):Float:80",
+	"PR OUT(F):Float:80",
 	"GP OUT(F):Float:80",
 	"OTHER OUT(F):Float:80",
 	] if filters.bifurcate else ["OUT(F):Float:80"])
@@ -76,14 +76,14 @@ def get_columns(filters):
 
 	columns.extend([
 	"GR IN(E):Float:80",
-	"CR IN(E):Float:80",
+	"PR IN(E):Float:80",
 	"GP IN(E):Float:80",
 	"OTHER IN(E):Float:80",
 	] if filters.bifurcate else ["IN(E):Float:80"])
 
 	columns.extend([
 	"GR OUT(E):Float:80",
-	"CR OUT(E):Float:80",
+	"PR OUT(E):Float:80",
 	"GP OUT(E):Float:80",
 	"OTHER OUT(E):Float:80",
 	] if filters.bifurcate else ["OUT(E):Float:80"])
@@ -101,7 +101,7 @@ def get_row(posting_date, filled_qty_dict, empty_qty_dict, filters):
 	row.extend(
 		[
 			filled_qty_dict['in']['GR'],
-			filled_qty_dict['in']['CR'],
+			filled_qty_dict['in']['PR'],
 			filled_qty_dict['in']['GP'],
 			filled_qty_dict['in']['OTHER']
 		] if filters.bifurcate else
@@ -111,7 +111,7 @@ def get_row(posting_date, filled_qty_dict, empty_qty_dict, filters):
 	row.extend(
 		[
 			filled_qty_dict['out']['GR'],
-			filled_qty_dict['out']['CR'],
+			filled_qty_dict['out']['PR'],
 			filled_qty_dict['out']['GP'],
 			filled_qty_dict['out']['OTHER'],
 		] if filters.bifurcate else
@@ -127,7 +127,7 @@ def get_row(posting_date, filled_qty_dict, empty_qty_dict, filters):
 	row.extend(
 		[
 			empty_qty_dict['in']['GR'],
-			empty_qty_dict['in']['CR'],
+			empty_qty_dict['in']['PR'],
 			empty_qty_dict['in']['GP'],
 			empty_qty_dict['in']['OTHER'],
 		] if filters.bifurcate else
@@ -137,7 +137,7 @@ def get_row(posting_date, filled_qty_dict, empty_qty_dict, filters):
 	row.extend(
 		[
 			empty_qty_dict['out']['GR'],
-			empty_qty_dict['out']['CR'],
+			empty_qty_dict['out']['PR'],
 			empty_qty_dict['out']['GP'],
 			empty_qty_dict['out']['OTHER'],
 		] if filters.bifurcate else
@@ -190,8 +190,8 @@ def get_item_warehouse_map(filters):
 	# Init Map To At least Show Opening
 	iwb_map.setdefault(filters.from_date, frappe._dict({
 	"opening_qty": 0.0,
-	"in": {'GR': 0, 'CR': 0, 'GP': 0, 'OTHER': 0},
-	"out": {'GR': 0, 'CR': 0, 'GP': 0, 'OTHER': 0},
+	"in": {'GR': 0, 'PR': 0, 'GP': 0, 'OTHER': 0},
+	"out": {'GR': 0, 'PR': 0, 'GP': 0, 'OTHER': 0},
 	"bal_qty": 0.0
 	}))
 
@@ -200,8 +200,8 @@ def get_item_warehouse_map(filters):
 
 		active_map.setdefault(d.posting_date, frappe._dict({
 		"opening_qty": 0.0,
-		"in": {'GR': 0, 'CR': 0, 'GP': 0, 'OTHER': 0},
-		"out": {'GR': 0, 'CR': 0, 'GP': 0, 'OTHER': 0},
+		"in": {'GR': 0, 'PR': 0, 'GP': 0, 'OTHER': 0},
+		"out": {'GR': 0, 'PR': 0, 'GP': 0, 'OTHER': 0},
 		"bal_qty": 0.0
 		}))
 
@@ -238,8 +238,8 @@ def compute_openings_and_closings(iwb_map, last_balance=None):
 
 
 def get_voucher_key(voucher):
-	if voucher.voucher_type == "Cash Receipt":
-		return "CR"
+	if voucher.voucher_type == "Payment Receipt":
+		return "PR"
 	elif voucher.voucher_type == "Goods Receipt":
 		return "GR"
 	elif voucher.voucher_type == "Gatepass":
