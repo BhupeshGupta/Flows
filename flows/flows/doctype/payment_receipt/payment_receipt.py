@@ -11,9 +11,10 @@ from flows.stdlogger import root
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.stock.stock_ledger import make_sl_entries
 
-class CashReceipt(Document):
+
+class PaymentReceipt(Document):
 	def __init__(self, *args, **kwargs):
-		super(CashReceipt, self).__init__(*args, **kwargs)
+		super(PaymentReceipt, self).__init__(*args, **kwargs)
 		self.set_missing_values()
 
 	def autoname(self):
@@ -21,14 +22,25 @@ class CashReceipt(Document):
 			self.name = self.id
 
 	def on_submit(self):
-		self.transfer_stock()
 		self.make_gl_entry()
+		if self.stock_date != '':
+			self.transfer_stock()
+
+	def on_update_after_submit(self):
+		from flows.stdlogger import root
+		root.debug("on_update_after_submit")
+		self.transfer_stock(is_cancelled='Yes')
+		if self.stock_date != '':
+			root.debug("stock_date update")
+			self.transfer_stock()
 
 	def on_cancel(self):
-		self.transfer_stock()
 		self.make_gl_entry()
+		self.transfer_stock(is_cancelled='Yes')
 
-	def transfer_stock(self):
+	def transfer_stock(self, is_cancelled=None):
+		is_cancelled = is_cancelled if is_cancelled is not None else (self.docstatus == 2 and "Yes" or "No")
+
 		stock_owner = utils.get_stock_owner_via_sales_person_tree(self.stock_owner)
 		stock_owner_warehouse = utils.get_or_create_warehouse(stock_owner, self.stock_owner_company)
 
@@ -37,10 +49,12 @@ class CashReceipt(Document):
 		if self.transaction_type in ("Refill", "New Connection"):
 			sl_entries.append(
 				self.get_sl_entry({
-					"item_code": self.item,
-					"actual_qty": -1 * self.qty,
-					"warehouse": stock_owner_warehouse.name,
-					"process": self.transaction_type
+				"item_code": self.item,
+				"actual_qty": -1 * self.qty,
+				"warehouse": stock_owner_warehouse.name,
+				"process": self.transaction_type,
+				"is_cancelled": is_cancelled,
+				"posting_date": self.stock_date,
 				})
 			)
 
@@ -48,10 +62,12 @@ class CashReceipt(Document):
 		if self.transaction_type in ('Refill', 'TV Out'):
 			sl_entries.append(
 				self.get_sl_entry({
-					"item_code": self.item.replace('F', 'E'),
-					"actual_qty": self.qty,
-					"warehouse": stock_owner_warehouse.name,
-					"process": self.transaction_type
+				"item_code": self.item.replace('F', 'E'),
+				"actual_qty": self.qty,
+				"warehouse": stock_owner_warehouse.name,
+				"process": self.transaction_type,
+				"is_cancelled": is_cancelled,
+				"posting_date": self.stock_date,
 				})
 			)
 
@@ -61,15 +77,14 @@ class CashReceipt(Document):
 	def get_sl_entry(self, args):
 		sl_dict = frappe._dict(
 			{
-				"posting_date": self.posting_date,
-				"posting_time": self.posting_time,
-				"voucher_type": self.doctype,
-				"voucher_no": self.name,
-				"actual_qty": 0,
-				"incoming_rate": 0,
-				"company": self.stock_owner_company,
-				"fiscal_year": self.fiscal_year,
-				"is_cancelled": self.docstatus == 2 and "Yes" or "No"
+			"posting_date": self.posting_date,
+			"posting_time": self.posting_time,
+			"voucher_type": self.doctype,
+			"voucher_no": self.name,
+			"actual_qty": 0,
+			"incoming_rate": 0,
+			"company": self.stock_owner_company,
+			"fiscal_year": self.fiscal_year,
 			})
 
 		sl_dict.update(args)
@@ -78,16 +93,16 @@ class CashReceipt(Document):
 	def get_gl_dict(self, args):
 		"""this method populates the common properties of a gl entry record"""
 		gl_dict = frappe._dict({
-			'company': self.company,
-			'posting_date': self.posting_date,
-			'voucher_type': self.doctype,
-			'voucher_no': self.name,
-			'aging_date': self.get("aging_date") or self.posting_date,
-			'remarks': self.get("remarks"),
-			'fiscal_year': self.fiscal_year,
-			'debit': 0,
-			'credit': 0,
-			'is_opening': "No"
+		'company': self.company,
+		'posting_date': self.posting_date,
+		'voucher_type': self.doctype,
+		'voucher_no': self.name,
+		'aging_date': self.get("aging_date") or self.posting_date,
+		'remarks': self.get("remarks"),
+		'fiscal_year': self.fiscal_year,
+		'debit': 0,
+		'credit': 0,
+		'is_opening': "No"
 		})
 		gl_dict.update(args)
 		return gl_dict
@@ -111,30 +126,30 @@ class CashReceipt(Document):
 		if self.total:
 			gl_entries.append(
 				self.get_gl_dict({
-					"account": owners_account,
-					assert_dr_or_cr: self.total,
-					"remarks": "{qty}x{amount_per_item} [{stock_owner}] [CR {cr_id}({txn_type})]".format(
-						qty=self.qty,
-					    amount_per_item=self.amount_per_item,
-					    stock_owner=self.stock_owner,
-						cr_id=self.name,
-						txn_type=self.transaction_type
-					),
+				"account": owners_account,
+				assert_dr_or_cr: self.total,
+				"remarks": "{qty}x{amount_per_item} [{stock_owner}] [CR {cr_id}({txn_type})]".format(
+					qty=self.qty,
+					amount_per_item=self.amount_per_item,
+					stock_owner=self.stock_owner,
+					cr_id=self.name,
+					txn_type=self.transaction_type
+				),
 				})
 			)
 
 			gl_entries.append(
 				self.get_gl_dict({
-					"account": sales_account,
-					sales_dr_or_cr: self.total,
-					"cost_center": cost_center,
-					"remarks": "{qty}x{amount_per_item} [{stock_owner}] [CR {cr_id}({txn_type})]".format(
-						qty=self.qty,
-					    amount_per_item=self.amount_per_item,
-					    stock_owner=self.stock_owner,
-						cr_id=self.name,
-						txn_type=self.transaction_type
-					),
+				"account": sales_account,
+				sales_dr_or_cr: self.total,
+				"cost_center": cost_center,
+				"remarks": "{qty}x{amount_per_item} [{stock_owner}] [CR {cr_id}({txn_type})]".format(
+					qty=self.qty,
+					amount_per_item=self.amount_per_item,
+					stock_owner=self.stock_owner,
+					cr_id=self.name,
+					txn_type=self.transaction_type
+				),
 				})
 			)
 

@@ -2,7 +2,7 @@
  "allow_copy": 0, 
  "allow_import": 0, 
  "allow_rename": 0, 
- "autoname": "CR-.MM.#####", 
+ "autoname": "PR-.MM.#####", 
  "creation": "2015-02-03 20:03:36.525636", 
  "custom": 0, 
  "docstatus": 0, 
@@ -115,6 +115,15 @@
    "reqd": 1
   }, 
   {
+   "allow_on_submit": 1, 
+   "fieldname": "stock_date", 
+   "fieldtype": "Date", 
+   "label": "Stock Date", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 0
+  }, 
+  {
    "default": "Today", 
    "fieldname": "posting_date", 
    "fieldtype": "Date", 
@@ -167,7 +176,7 @@
    "fieldtype": "Link", 
    "label": "Amended From", 
    "no_copy": 1, 
-   "options": "Cash Receipt", 
+   "options": "Payment Receipt", 
    "permlevel": 0, 
    "print_hide": 1, 
    "read_only": 1
@@ -180,10 +189,10 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-04-17 12:20:27.069492", 
+ "modified": "2015-04-30 09:14:45.793060", 
  "modified_by": "Administrator", 
  "module": "Flows", 
- "name": "Cash Receipt", 
+ "name": "Payment Receipt", 
  "name_case": "", 
  "owner": "Administrator", 
  "permissions": [

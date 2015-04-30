@@ -7,7 +7,7 @@ def boot_session(bootinfo):
 	# from flows.utils import get_stock_owner_via_sales_person_tree
 	# if frappe.session['user'] != 'Guest':
 	# 	stock_owner = get_stock_owner_via_sales_person_tree(frappe.session['user'])
-	# 	bootinfo['cash_receipt'] = {
+	# 	bootinfo['payment_receipt'] = {
 	# 		"stock_owner": stock_owner
 	# 	}
 

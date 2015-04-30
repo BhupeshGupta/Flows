@@ -29,8 +29,8 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Cash Receipt",
-					"description": _("Cash Sale")
+					"name": "Payment Receipt",
+					"description": _("Payment Receipt(PR) Voucher")
 				},
 				{
 					"type": "doctype",
