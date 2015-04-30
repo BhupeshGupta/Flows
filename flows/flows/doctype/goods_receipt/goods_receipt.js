@@ -43,8 +43,8 @@ erpnext.flows.GoodsReceiptController = frappe.ui.form.Controller.extend({
 	},
 
 	update_received_required: function (doc) {
-		this.frm.set_df_property("item_received", "reqd", doc.item_delivered || doc.delivered_quantity);
-		this.frm.set_df_property("received_quantity", "reqd", doc.item_delivered || doc.delivered_quantity);
+		this.frm.set_df_property("item_received", "reqd", doc.item_received || doc.received_quantity);
+		this.frm.set_df_property("received_quantity", "reqd", doc.item_received || doc.received_quantity);
 	}
 
 });
