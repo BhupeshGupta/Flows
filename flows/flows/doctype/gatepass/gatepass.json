@@ -10,7 +10,7 @@
  "document_type": "Master", 
  "fields": [
   {
-   "depends_on": "eval:doc.__unsaved==1", 
+   "depends_on": "eval:(doc.__unsaved==1 && !doc.amended_form)", 
    "fieldname": "id", 
    "fieldtype": "Data", 
    "label": "ID", 
@@ -242,7 +242,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-04-30 11:17:56.858470", 
+ "modified": "2015-05-01 23:38:40.070558", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Gatepass", 

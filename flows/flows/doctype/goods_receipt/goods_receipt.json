@@ -10,6 +10,7 @@
  "document_type": "Master", 
  "fields": [
   {
+   "depends_on": "eval:(doc.__unsaved==1 && !doc.amended_form)", 
    "fieldname": "goods_receipt_number", 
    "fieldtype": "Data", 
    "label": "Goods Receipt Number", 
@@ -294,7 +295,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-04-29 01:34:59.389423", 
+ "modified": "2015-05-01 23:39:02.252695", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Goods Receipt", 

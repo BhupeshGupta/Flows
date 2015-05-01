@@ -10,12 +10,37 @@ from flows.stdlogger import root
 
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.stock.stock_ledger import make_sl_entries
+from frappe import _, throw
 
 
 class PaymentReceipt(Document):
 	def __init__(self, *args, **kwargs):
 		super(PaymentReceipt, self).__init__(*args, **kwargs)
 		self.set_missing_values()
+
+	def validate_book(self):
+		verify_book_query = """
+		SELECT name, warehouse, state FROM `tabGoods Receipt Book` WHERE serial_start <= {0} AND serial_end >= {0}
+		""".format(self.id)
+
+		rs = frappe.db.sql(verify_book_query, as_dict=True)
+
+		if len(rs) == 0:
+			throw(
+				_("Invalid serial. Can not find any receipt book for this serial {}").format(self.id)
+			)
+		elif rs[0].state == "Closed/Received":
+			throw(
+				_("PR Book has been closed, amendment prohibited").format(self.id)
+			)
+
+		self.warehouse = rs[0].warehouse
+
+
+	def validate(self):
+		# if self.amended_from:
+		# return
+		self.validate_book()
 
 	def autoname(self):
 		if self.id and self.id != '':
@@ -27,6 +52,7 @@ class PaymentReceipt(Document):
 
 	def on_update_after_submit(self):
 		from flows.stdlogger import root
+
 		root.debug("on_update_after_submit")
 		self.transfer_stock(is_cancelled='Yes')
 		if self.stock_date != '':
