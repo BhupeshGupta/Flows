@@ -82,13 +82,12 @@ fixtures = [
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-#	}
-# }
+doc_events = {
+	"Journal Voucher": {
+		"autoname": "flows.flows.journal_voucher.journal_voucher_autoname",
+		"validate": "flows.flows.journal_voucher.journal_voucher_validate"
+	}
+}
 
 
 # Scheduled Tasks
