@@ -15,7 +15,7 @@ from frappe.model.naming import make_autoname
 class Gatepass(Document):
 	def autoname(self):
 		if self.id and self.id != '':
-			self.name = self.id
+			self.name = '{}-{}'.format(self.id, self.gatepass_type)
 			return
 
 		name_series = 'GP+.DD.MM.YY.###'
