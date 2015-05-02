@@ -19,6 +19,10 @@ class PaymentReceipt(Document):
 		self.set_missing_values()
 
 	def validate_book(self):
+
+		if not self.id:
+			return
+
 		verify_book_query = """
 		SELECT name, warehouse, state FROM `tabGoods Receipt Book` WHERE serial_start <= {0} AND serial_end >= {0}
 		""".format(self.id)
