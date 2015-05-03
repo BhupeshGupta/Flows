@@ -16,6 +16,12 @@ frappe.query_reports["Flows Invoice Report"] = {
             "fieldtype": "Date",
             "default": frappe.datetime.month_end(),
             "reqd": 1
+        },
+	    {
+            "fieldname": "lot_vot_bifurcate",
+            "label": __("LOT VOT Bifurcate"),
+            "fieldtype": "Check",
+            "default": 0
         }
     ]
 };

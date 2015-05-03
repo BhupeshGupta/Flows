@@ -116,11 +116,11 @@ def get_sale_entries(filters):
 		as_dict=1,
 	)
 
-def get_cash_receipts(filters):
+def get_payment_receipts(filters):
 	return frappe.db.sql(
 		"""
 		select posting_date, item, qty
-		from `tabCash Receipt`
+		from `tabPayment Receipt`
 		where docstatus = 1 and
 	    transaction_type in ("Refill", "New Connection") and
 	    posting_date <= '{to_date}';
@@ -163,7 +163,7 @@ def get_data_map(filters):
 	indents = get_indents_which_are_not_invoiced_yet(filters)
 	gr = get_goods_receipts(filters)
 	cs = get_sale_entries(filters)
-	cr = get_cash_receipts(filters)
+	pr = get_payment_receipts(filters)
 	pv = get_patch_vouchers(filters)
 
 	# a/c as suggested by cross sale purchase settings, used to balance VK sale/purchase
@@ -172,70 +172,70 @@ def get_data_map(filters):
 	for i in indents:
 		active_map = opening_map if i.posting_date < filters['from_date'] else current_map
 		if cint(i.cross_sold) == 0:
-			active_map.setdefault(i.customer, {}).setdefault(i.item, frappe._dict(default))
-			qty_dict = active_map[i.customer][i.item]
+			active_map.setdefault(i.customer, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
+			qty_dict = active_map[i.customer][get_item(i.item, filters)]
 		else:
-			active_map.setdefault(balance_customer_account, {}).setdefault(i.item, frappe._dict(default))
-			qty_dict = active_map[balance_customer_account][i.item]
+			active_map.setdefault(balance_customer_account, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
+			qty_dict = active_map[balance_customer_account][get_item(i.item, filters)]
 		qty_dict.i_requested += flt(i.qty)
 
 	for i in invoices:
 		active_map = opening_map if i.posting_date < filters['from_date'] else current_map
-		active_map.setdefault(i.customer, {}).setdefault(i.item, frappe._dict(default))
-		qty_dict = active_map[i.customer][i.item]
+		active_map.setdefault(i.customer, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
+		qty_dict = active_map[i.customer][get_item(i.item, filters)]
 		qty_dict.i_issued += flt(i.qty)
 
 		# Subcontracted, add to supplier's sale
 		if cint(i.sub_contracted) == 1:
-			active_map.setdefault(i.supplier, {}).setdefault(i.item, frappe._dict(default))
-			qty_dict = active_map[i.supplier][i.item]
+			active_map.setdefault(i.supplier, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
+			qty_dict = active_map[i.supplier][get_item(i.item, filters)]
 			qty_dict.m_sold += i.qty
 
 		# Cross Sold
 		if cint(i.cross_sold) == 1:
 			# Sold by customer
-			active_map.setdefault(i.customer, {}).setdefault(i.item, frappe._dict(default))
-			qty_dict = active_map[i.customer][i.item]
+			active_map.setdefault(i.customer, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
+			qty_dict = active_map[i.customer][get_item(i.item, filters)]
 			qty_dict.m_sold += flt(i.qty)
 
 			# Purchased by Cross Sale Purchase balance account
-			active_map.setdefault(balance_customer_account, {}).setdefault(i.item, frappe._dict(default))
-			qty_dict = active_map[balance_customer_account][i.item]
+			active_map.setdefault(balance_customer_account, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
+			qty_dict = active_map[balance_customer_account][get_item(i.item, filters)]
 			qty_dict.m_purchased += i.qty
 
 	for i in cs:
 		active_map = opening_map if i.posting_date < filters['from_date'] else current_map
 		# Sold by Cross Sale Purchase balance account
-		active_map.setdefault(balance_customer_account, {}).setdefault(i.item, frappe._dict(default))
-		qty_dict = active_map[balance_customer_account][i.item]
+		active_map.setdefault(balance_customer_account, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
+		qty_dict = active_map[balance_customer_account][get_item(i.item, filters)]
 		qty_dict.m_sold += i.qty
 
 		# Purchased by customer
-		active_map.setdefault(i.customer, {}).setdefault(i.item, frappe._dict(default))
-		qty_dict = active_map[i.customer][i.item]
+		active_map.setdefault(i.customer, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
+		qty_dict = active_map[i.customer][get_item(i.item, filters)]
 		qty_dict.m_purchased += flt(i.qty)
 
 	for i in gr:
 		active_map = opening_map if i.posting_date < filters['from_date'] else current_map
-		active_map.setdefault(i.customer, {}).setdefault(i.item, frappe._dict(default))
-		qty_dict = active_map[i.customer][i.item]
+		active_map.setdefault(i.customer, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
+		qty_dict = active_map[i.customer][get_item(i.item, filters)]
 		qty_dict.m_delivered += flt(i.qty)
 
-	for i in cr:
+	for i in pr:
 		active_map = opening_map if i.posting_date < filters['from_date'] else current_map
-		active_map.setdefault(balance_customer_account, {}).setdefault(i.item, frappe._dict(default))
-		qty_dict = active_map[balance_customer_account][i.item]
+		active_map.setdefault(balance_customer_account, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
+		qty_dict = active_map[balance_customer_account][get_item(i.item, filters)]
 		qty_dict.m_delivered += flt(i.qty)
 
 	for i in pv:
 		active_map = opening_map if i.posting_date < filters['from_date'] else current_map
-		active_map.setdefault(i.invoice_customer, {}).setdefault(i.item, frappe._dict(default))
-		active_map.setdefault(i.to_customer, {}).setdefault(i.item, frappe._dict(default))
+		active_map.setdefault(i.invoice_customer, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
+		active_map.setdefault(i.to_customer, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
 
-		qty_dict = active_map[i.to_customer][i.item]
+		qty_dict = active_map[i.to_customer][get_item(i.item, filters)]
 		qty_dict.i_issued += flt(i.qty)
 
-		qty_dict = active_map[i.invoice_customer][i.item]
+		qty_dict = active_map[i.invoice_customer][get_item(i.item, filters)]
 		qty_dict.i_issued -= flt(i.qty)
 
 	active_map = opening_map
@@ -285,3 +285,8 @@ def get_customer_map():
 		result_map[instance.name.strip()] = instance
 
 	return result_map
+
+def get_item(item, filters):
+	if cint(filters.lot_vot_bifurcate) == 0:
+		return item.replace('L','')
+	return item
