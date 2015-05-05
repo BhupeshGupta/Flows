@@ -97,7 +97,7 @@
 							{{ indent_item.customer | get_customer_tin_number }}
 						</td>
 						<td>
-							{{ indent_item.item.replace('FC', '') + ' Kg' }}
+							{{ frappe.db.get_value("Item", indent_item.item, "description") }}
 						</td>
 						<td>
 							{% if indent_item.load_type == 'Oneway' %}

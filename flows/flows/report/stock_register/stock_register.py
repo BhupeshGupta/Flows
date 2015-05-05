@@ -178,7 +178,7 @@ def get_stock_ledger_entries(filters):
 	return frappe.db.sql("""select item_code, posting_date, actual_qty,
 		voucher_type, qty_after_transaction
 		from `tabStock Ledger Entry`
-		where docstatus < 2 %s order by posting_date, posting_time, name""" %
+		where docstatus < 2 and ifnull(process, '') not in ('Consumption', 'Refill') %s order by posting_date, posting_time, name""" %
 						 conditions, as_dict=1)
 
 
