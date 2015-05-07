@@ -117,7 +117,7 @@ class IndentInvoice(StockController):
 		if not self.posting_time:
 			self.posting_time = now()
 
-		self.fiscal_year = account_utils.get_fiscal_year(self.get("posting_date"))[0]
+		self.fiscal_year = account_utils.get_fiscal_year(self.get("transaction_date"))[0]
 
 		super(IndentInvoice, self).set_missing_values(*args, **kwargs)
 
@@ -324,10 +324,10 @@ class IndentInvoice(StockController):
 		"""this method populates the common properties of a gl entry record"""
 		gl_dict = frappe._dict({
 		'company': self.company,
-		'posting_date': self.posting_date,
+		'posting_date': self.transaction_date,
 		'voucher_type': self.doctype,
 		'voucher_no': self.name,
-		'aging_date': self.get("aging_date") or self.posting_date,
+		'aging_date': self.get("aging_date") or self.transaction_date,
 		'remarks': self.get("remarks"),
 		'fiscal_year': self.fiscal_year,
 		'debit': 0,
@@ -387,7 +387,7 @@ class IndentInvoice(StockController):
 
 		qty_in_kg = get_conversion_factor(self.item) * float(self.qty)
 		per_kg_rate_in_invoice = self.actual_amount / qty_in_kg
-		landed_rate, transportation_rate = get_landed_rate_for_customer(self.customer, self.posting_date)
+		landed_rate, transportation_rate = get_landed_rate_for_customer(self.customer, self.transaction_date)
 
 		discount = 0
 		credit_note = None
@@ -491,7 +491,7 @@ class IndentInvoice(StockController):
 		"is_opening": "No",
 		"write_off_based_on": "Accounts Receivable",
 		"company": from_company,
-		"posting_date": self.posting_date,
+		"posting_date": self.transaction_date,
 		"entries": [
 			{
 			"docstatus": 0,
@@ -510,7 +510,7 @@ class IndentInvoice(StockController):
 			"cost_center": indent_invoice_settings.credit_note_write_off_cost_center,
 			"debit": amount,
 			"user_remark": "Credit Note Against Bill No: {bill_no} Dt: {invoice_date}".format(
-				bill_no=self.invoice_number, invoice_date=self.posting_date, item=self.item, qty=self.qty,
+				bill_no=self.invoice_number, invoice_date=self.transaction_date, item=self.item, qty=self.qty,
 				amt=self.actual_amount
 			),
 			"letter_head": "Arun Logistics"
@@ -536,7 +536,7 @@ class IndentInvoice(StockController):
 																			   discount_per_kg)
 
 		description += """(Bill No: {bill_no} Dt: {invoice_date} Item: {item} Qty: {qty} Amt: {amt})""".format(
-			bill_no=self.invoice_number, invoice_date=self.posting_date, item=self.item, qty=self.qty,
+			bill_no=self.invoice_number, invoice_date=self.transaction_date, item=self.item, qty=self.qty,
 			amt=self.actual_amount
 		)
 
@@ -544,7 +544,7 @@ class IndentInvoice(StockController):
 		"doctype": "Sales Invoice",
 		"customer": self.customer,
 		"customer_name": self.customer.strip(),
-		"posting_date": self.posting_date,
+		"posting_date": self.transaction_date,
 		"posting_time": self.posting_time,
 		"fiscal_year": self.fiscal_year,
 		"entries": [

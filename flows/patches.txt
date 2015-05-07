@@ -7,3 +7,4 @@ flows.patches.cross_purchase_multi_customer
 flows.patches.transportation_rate_amt_in_indent_invoice_resync1
 flows.patches.set_indent_invoices_as_received
 flows.patches.cash_receipt_to_payment_receipt
+flows.patches.indent_invoice_posting_to_invoice_date
