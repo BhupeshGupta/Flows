@@ -6,10 +6,6 @@ frappe.provide("erpnext.flows");
 
 erpnext.flows.CashReceiptController = frappe.ui.form.Controller.extend({
 	onload:function () {
-		if (this.frm.doc.owner == "Administrator" || this.frm.doc.owner == "indermani1983@rediffmail.com" || this.frm.doc.owner == "sanjuchopra1976@gmail.com") {
-			this.frm.set_df_property("owner", "read_only", false);
-		}
-
 		//if (frappe.boot.payment_receipt && frappe.boot.payment_receipt.stock_owner) {
 		//	this.frm.set_value("stock_owner", frappe.boot.payment_receipt.stock_owner, "");
 		//	this.frm.set_df_property("stock_owner", "read_only", frappe.boot.payment_receipt.stock_owner != "");

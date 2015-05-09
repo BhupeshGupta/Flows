@@ -19,9 +19,8 @@ class PaymentReceipt(Document):
 		self.set_missing_values()
 
 	def validate_book(self):
-
-		if not self.id:
-			return
+		if not self.id: return
+		if not self.id.isdigit(): throw("ID needs to be a number, Please check the serial on PR receipt.")
 
 		verify_book_query = """
 		SELECT * FROM `tabGoods Receipt Book` WHERE serial_start <= {0} AND serial_end >= {0}

@@ -9,7 +9,7 @@ app_url = "No URL yet"
 app_version = "0.0.1"
 
 fixtures = [
-	"Custom Field",
+	# "Custom Field",
 	"Supplier Type",
 	"Item Group",
 	"Warehouse",
@@ -21,7 +21,7 @@ fixtures = [
 	# "Letter Head",
 	"Print Heading",
 	# "Print Format",
-	"Property Setter",
+	# "Property Setter",
     "Sales Taxes and Charges Master",
     "Terms and Conditions"
 ]

@@ -18,11 +18,19 @@
 "Type:","Data (text)","Select","Link","Data","Text","Data","Data","Data"
 "Info:","","One of: DocField, DocType","Valid DocType","","","","",""
 "Start entering data below this line"
-"","""Journal Voucher-naming_series-options""","DocField","Journal Voucher","options","JV-
-KJV-","naming_series","Text",""
-"","""Account-account_type-options""","DocField","Account","options","
+"","""Journal Voucher-voucher_type-options""","DocField","Journal Voucher","options","Journal Entry
+Bank Voucher
+Cash Voucher
+Cash Receipt(CR)
+Credit Card Voucher
+Debit Note
+Credit Note
+Contra Voucher
+Excise Voucher
+Write Off Voucher
+Opening Entry","voucher_type","Text",""
+"","""Account-account_type-options""","DocField","Account","options","Cash
 Bank
-Cash
 Tax
 Chargeable
 Warehouse
