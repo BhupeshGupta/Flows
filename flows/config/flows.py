@@ -112,12 +112,6 @@ def get_data():
 					"is_query_report": True,
 					"name": "Fuel Report",
 					"doctype": "Item",
-				},
-				{
-					"type": "report",
-					"is_query_report": True,
-					"name": "GR Missing Report",
-					"doctype": "Item",
 				}
 			]
 		},
@@ -130,6 +124,24 @@ def get_data():
 					"is_query_report": True,
 					"name": "Stock Register",
 					"doctype": "Gatepass",
+				}
+			]
+		},
+		 {
+			"label": _("Missing Report"),
+			"icon": "icon-table",
+			"items": [
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "GR Missing Report",
+					"doctype": "Item",
+				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "Purchase Cycle Report",
+					"doctype": "Item",
 				}
 			]
 		},
