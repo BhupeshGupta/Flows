@@ -11,11 +11,13 @@
  "fields": [
   {
    "depends_on": "eval:(doc.__unsaved==1 && !doc.amended_form)", 
+   "description": "Serial Number on PR Receipt", 
    "fieldname": "id", 
    "fieldtype": "Data", 
    "label": "ID", 
    "permlevel": 0, 
-   "precision": ""
+   "precision": "", 
+   "reqd": 1
   }, 
   {
    "fieldname": "debit_account", 
@@ -178,7 +180,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-05-09 09:16:48.076079", 
+ "modified": "2015-05-09 09:36:32.781949", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Payment Receipt", 
