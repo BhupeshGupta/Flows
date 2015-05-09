@@ -6,21 +6,38 @@ import frappe
 from frappe import utils
 
 def execute(filters=None):
-	data = get_data(filters)
+	data_dict_list = get_data(filters)
+	data = []
+	for entry in data_dict_list:
+		data.append([
+			utils.formatdate(entry.indent.posting_date),
+			entry.indent.vehicle,
+			entry.indent.name,
+			utils.formatdate(entry.gatepass_out.posting_date) if entry.gatepass_out else "",
+			entry.gatepass_out.name if entry.gatepass_out else "",
+			utils.formatdate(entry.gatepass_in.posting_date) if entry.gatepass_in else "",
+			entry.gatepass_in.name if entry.gatepass_in else "",
+			entry.expected_bill_count,
+			entry.entered_bill_count,
+			entry.physical_state,
+			entry.bill_state
+		])
 	return get_columns(), data
 
 
 def get_columns():
 	return [
 		"Indent Date",
-		"Indent",
+		"Vehicle:Link/Transportation Vehicle:100",
+		"Indent:Link/Indent:100",
 		"GP Out Date",
-		"GP Out",
+		"GP Out:Link/Gatepass:150",
 		"GP In Date",
-		"GP In",
+		"GP In:Link/Gatepass:150",
 		"Total Bills",
 		"Bills Entered",
-		"State"
+		"Phy State",
+		"Bill Status"
 	]
 
 
@@ -43,37 +60,52 @@ def get_indent_linked_gp_map():
 
 def get_data(filters):
 	rows = []
+
+	default_row_dict = {
+	"indent": "",
+	"gatepass_in": "",
+	"gatepass_out": "",
+	"expected_bill_count": "",
+	"entered_bill_count": "",
+	"physical_state": "Pending",
+	"bill_state": "Pending"
+	}
+
 	indents = get_indents()
 	gatepass_map = get_indent_linked_gp_map()
 
 	for indent in indents:
-		row = [utils.formatdate(indent.posting_date), indent.name]
+		row_dict = frappe._dict(default_row_dict)
+
+		row_dict.indent = indent
+
+		out_key = '{}#{}'.format(indent.name, 'Out')
+		if out_key in gatepass_map:
+			row_dict.gatepass_out = gatepass_map[out_key]
 
 		in_key = '{}#{}'.format(indent.name, 'In')
-		out_key = '{}#{}'.format(indent.name, 'Out')
-		out_gp_subarray = ["", ""]
-		if out_key in gatepass_map:
-			out_gp = gatepass_map[out_key]
-			out_gp_subarray = [utils.formatdate(out_gp.posting_date), out_gp.name]
-
-		in_gp_subarray = ["", ""]
 		if in_key in gatepass_map:
-			in_gp = gatepass_map[in_key]
-			in_gp_subarray = [utils.formatdate(in_gp.posting_date), in_gp.name]
+			row_dict.gatepass_in = gatepass_map[in_key]
 
-		no_of_bills_expected = frappe.db.sql("""
+		expected_bill_count = frappe.db.sql("""
 		select count(name) from `tabIndent Item`
 		where parent = \"{}\" """.format(indent.name))
+		row_dict.expected_bill_count = expected_bill_count[0] if expected_bill_count else 0
 
-		no_of_bills_entered = frappe.db.sql("""
+		entered_bill_count = frappe.db.sql("""
 		select count(name) from `tabIndent Invoice`
 		where indent = \"{}\" and docstatus != 2""".format(indent.name))
+		row_dict.entered_bill_count = entered_bill_count[0] if entered_bill_count else 0
 
-		row.extend(out_gp_subarray)
-		row.extend(in_gp_subarray)
-		row.append(no_of_bills_expected)
-		row.append(no_of_bills_entered)
+		rows.append(row_dict)
 
-		rows.append(row)
+		# State Algo
+		if row_dict.gatepass_out:
+			row_dict.physical_state = "Dispatched"
+			if row_dict.gatepass_in:
+				row_dict.physical_state = "Received"
+
+		if int(row_dict.expected_bill_count[0]) - int(row_dict.entered_bill_count[0]) == 0:
+			row_dict.bill_state = "Completed"
 
 	return rows
