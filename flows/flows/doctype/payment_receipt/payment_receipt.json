@@ -33,9 +33,18 @@
    "print_hide": 0, 
    "read_only": 1, 
    "report_hide": 0, 
-   "reqd": 1, 
+   "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0
+  }, 
+  {
+   "fieldname": "debit_account", 
+   "fieldtype": "Link", 
+   "label": "Debit Account", 
+   "options": "Account", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 0
   }, 
   {
    "fieldname": "stock_owner", 
@@ -189,7 +198,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-05-01 23:39:29.068769", 
+ "modified": "2015-05-05 14:01:58.749630", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Payment Receipt", 

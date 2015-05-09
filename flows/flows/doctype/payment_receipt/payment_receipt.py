@@ -24,7 +24,7 @@ class PaymentReceipt(Document):
 			return
 
 		verify_book_query = """
-		SELECT name, warehouse, state FROM `tabGoods Receipt Book` WHERE serial_start <= {0} AND serial_end >= {0}
+		SELECT * FROM `tabGoods Receipt Book` WHERE serial_start <= {0} AND serial_end >= {0}
 		""".format(self.id)
 
 		rs = frappe.db.sql(verify_book_query, as_dict=True)
@@ -33,18 +33,29 @@ class PaymentReceipt(Document):
 			throw(
 				_("Invalid serial. Can not find any receipt book for this serial {}").format(self.id)
 			)
+		elif utils.cint(rs[0].pr_enabled) == 0:
+			throw(
+				_("Receipt Book ({} - {}) Is Not Marked For PR. Please Contact Book Manager").
+					format(rs[0].serial_start, rs[0].serial_end)
+			)
 		elif rs[0].state == "Closed/Received":
 			throw(
 				_("PR Book has been closed, amendment prohibited").format(self.id)
 			)
 
-		self.warehouse = rs[0].warehouse
+		self.debit_account = rs[0].pr_debit
 
+
+	def validate_unique(self):
+		rs = frappe.db.sql("select name from `tabGoods Receipt` where name=\"{0}\" or name like \"{0}-%\"".format(self.id))
+		if len(rs) > 0:
+			throw("Goods Receipt with this serial already exists {}".format(self.id))
 
 	def validate(self):
 		# if self.amended_from:
 		# return
 		self.validate_book()
+		self.validate_unique()
 
 	def autoname(self):
 		if self.id and self.id != '':
@@ -148,7 +159,7 @@ class PaymentReceipt(Document):
 			"Company", self.company, "abbr"
 		)
 
-		owners_account = utils.get_imprest_or_get_or_create_customer_like_account(self.company, self.owner)
+		owners_account = self.debit_account
 		sales_account = 'Sales - {}'.format(company_abbr)
 
 		cost_center = 'Main - {}'.format(company_abbr)

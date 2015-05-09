@@ -28,6 +28,14 @@
    "set_only_once": 0
   }, 
   {
+   "fieldname": "issued_to_contact_number", 
+   "fieldtype": "Data", 
+   "label": "Issued To Contact Number", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
    "allow_on_submit": 0, 
    "fieldname": "issue_date", 
    "fieldtype": "Date", 
@@ -85,23 +93,6 @@
    "set_only_once": 0
   }, 
   {
-   "fieldname": "warehouse", 
-   "fieldtype": "Link", 
-   "label": "Warehouse", 
-   "options": "Warehouse", 
-   "permlevel": 0, 
-   "precision": "", 
-   "reqd": 1
-  }, 
-  {
-   "fieldname": "issued_to_contact_number", 
-   "fieldtype": "Data", 
-   "label": "Issued To Contact Number", 
-   "permlevel": 0, 
-   "precision": "", 
-   "reqd": 1
-  }, 
-  {
    "allow_on_submit": 0, 
    "fieldname": "receiving_date", 
    "fieldtype": "Date", 
@@ -121,6 +112,62 @@
    "set_only_once": 0
   }, 
   {
+   "fieldname": "section_break_7", 
+   "fieldtype": "Section Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "default": "0", 
+   "fieldname": "gr_enabled", 
+   "fieldtype": "Check", 
+   "label": "GR Enabled", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
+   "depends_on": "eval:doc.gr_enabled==1", 
+   "fieldname": "warehouse", 
+   "fieldtype": "Link", 
+   "label": "Warehouse", 
+   "options": "Warehouse", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 0
+  }, 
+  {
+   "fieldname": "column_break_10", 
+   "fieldtype": "Section Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "default": "0", 
+   "fieldname": "pr_enabled", 
+   "fieldtype": "Check", 
+   "label": "PR Enabled", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
+   "depends_on": "eval:doc.pr_enabled==1", 
+   "fieldname": "pr_debit", 
+   "fieldtype": "Link", 
+   "label": "PR Debit", 
+   "options": "Account", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 0
+  }, 
+  {
+   "fieldname": "section_break_13", 
+   "fieldtype": "Section Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "default": "Issued", 
    "fieldname": "state", 
    "fieldtype": "Select", 
@@ -138,7 +185,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-04-29 01:46:40.215447", 
+ "modified": "2015-05-05 12:41:24.985605", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Goods Receipt Book", 

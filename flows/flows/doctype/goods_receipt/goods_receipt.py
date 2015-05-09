@@ -13,7 +13,7 @@ from erpnext.accounts.utils import get_fiscal_year
 class GoodsReceipt(Document):
 	def validate_book(self):
 		verify_book_query = """
-		SELECT name, warehouse, state FROM `tabGoods Receipt Book` WHERE serial_start <= {0} AND serial_end >= {0}
+		SELECT * FROM `tabGoods Receipt Book` WHERE serial_start <= {0} AND serial_end >= {0};
 		""".format(self.goods_receipt_number)
 
 		rs = frappe.db.sql(verify_book_query, as_dict=True)
@@ -21,6 +21,11 @@ class GoodsReceipt(Document):
 		if len(rs) == 0:
 			throw(
 				_("Invalid serial. Can not find any receipt book for this serial {}").format(self.goods_receipt_number)
+			)
+		elif cint(rs[0].gr_enabled) == 0:
+			throw(
+				_("Receipt Book ({} - {}) Is Not Marked For GR. Please Contact Book Manager").
+					format(self.serial_start, self.serial_end)
 			)
 		elif rs[0].state == "Closed/Received":
 			throw(
@@ -33,14 +38,17 @@ class GoodsReceipt(Document):
 		# if self.amended_from:
 		# return
 		self.validate_book()
+		self.validate_unique()
+
+	def validate_unique(self):
+		rs = frappe.db.sql("select name from `tabPayment Receipt` where name=\"{0}\" or name like \"{0}-%\"".format(self.goods_receipt_number))
+		if len(rs) > 0:
+			throw("Payment Receipt with this serial already exists {}".format(self.goods_receipt_number))
 
 	def on_submit(self):
-		if cint(self.cancelled) == 1:
-			return
-
 		if self.warehouse == '' or not self.warehouse:
 			throw(
-				_("Please specify warehouse, unable to find the same in GR book")
+				_("Warehouse Not Linked With Book. Please Contact Receipt Book Manager")
 			)
 		self.transfer_stock()
 
@@ -49,6 +57,10 @@ class GoodsReceipt(Document):
 		self.transfer_stock()
 
 	def transfer_stock(self):
+
+		if cint(self.cancelled) == 1:
+			return
+
 		from erpnext.stock.stock_ledger import make_sl_entries
 
 		self.set_missing_values()
