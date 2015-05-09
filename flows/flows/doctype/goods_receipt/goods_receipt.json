@@ -10,15 +10,6 @@
  "document_type": "Master", 
  "fields": [
   {
-   "depends_on": "eval:(doc.__unsaved==1 && !doc.amended_form)", 
-   "fieldname": "goods_receipt_number", 
-   "fieldtype": "Data", 
-   "label": "Goods Receipt Number", 
-   "permlevel": 0, 
-   "precision": "", 
-   "reqd": 1
-  }, 
-  {
    "default": "", 
    "fieldname": "posting_date", 
    "fieldtype": "Date", 
@@ -31,19 +22,19 @@
    "reqd": 1
   }, 
   {
+   "depends_on": "eval:(doc.__unsaved==1 && !doc.amended_form)", 
+   "fieldname": "goods_receipt_number", 
+   "fieldtype": "Data", 
+   "label": "Goods Receipt Number", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
    "fieldname": "section_break_4", 
    "fieldtype": "Section Break", 
    "permlevel": 0, 
    "precision": ""
-  }, 
-  {
-   "fieldname": "warehouse", 
-   "fieldtype": "Link", 
-   "label": "Warehouse", 
-   "options": "Warehouse", 
-   "permlevel": 0, 
-   "precision": "", 
-   "reqd": 0
   }, 
   {
    "allow_on_submit": 0, 
@@ -229,15 +220,6 @@
    "precision": ""
   }, 
   {
-   "default": "0", 
-   "fieldname": "cancelled", 
-   "fieldtype": "Check", 
-   "label": "Cancelled", 
-   "permlevel": 0, 
-   "precision": "", 
-   "reqd": 1
-  }, 
-  {
    "fieldname": "posting_time", 
    "fieldtype": "Time", 
    "hidden": 0, 
@@ -279,6 +261,30 @@
    "read_only": 1
   }, 
   {
+   "fieldname": "column_break_21", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "default": "0", 
+   "fieldname": "cancelled", 
+   "fieldtype": "Check", 
+   "label": "Cancelled", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
+   "fieldname": "warehouse", 
+   "fieldtype": "Link", 
+   "label": "Warehouse", 
+   "options": "Warehouse", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 0
+  }, 
+  {
    "default": "0", 
    "fieldname": "is_opening", 
    "fieldtype": "Check", 
@@ -295,7 +301,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-05-01 23:39:02.252695", 
+ "modified": "2015-05-09 12:33:39.393025", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Goods Receipt", 
