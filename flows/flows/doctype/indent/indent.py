@@ -168,20 +168,20 @@ class Indent(Document):
 
 		conversion_sl_entries.append(
 			self.get_sl_entry({
-				"item_code": item,
-				"actual_qty": -1 * item_quantity,
-				"warehouse": from_warehouse.name,
-				"company": from_warehouse.company,
-				"process": process
+			"item_code": item,
+			"actual_qty": -1 * item_quantity,
+			"warehouse": from_warehouse.name,
+			"company": from_warehouse.company,
+			"process": process
 			})
 		)
 		conversion_sl_entries.append(
 			self.get_sl_entry({
-				"item_code": item,
-				"actual_qty": 1 * item_quantity,
-				"warehouse": to_warehouse.name,
-				"company": to_warehouse.company,
-				"process": process
+			"item_code": item,
+			"actual_qty": 1 * item_quantity,
+			"warehouse": to_warehouse.name,
+			"company": to_warehouse.company,
+			"process": process
 			})
 		)
 
@@ -190,15 +190,15 @@ class Indent(Document):
 	def get_sl_entry(self, args):
 		sl_dict = frappe._dict(
 			{
-				"posting_date": self.posting_date,
-				"posting_time": self.posting_time,
-				"voucher_type": self.doctype,
-				"voucher_no": self.name,
-				"actual_qty": 0,
-				"incoming_rate": 0,
-				"company": self.company,
-				"fiscal_year": self.fiscal_year,
-				"is_cancelled": self.docstatus == 2 and "Yes" or "No"
+			"posting_date": self.posting_date,
+			"posting_time": self.posting_time,
+			"voucher_type": self.doctype,
+			"voucher_no": self.name,
+			"actual_qty": 0,
+			"incoming_rate": 0,
+			"company": self.company,
+			"fiscal_year": self.fiscal_year,
+			"is_cancelled": self.docstatus == 2 and "Yes" or "No"
 			})
 
 		sl_dict.update(args)
@@ -211,3 +211,23 @@ class Indent(Document):
 		if not self.posting_time:
 			self.posting_time = now()
 		self.fiscal_year = account_utils.get_fiscal_year(date=self.posting_date)[0]
+
+
+@frappe.whitelist()
+def make_gatepass(source_name, target_doc=None):
+	import json
+
+	doc = frappe.get_doc(json.loads(target_doc))
+	doc.set('items', [])
+
+	rs = frappe.db.sql("""
+	SELECT item, sum(qty) FROM `tabIndent Item` WHERE parent = '{}' AND docstatus != 2 GROUP BY item""".
+						   format(source_name))
+
+	for r in rs:
+		itm = r[0] if doc.gatepass_type.lower() == 'in' else r[0].replace('FC', 'EC')
+		doc.append('items', {'item': itm, 'quantity': r[1]})
+
+	doc.dispatch_destination = 'Plant'
+
+	return doc.as_dict()

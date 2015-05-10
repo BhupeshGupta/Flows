@@ -92,3 +92,55 @@ class Gatepass(Document):
 
 		if not self.get("posting_time"):
 			self.posting_time = now()
+
+
+def get_indent_list(doctype, txt, searchfield, start, page_len, filters):
+	indent = frappe.db.sql("""
+	select indent from `tabGatepass`
+	where name like '{doc_id}%' and
+	vehicle = '{vehicle}'""".format(**filters))
+
+	subquery = '"{}"'.format(indent[0][0]) if indent \
+	else """
+	SELECT name FROM `tabIndent`
+	WHERE posting_date >= '2015-05-01'
+	AND vehicle = '{vehicle}'
+	AND name NOT IN (
+		SELECT ifnull(indent, '')
+		FROM `tabGatepass`
+		WHERE gatepass_type = "{gatepass_type}"
+		AND docstatus = 1
+	)
+	AND name like '%{txt}%'""".format(txt=txt, **filters)
+
+
+	# posting_date >= '2015-05-01' // feature start date
+	rs = frappe.db.sql("""
+	SELECT ind.name as name,
+	init.item as item,
+	sum(init.qty) as qty,
+	ind.plant as plant,
+	ind.posting_date as posting_date
+	FROM `tabIndent` ind, `tabIndent Item` init
+	WHERE ind.name in (
+		{subquery}
+	)
+	AND ind.name = init.parent
+	GROUP BY ind.name, init.item;
+	""".format(subquery=subquery, **filters), as_dict=True)
+
+	rs_map = {}
+	for r in rs:
+		rs_map.setdefault(r.name, frappe._dict({}))
+		rs_dict = rs_map[r.name]
+		rs_dict.setdefault('items', [])
+
+		rs_dict.plant = r.plant
+		rs_dict.posting_date = frappe.utils.formatdate(r.posting_date)
+		rs_dict['items'].append('{}X{}'.format(r.qty, r.item))
+
+	result = []
+	for key, rs_dict in rs_map.items():
+		result.append([key, '{} {} [{}]'.format(rs_dict.posting_date, rs_dict.plant, ','.join(rs_dict['items']))])
+
+	return result
