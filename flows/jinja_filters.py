@@ -22,10 +22,17 @@ def indent_oneway_qty(indent_items):
 
 
 def compute_erv_for_refill_in_indent(indent_items):
+	item_desc_map = {}
+	def get_desc(item):
+		if item not in item_desc_map:
+			item_desc_map[item] = frappe.db.get_value("Item", indent_item.item, "description")
+		return item_desc_map[item]
+
 	map = {}
 	for indent_item in indent_items:
 		if indent_item.load_type == "Refill":
-			key = indent_item.item.replace("FC", "") + " Kg"
+			key = get_desc(indent_item.item).replace("FC", "")
+			key = key.replace('LOT', 'Kg LOT').replace('VOT', 'Kg VOT') if 'OT' in key else key + ' Kg'
 			map.setdefault(key, 0)
 			map[key] += indent_item.qty
 
@@ -33,7 +40,7 @@ def compute_erv_for_refill_in_indent(indent_items):
 	for values in map.values():
 		safety_caps += values
 	if safety_caps > 0:
-		map["Safety Caps"] = safety_caps
+		map["Saf Cap."] = safety_caps
 
 	return OrderedDict(sorted(map.items()))
 

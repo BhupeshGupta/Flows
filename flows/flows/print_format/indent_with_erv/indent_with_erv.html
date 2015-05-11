@@ -156,42 +156,6 @@
 			</table>
 		</div>
 	</div>
-	<div class="row clearfix">
-		<div class="col-xs-12 column">
-			<h3 class="text-center">
-			</h3>
-
-			<h3 class="text-center">
-				<strong>Equipment Return Voucher Detail</strong>
-			</h3>
-
-			{% set map = doc.indent|compute_erv_for_refill_in_indent %}
-
-			<table class="table table-striped">
-				<thead>
-				<tr>
-					{% for key in map.keys() %}
-						<th>
-							{{ key }}
-						</th>
-					{% endfor %}
-				</tr>
-				</thead>
-				<tbody>
-				<tr>
-					{% for value in map.values() %}
-						<td>
-							{{ value }}
-						</td>
-					{% endfor %}
-				</tr>
-				</tbody>
-			</table>
-			<p>
-				Please acknowledge the receipt of equipment returned to plant.
-			</p>
-		</div>
-	</div>
 
 	<div class="row clearfix">
 		<br/>
@@ -224,8 +188,64 @@
 		</div>
 	</div>
 
+
 	<div class="row clearfix">
-		<strong>THIS IS A COMPUTER-GENERATED DOCUMENT AND IT DOES NOT REQUIRE A SIGNATURE. THIS DOCUMENT SHALL NOT BE
-			INVALIDATED SOLELY ON THE GROUND THAT IT IS NOT SIGNED.</strong>
+		<div class="col-xs-12 column">
+			<strong>
+				THIS IS A COMPUTER-GENERATED DOCUMENT AND IT DOES NOT REQUIRE A SIGNATURE. THIS DOCUMENT SHALL NOT
+				BE INVALIDATED SOLELY ON THE GROUND THAT IT IS NOT SIGNED.
+			</strong>
+		</div>
 	</div>
+
+	<div class="row clearfix">
+		<div class="col-xs-12 column">
+			<h3 class="text-center">
+			</h3>
+
+			<h3 class="text-center">
+				<strong>Equipment Return Voucher (Plant Use)</strong>
+			</h3>
+
+			{% set map = doc.indent|compute_erv_for_refill_in_indent %}
+
+			<table class="table table-bordered table-striped">
+				<thead>
+				<tr>
+					{% for key in map.keys() %}
+						<th>
+							{{ key }}
+						</th>
+					{% endfor %}
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+					{% for value in map.values() %}
+						<td>
+							{{ value }}
+						</td>
+					{% endfor %}
+				</tr>
+				<tr>
+					{% for value in map.values() %}
+						<td style="padding: 14px!important;">
+
+						</td>
+					{% endfor %}
+				</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="col-xs-6 column">
+			Please acknowledge the receipt of equipment returned to plant.
+		</div>
+		<div class="col-xs-6 column">
+			<strong>
+				Tallyman's Name & Sig.<br/>
+				Shift Officer Name & Sig.
+			</strong>
+		</div>
+	</div>
+
 </div>
