@@ -10,11 +10,11 @@ app_version = "0.0.1"
 
 fixtures = [
 	# "Custom Field",
-	"Supplier Type",
-	"Item Group",
-	"Warehouse",
-	"Item",
-	"Item Conversion",
+	# "Supplier Type",
+	# "Item Group",
+	# "Warehouse",
+	# "Item",
+	# "Item Conversion",
 	"Workflow State",
 	"Workflow Action",
 	"Workflow",
@@ -31,7 +31,7 @@ fixtures = [
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/flows/css/flows.css"
-# app_include_js = "/assets/flows/js/flows.js"
+app_include_js = "/assets/js/flows.min.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/flows/css/flows.css"

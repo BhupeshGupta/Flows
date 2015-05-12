@@ -242,6 +242,20 @@
    "read_only": 1
   }, 
   {
+   "fieldname": "column_break_20", 
+   "fieldtype": "Section Break", 
+   "label": "Related Docs", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "gatepass_html", 
+   "fieldtype": "HTML", 
+   "label": "Gatepass Out", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "posting_time", 
    "fieldtype": "Time", 
    "hidden": 1, 
@@ -284,7 +298,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-03-22 22:50:12.423889", 
+ "modified": "2015-05-11 22:49:13.668629", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent", 

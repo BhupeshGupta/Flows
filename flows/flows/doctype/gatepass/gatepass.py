@@ -137,7 +137,7 @@ def get_indent_list(doctype, txt, searchfield, start, page_len, filters):
 
 		rs_dict.plant = r.plant
 		rs_dict.posting_date = frappe.utils.formatdate(r.posting_date)
-		rs_dict['items'].append('{}X{}'.format(r.qty, r.item))
+		rs_dict['items'].append('{} X {}'.format(int(r.qty), r.item))
 
 	result = []
 	for key, rs_dict in rs_map.items():

@@ -1,0 +1,21 @@
+<p>
+	<button id="linkgp" class="btn btn-sm btn-default btn-address">
+		<i class="icon-plus"></i> Link Gatepass
+	</button>
+</p>
+
+<ul>
+{% for(var i=0, l=gp_list.length; i<l; i++) { %}
+	<li>
+		<p style="padding-top: 5px;">
+            <a href="#Form/Gatepass/{%= gp_list[i].name %}" class="btn btn-sm btn-default">
+            {%= gp_list[i].name %}  <span class="label label-info">{%= gp_list[i].gatepass_type %}</span>
+            </a>
+		</p>
+	</li>
+{% } %}
+</ul>
+
+{% if(!gp_list.length) { %}
+    <p class="text-muted">No Gatepass Linked Yet</p>
+{% } %}

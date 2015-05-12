@@ -21,6 +21,10 @@ class Indent(Document):
 		super(Indent, self).__init__(*args, **kwargs)
 		self.set_missing_values()
 
+	def onload(self):
+		"""Load Gatepasses `__onload`"""
+		self.load_gatepasses()
+
 	def on_submit(self):
 		self.process_material_according_to_indent()
 
@@ -168,20 +172,20 @@ class Indent(Document):
 
 		conversion_sl_entries.append(
 			self.get_sl_entry({
-			"item_code": item,
-			"actual_qty": -1 * item_quantity,
-			"warehouse": from_warehouse.name,
-			"company": from_warehouse.company,
-			"process": process
+				"item_code": item,
+				"actual_qty": -1 * item_quantity,
+				"warehouse": from_warehouse.name,
+				"company": from_warehouse.company,
+				"process": process
 			})
 		)
 		conversion_sl_entries.append(
 			self.get_sl_entry({
-			"item_code": item,
-			"actual_qty": 1 * item_quantity,
-			"warehouse": to_warehouse.name,
-			"company": to_warehouse.company,
-			"process": process
+				"item_code": item,
+				"actual_qty": 1 * item_quantity,
+				"warehouse": to_warehouse.name,
+				"company": to_warehouse.company,
+				"process": process
 			})
 		)
 
@@ -190,15 +194,15 @@ class Indent(Document):
 	def get_sl_entry(self, args):
 		sl_dict = frappe._dict(
 			{
-			"posting_date": self.posting_date,
-			"posting_time": self.posting_time,
-			"voucher_type": self.doctype,
-			"voucher_no": self.name,
-			"actual_qty": 0,
-			"incoming_rate": 0,
-			"company": self.company,
-			"fiscal_year": self.fiscal_year,
-			"is_cancelled": self.docstatus == 2 and "Yes" or "No"
+				"posting_date": self.posting_date,
+				"posting_time": self.posting_time,
+				"voucher_type": self.doctype,
+				"voucher_no": self.name,
+				"actual_qty": 0,
+				"incoming_rate": 0,
+				"company": self.company,
+				"fiscal_year": self.fiscal_year,
+				"is_cancelled": self.docstatus == 2 and "Yes" or "No"
 			})
 
 		sl_dict.update(args)
@@ -211,6 +215,10 @@ class Indent(Document):
 		if not self.posting_time:
 			self.posting_time = now()
 		self.fiscal_year = account_utils.get_fiscal_year(date=self.posting_date)[0]
+
+	def load_gatepasses(self):
+		self.get("__onload").gp_list = frappe.get_all("Gatepass",
+			fields="*", filters={'indent': self.name, 'docstatus': 1})
 
 
 @frappe.whitelist()
@@ -231,3 +239,45 @@ def make_gatepass(source_name, target_doc=None):
 	doc.dispatch_destination = 'Plant'
 
 	return doc.as_dict()
+
+def get_indent_list(doctype, txt, searchfield, start, page_len, filters):
+	# posting_date >= '2015-05-01' // feature start date
+	rs = frappe.db.sql("""
+	SELECT gp.name as name,
+	gpi.item as item,
+	sum(gpi.quantity) as qty,
+	gp.posting_date as posting_date,
+	gp.route as route
+	FROM `tabGatepass` gp, `tabGatepass Item` gpi
+	WHERE gp.name in (
+		SELECT name FROM `tabGatepass`
+		WHERE posting_date >= '2015-05-01'
+		AND vehicle = '{vehicle}'
+		AND ifnull(indent, '') = ''
+		AND name like '%{txt}%'
+	)
+	AND gp.name = gpi.parent
+	GROUP BY gp.name, gpi.item;
+	""".format(txt=txt, **filters), as_dict=True)
+
+	rs_map = {}
+	for r in rs:
+		rs_map.setdefault(r.name, frappe._dict({}))
+		rs_dict = rs_map[r.name]
+		rs_dict.setdefault('items', [])
+
+		rs_dict.route = r.route
+		rs_dict.posting_date = frappe.utils.formatdate(r.posting_date)
+		rs_dict['items'].append('{} X {}'.format(int(r.qty), r.item))
+
+	result = []
+	for key, rs_dict in rs_map.items():
+		result.append([key, '{} {} [{}]'.format(rs_dict.posting_date, rs_dict.route, ','.join(rs_dict['items']))])
+
+	return result
+
+@frappe.whitelist()
+def link_with_gatepass(gatepass, indent):
+	frappe.db.sql("""update `tabGatepass` set indent = '{indent}' where name = '{name}'""".
+					  format(indent=indent, name=gatepass))
+	frappe.msgprint("Linked Gatepass")
