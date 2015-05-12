@@ -18,6 +18,10 @@
 "Type:","Data (text)","Link","Select","Data","Select","Select","Text","Text","Data","Int","Check","Check","Check","Data","Text","Check","Data","Check","Check","Check","Check","Check","Check"
 "Info:","","Valid DocType","One of: Button, Check, Code, Column Break, Currency, Data, Date, Datetime, Dynamic Link, Float, HTML, Image, Int, Link, Long Text, Password, Percent, Read Only, Section Break, Select, Small Text, Table, Text, Text Editor, Time","","","One of: 1, 2, 3, 4, 5, 6, 7, 8, 9","","","","Integer","0 or 1","0 or 1","0 or 1","","","0 or 1","","0 or 1","0 or 1","0 or 1","0 or 1","0 or 1","0 or 1"
 "Start entering data below this line"
+"","""Warehouse-master_name""","Warehouse","Link","Master Name","","","[Select]","","master_name",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Warehouse-master_type""","Warehouse","Select","Master Type","","","
+Sales Person","","master_type",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Warehouse-cb""","Warehouse","Column Break","cb","","","","","cb",0,0,0,0,"","",0,"",0,0,0,0,0,0
 "","""Journal Voucher-id""","Journal Voucher","Data","Id","","","","","id",0,0,0,0,"","",0,"eval:(doc.voucher_type=='Cash Receipt(CR)' && doc.__unsaved==1 && !doc.amended_form)",0,0,0,0,0,0
 "","""Journal Voucher-reference_bank""","Journal Voucher","Data","Reference Bank","","","","","reference_bank",0,0,0,0,"","",0,"eval:doc.voucher_type=='Bank Voucher'",0,0,0,0,0,0
 "","""Account-account_number""","Account","Data","Account Number","","","","","account_number",0,0,0,0,"","",0,"eval:doc.account_type=='Bank'",0,0,0,0,0,0

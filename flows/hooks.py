@@ -9,7 +9,7 @@ app_url = "No URL yet"
 app_version = "0.0.1"
 
 fixtures = [
-	# "Custom Field",
+	"Custom Field",
 	# "Supplier Type",
 	# "Item Group",
 	# "Warehouse",
@@ -115,6 +115,10 @@ doc_events = {
 # -------
 
 # before_tests = "flows.install.before_tests"
+
+doctype_js = {
+"Warehouse": ["asserts/js/warehouse.js"]
+}
 
 # Overriding Whitelisted Methods
 # ------------------------------
