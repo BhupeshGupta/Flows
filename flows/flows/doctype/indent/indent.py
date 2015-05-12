@@ -255,6 +255,7 @@ def get_indent_list(doctype, txt, searchfield, start, page_len, filters):
 		AND vehicle = '{vehicle}'
 		AND ifnull(indent, '') = ''
 		AND name like '%{txt}%'
+		AND docstatus = 1
 	)
 	AND gp.name = gpi.parent
 	GROUP BY gp.name, gpi.item;
