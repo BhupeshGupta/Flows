@@ -70,7 +70,7 @@ def get_columns(filters):
 
 	columns.extend([
 	"Closing(F):Float:100",
-	"::100",
+	"::50",
 	"Opening(E):Float:100",
 	])
 

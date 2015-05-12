@@ -8,7 +8,7 @@ from flows.flows.report.stock_register.stock_register import execute as stock_re
 
 
 def execute(filters=None):
-	columns, data = ["Vendor:150:"], []
+	columns, data = ["Vendor:Data:150"], []
 
 	rs = frappe.db.sql("""
 	SELECT * FROM `tabWarehouse`

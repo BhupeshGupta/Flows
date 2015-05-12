@@ -101,6 +101,7 @@ def get_goods_receipts(filters):
 		from `tabGoods Receipt`
 		where item_delivered like 'FC%'
 		and docstatus = 1
+		and cancelled = 0
 		and posting_date <= '{to_date}';""".format(**filters),
 		as_dict=1,
 	)
