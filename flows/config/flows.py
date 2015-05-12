@@ -142,6 +142,12 @@ def get_data():
 					"is_query_report": True,
 					"name": "Purchase Cycle Report",
 					"doctype": "Item",
+				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "Vendor Report",
+					"doctype": "Gatepass",
 				}
 			]
 		},
