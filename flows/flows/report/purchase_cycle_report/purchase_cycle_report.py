@@ -100,12 +100,10 @@ def get_data(filters):
 		row_dict.expected_bill_count = int(expected_bill_count[0][0]) if len(expected_bill_count) > 0 else 0
 		row_dict.entered_bill_count = int(entered_bill_count[0][0]) if len(entered_bill_count) > 0 else 0
 
-		frappe.msgprint("Bill Count: %s" % row_dict.entered_bill_count)
 		if row_dict.entered_bill_count > 0:
 			row_dict.bill_date = frappe.db.sql(
 				"""select transaction_date from `tabIndent Invoice` where
 				docstatus != 2 and indent='{}' limit 1""".format(indent.name))[0][0]
-		frappe.msgprint("Bill Date: %s" % row_dict.bill_date)
 
 		# State Algo
 		if row_dict.gatepass_out:
