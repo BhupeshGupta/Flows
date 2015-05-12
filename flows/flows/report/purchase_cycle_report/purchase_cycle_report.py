@@ -17,7 +17,7 @@ def execute(filters=None):
 			entry.gatepass_out.name if entry.gatepass_out else "",
 			utils.formatdate(entry.gatepass_in.posting_date) if entry.gatepass_in else "",
 			entry.gatepass_in.name if entry.gatepass_in else "",
-			utils.formatdate(entry.bill_date),
+			utils.formatdate(entry.bill_date) if entry.bill_date else "",
 			entry.expected_bill_count,
 			entry.entered_bill_count,
 			entry.physical_state,
@@ -97,15 +97,15 @@ def get_data(filters):
 		select count(name) from `tabIndent Invoice`
 		where indent = \"{}\" and docstatus != 2""".format(indent.name))
 
-		row_dict.expected_bill_count = expected_bill_count[0][0] if len(expected_bill_count)>0 else 0
-		row_dict.entered_bill_count = entered_bill_count[0][0] if len(entered_bill_count)>0 else 0
+		row_dict.expected_bill_count = int(expected_bill_count[0][0]) if len(expected_bill_count) > 0 else 0
+		row_dict.entered_bill_count = int(entered_bill_count[0][0]) if len(entered_bill_count) > 0 else 0
 
-		if int(row_dict.entered_bill_count) > 0:
+		frappe.msgprint("Bill Count: %s" % row_dict.entered_bill_count)
+		if row_dict.entered_bill_count > 0:
 			row_dict.bill_date = frappe.db.sql(
 				"""select transaction_date from `tabIndent Invoice` where
 				docstatus != 2 and indent='{}' limit 1""".format(indent.name))[0][0]
-
-		rows.append(row_dict)
+		frappe.msgprint("Bill Date: %s" % row_dict.bill_date)
 
 		# State Algo
 		if row_dict.gatepass_out:
@@ -113,7 +113,9 @@ def get_data(filters):
 			if row_dict.gatepass_in:
 				row_dict.physical_state = "Received"
 
-		if int(row_dict.expected_bill_count) - int(row_dict.entered_bill_count) == 0:
+		if row_dict.expected_bill_count - row_dict.entered_bill_count == 0:
 			row_dict.bill_state = "Completed"
+
+		rows.append(row_dict)
 
 	return rows
