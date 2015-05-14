@@ -282,3 +282,18 @@ def link_with_gatepass(gatepass, indent):
 	frappe.db.sql("""update `tabGatepass` set indent = '{indent}' where name = '{name}'""".
 					  format(indent=indent, name=gatepass))
 	frappe.msgprint("Linked Gatepass")
+
+@frappe.whitelist()
+def get_allowed_vehicle(doctype, txt, searchfield, start, page_len, filters):
+	superset_of_vehicles = set([x[0] for x in frappe.db.sql("""
+		select name from `tabTransportation Vehicle`
+		where {} like '%{}%';
+		""".format(searchfield, txt))])
+
+	from flows.flows.report.purchase_cycle_report.purchase_cycle_report import get_data
+	vehicles_with_state = get_data(frappe._dict())
+	bad_vehicles_set = set([x.indent.vehicle for x in vehicles_with_state if x.bill_state =='Pending'] + ['Self'])
+
+	rs = list(superset_of_vehicles - bad_vehicles_set)
+
+	return [[x] for x in rs]

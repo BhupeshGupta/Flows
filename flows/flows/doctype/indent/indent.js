@@ -54,6 +54,12 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 			}
 		});
 
+		this.frm.set_query("vehicle", function () {
+			return {
+				query:"flows.flows.doctype.indent.indent.get_allowed_vehicle"
+			}
+		});
+
 		this.frm.fields_dict['indent'].grid.get_field("eiv")
 	},
 
@@ -370,8 +376,8 @@ frappe.ui.form.LinkGatepass = Class.extend({
 					return frappe.call({
 						method:'flows.flows.doctype.indent.indent.link_with_gatepass',
 						args:{
-							gatepass: gatepass,
-							indent: me.frm.doc.name
+							gatepass:gatepass,
+							indent:me.frm.doc.name
 						},
 						callback:function (r, rt) {
 							if (!r.exc) {
