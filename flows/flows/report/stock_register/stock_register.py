@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.utils import flt, cint
-
+from flows.utils import get_next_date
 
 def execute(filters=None):
 	if filters.bifurcate:
@@ -246,10 +246,3 @@ def get_voucher_key(voucher):
 		return "GP"
 	else:
 		return "OTHER"
-
-
-import datetime
-
-
-def get_next_date(cur_date):
-	return (datetime.datetime.strptime(cur_date, "%Y-%m-%d") + datetime.timedelta(days=1)).strftime('%Y-%m-%d')

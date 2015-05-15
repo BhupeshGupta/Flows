@@ -1,6 +1,9 @@
+import datetime
+
 import frappe
 from erpnext.accounts.party import get_party_account
 from frappe.utils import cint
+
 
 def get_or_create_vehicle_stock_account(vehicle_name, stock_owner_company_name):
 	return get_or_create_warehouse(vehicle_name, stock_owner_company_name)
@@ -132,10 +135,7 @@ def get_insight_depth_condition(depth=1, old_styp_format_escaped=False):
 	basic_condition_for_depth_2 = \
 	"""(
 			voucher_type in ({}) or
-			(
-				voucher_type = "Journal Voucher" and
-				(voucher_no like "KJV-{}%" or voucher_type="Cash Receipt(CR)")
-			)
+			(voucher_type = "Journal Voucher" and voucher_no like "KJV-{}%")
 		)
 	""".format(
 		','.join(['"{}"'.format(x) for x in depth_2_doctypes]),
@@ -148,3 +148,7 @@ def get_insight_depth_condition(depth=1, old_styp_format_escaped=False):
 	elif depth == 2:
 		return basic_condition_for_depth_2
 	return None
+
+
+def get_next_date(cur_date):
+	return (datetime.datetime.strptime(cur_date, "%Y-%m-%d") + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
