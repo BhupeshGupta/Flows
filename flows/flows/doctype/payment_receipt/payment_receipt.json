@@ -20,15 +20,6 @@
    "reqd": 1
   }, 
   {
-   "fieldname": "debit_account", 
-   "fieldtype": "Link", 
-   "label": "Debit Account", 
-   "options": "Account", 
-   "permlevel": 0, 
-   "precision": "", 
-   "reqd": 0
-  }, 
-  {
    "fieldname": "stock_owner", 
    "fieldtype": "Link", 
    "label": "Stock Owner", 
@@ -107,19 +98,22 @@
   }, 
   {
    "allow_on_submit": 1, 
+   "default": "", 
    "fieldname": "stock_date", 
    "fieldtype": "Date", 
    "label": "Stock Date", 
+   "options": "TransactionDate", 
    "permlevel": 0, 
    "precision": "", 
    "reqd": 0
   }, 
   {
-   "default": "Today", 
+   "default": "", 
    "fieldname": "posting_date", 
    "fieldtype": "Date", 
    "hidden": 0, 
    "label": "Posting Date", 
+   "options": "TransactionDate", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -163,6 +157,15 @@
    "reqd": 1
   }, 
   {
+   "fieldname": "debit_account", 
+   "fieldtype": "Link", 
+   "label": "Debit Account", 
+   "options": "Account", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 0
+  }, 
+  {
    "fieldname": "amended_from", 
    "fieldtype": "Link", 
    "label": "Amended From", 
@@ -180,7 +183,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-05-09 09:36:32.781949", 
+ "modified": "2015-05-15 16:42:30.242361", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Payment Receipt", 

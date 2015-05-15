@@ -19,6 +19,7 @@ erpnext.flows.GoodsReceiptController = frappe.ui.form.Controller.extend({
 
 	cancelled: function (doc, dt, dn) {
 		this.frm.set_df_property("customer", "reqd", !doc.cancelled);
+		this.frm.set_df_property("remarks", "reqd", doc.cancelled);
 	},
 
 	item_delivered: function (doc, dt, dn) {
