@@ -39,6 +39,9 @@
                 <th>{%= __("IND") %}</th>
                 <th>{%= __("PUR") %}</th>
                 <th>{%= __("INV") %}</th>
+	            {% if (filters.show_material_returned) { %}
+	                <th>MR</th>
+	            {% } %}
                 <th>{%= __("MD") %}</th>
                 <th>{%= __("SL") %}</th>
                 <th>{%= __("CL") %}</th>
@@ -54,6 +57,9 @@
                 <td style="text-align: right">{%= data[i][__("Indent Placed")] %}</td>
                 <td style="text-align: right">{%= data[i][__("Purchase")] %}</td>
                 <td style="text-align: right">{%= data[i][__("Invoices Issued")] %}</td>
+	            {% if (filters.show_material_returned) { %}
+	                <td style="text-align: right">{%= data[i][__("Material Returned")] %}</td>
+	            {% } %}
                 <td style="text-align: right">{%= data[i][__("Material Delivered")] %}</td>
                 <td style="text-align: right">{%= data[i][__("Sale")] %}</td>
                 <td style="text-align: right">{%= data[i][__("Closing")] %}</td>

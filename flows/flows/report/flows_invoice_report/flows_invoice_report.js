@@ -22,6 +22,12 @@ frappe.query_reports["Flows Invoice Report"] = {
             "label": __("LOT VOT Bifurcate"),
             "fieldtype": "Check",
             "default": 0
+        },
+	    {
+            "fieldname": "show_material_returned",
+            "label": __("Show Material Returned"),
+            "fieldtype": "Check",
+            "default": 0
         }
     ]
 };
