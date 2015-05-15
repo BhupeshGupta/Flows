@@ -39,11 +39,19 @@ class GoodsReceiptBook(Document):
 		root.debug(missing_map)
 
 		if self.state == "Closed/Received" and self.name in missing_map:
-			msg = "{} GRs are missing in this book. Did not not close".format(len(missing_map[self.name]))
+			msg = "{} GRs are missing in this book.".format(len(missing_map[self.name]))
 			if frappe.session.user == "Administrator":
 				msgprint(msg)
 			else:
-				throw(msg)
+				throw(msg + "Did not not close")
+
+		book_in_db = frappe.get_doc("Goods Receipt Book", self.name)
+
+		if book_in_db.state == "Closed/Received" and self.state != "Closed/Received":
+			if frappe.session.user == "Administrator":
+				msgprint("Book reopened")
+			else:
+				throw("Can not open closed books. Please contact administrator")
 
 
 	def on_trash(self):

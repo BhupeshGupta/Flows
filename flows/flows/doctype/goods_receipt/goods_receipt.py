@@ -43,7 +43,7 @@ class GoodsReceipt(Document):
 
 	def validate_date(self):
 		gr_eod = frappe.db.get_single_value("End Of Day", "gr_eod")
-		if self.posting_date <= gr_eod:
+		if self.posting_date <= gr_eod and not frappe.session.user == "Administrator":
 			frappe.throw("Day has been closed for GR. No amendment is allowed in closed days")
 
 		if utils.get_next_date(gr_eod) < self.posting_date:

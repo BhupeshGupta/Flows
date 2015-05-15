@@ -10,4 +10,7 @@ class EndOfDay(Document):
 		old_gr_eod = frappe.db.get_single_value("End Of Day", "gr_eod")
 
 		if self.gr_eod < old_gr_eod:
-			frappe.throw("Can Not Unlock Days")
+			if frappe.session.user == "Administrator":
+				frappe.msgprint("Day/Days Unlocked")
+			else:
+				frappe.throw("Can Not Unlock Days")
