@@ -78,6 +78,7 @@ def get_columns(max_missing):
 	d = [
 		"Book Id:Link/Goods Receipt Book:170",
 		"Warehouse:Warehouse:150",
+		"PR Debit A/c",
 		"Issued To::100",
 	]
 	if max_missing > 0:
