@@ -118,11 +118,11 @@
    "precision": ""
   }, 
   {
-   "default": "Today", 
+   "default": "", 
    "fieldname": "transaction_date", 
    "fieldtype": "Date", 
    "label": "Invoice Date", 
-   "options": "TransactionDate", 
+   "options": "", 
    "permlevel": 0, 
    "precision": "", 
    "reqd": 1
@@ -468,7 +468,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-04-27 13:41:14.700326", 
+ "modified": "2015-05-15 16:16:13.817405", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 
