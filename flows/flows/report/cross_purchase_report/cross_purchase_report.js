@@ -1,7 +1,7 @@
 // Copyright (c) 2013, Arun Logistics and contributors
 // For license information, please see license.txt
 
-frappe.query_reports["Cross Sold Report"] = {
+frappe.query_reports["Cross Purchase Report"] = {
 	"filters":[
 		{
 			"fieldname":"from_date",
@@ -33,6 +33,5 @@ frappe.query_reports["Cross Sold Report"] = {
 			"options":"Item",
 			default:1
 		}
-
 	]
 };
