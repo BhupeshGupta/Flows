@@ -16,6 +16,7 @@ def execute(filters=None):
 		row = [
 			book_ref.name,
 			book_ref.warehouse,
+			book_ref.pr_debit,
 			book_ref.issued_to
 		]
 		row.extend(missing_list)
@@ -29,7 +30,7 @@ def execute(filters=None):
 def get_missing_map(filters=None):
 	books = frappe.db.sql(
 		"""
-		SELECT name, warehouse, issued_to,
+		SELECT name, warehouse, issued_to, pr_debit,
 		serial_start, serial_end
 		FROM `tabGoods Receipt Book` WHERE
 		name NOT IN ("GBR#0-500") AND state != 'Closed/Received';
@@ -42,16 +43,28 @@ def get_missing_map(filters=None):
 	for book in books:
 		books_map[book.name] = book
 
+		from flows.stdlogger import root
+		root.debug(book)
+
 		data = frappe.db.sql("""
 		SELECT goods_receipt_number FROM `tabGoods Receipt` WHERE docstatus = 1
 		AND goods_receipt_number BETWEEN {} AND {};
 		""".format(book.serial_start, book.serial_end))
 		gr_list = [int(x[0]) for x in data if x[0].isnumeric()]
 
-		if not gr_list:
+		data = frappe.db.sql("""
+		SELECT id FROM `tabPayment Receipt` WHERE docstatus = 1
+		AND id BETWEEN {} AND {};
+		""".format(book.serial_start, book.serial_end))
+
+		pr_list = [int(x[0]) for x in data if x[0].isnumeric()]
+
+		data_list = gr_list + pr_list
+
+		if not data_list:
 			continue
 
-		missing = sorted(set(xrange(min(gr_list), max(gr_list))) - set(gr_list))
+		missing = sorted(set(xrange(min(data_list), max(data_list))) - set(data_list))
 
 		if missing:
 			missing_map[book.name] = missing
