@@ -68,15 +68,17 @@ class IndentInvoice(StockController):
 		self.set_missing_values()
 		self.validate_branch_out_for_special_cases()
 
-		if self.docstatus == 0 and self.amended_from:
-			self.update_data_bank({
+		if self.docstatus == 0:
+			if self.amended_from != "":
+				self.update_data_bank({
 				'transportation_invoice': self.transportation_invoice,
 				'credit_note': self.credit_note
-			})
-			self.transportation_invoice = ''
-			self.credit_note = ''
-		else:
-			self.data_bank = ''
+				})
+				self.transportation_invoice = ''
+				self.credit_note = ''
+			else:
+				self.data_bank = ''
+
 
 		if cint(self.indent_linked) == 1:
 			if not (self.indent_item and self.indent_item != ''):
@@ -593,6 +595,7 @@ class IndentInvoice(StockController):
 			consignment_note_json_doc["taxes_and_charges"] = "Road Transport"
 
 		data_bank = self.get_data_bank()
+		root.debug(data_bank)
 		if 'transportation_invoice' in data_bank:
 			consignment_note_json_doc["amended_from"] = data_bank.transportation_invoice
 
@@ -618,6 +621,7 @@ class IndentInvoice(StockController):
 			dbank = {}
 
 		return dbank
+
 
 def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
 	indent_items_sql = """
