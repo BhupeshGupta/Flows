@@ -45,13 +45,18 @@ class GoodsReceiptBook(Document):
 			else:
 				throw(msg + "Did not not close")
 
-		book_in_db = frappe.get_doc("Goods Receipt Book", self.name)
+		try:
+			book_in_db = frappe.get_doc("Goods Receipt Book", self.name)
 
-		if book_in_db.state == "Closed/Received" and self.state != "Closed/Received":
-			if frappe.session.user == "Administrator":
-				msgprint("Book reopened")
-			else:
-				throw("Can not open closed books. Please contact administrator")
+			if book_in_db.state == "Closed/Received" and self.state != "Closed/Received":
+				if frappe.session.user == "Administrator":
+					msgprint("Book reopened")
+				else:
+					throw("Can not open closed books. Please contact administrator")
+
+		except frappe.DoesNotExistError:
+			# Pass if new book is being created and old instance not found in DB
+			pass
 
 
 	def on_trash(self):
