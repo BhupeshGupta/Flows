@@ -3,18 +3,16 @@
 
 from __future__ import unicode_literals
 
-from flows.stdlogger import root
+import json
 
+from flows.stdlogger import root
 import frappe
 import frappe.defaults
 from flows import utils as flow_utils
 from erpnext.controllers.selling_controller import StockController
 from erpnext.accounts import utils as account_utils
-
 from erpnext.accounts.party import get_party_account
-
 from erpnext.accounts.general_ledger import make_gl_entries
-
 from erpnext.stock.stock_ledger import make_sl_entries
 from frappe.utils import today, now
 from frappe.utils import cint
@@ -70,9 +68,15 @@ class IndentInvoice(StockController):
 		self.set_missing_values()
 		self.validate_branch_out_for_special_cases()
 
-		if self.docstatus == 0:
+		if self.docstatus == 0 and self.amended_from:
+			self.update_data_bank({
+				'transportation_invoice': self.transportation_invoice,
+				'credit_note': self.credit_note
+			})
 			self.transportation_invoice = ''
 			self.credit_note = ''
+		else:
+			self.data_bank = ''
 
 		if cint(self.indent_linked) == 1:
 			if not (self.indent_item and self.indent_item != ''):
@@ -112,6 +116,9 @@ class IndentInvoice(StockController):
 
 	def set_missing_values(self, *args, **kwargs):
 
+		if self.posting_date and not self.ammended_from:
+			self.posting_date = ''
+			self.posting_time = ''
 		if not self.posting_date:
 			self.posting_date = today()
 		if not self.posting_time:
@@ -469,8 +476,6 @@ class IndentInvoice(StockController):
 
 		from frappe.utils.jinja import render_template
 
-		root.debug(terms_template)
-
 		context = {
 		'customer': customer_object,
 		'total_payable_amount': payable_amount,
@@ -518,7 +523,9 @@ class IndentInvoice(StockController):
 		],
 		}
 
-		root.debug(credit_note_doc)
+		data_bank = self.get_data_bank()
+		if 'credit_note' in data_bank:
+			credit_note_doc["amended_from"] = data_bank.credit_note
 
 		credit_note = frappe.get_doc(credit_note_doc)
 		credit_note.save()
@@ -585,12 +592,32 @@ class IndentInvoice(StockController):
 		if customer_object.service_tax_liability == "Transporter":
 			consignment_note_json_doc["taxes_and_charges"] = "Road Transport"
 
+		data_bank = self.get_data_bank()
+		if 'transportation_invoice' in data_bank:
+			consignment_note_json_doc["amended_from"] = data_bank.transportation_invoice
+
 		transportation_invoice = frappe.get_doc(consignment_note_json_doc)
 
 		transportation_invoice.save()
 
 		return transportation_invoice
 
+	def update_data_bank(self, args):
+		try:
+			dbank = json.loads(self.data_bank)
+		except:
+			dbank = {}
+
+		dbank.update(args)
+		self.data_bank = json.dumps(dbank)
+
+	def get_data_bank(self):
+		try:
+			dbank = frappe._dict(json.loads(self.data_bank))
+		except:
+			dbank = {}
+
+		return dbank
 
 def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
 	indent_items_sql = """

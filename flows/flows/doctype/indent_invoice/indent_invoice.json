@@ -13,6 +13,7 @@
    "fieldname": "invoice_receive_date", 
    "fieldtype": "Date", 
    "label": "Invoice Receive Date", 
+   "no_copy": 1, 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -122,6 +123,7 @@
    "fieldname": "transaction_date", 
    "fieldtype": "Date", 
    "label": "Invoice Date", 
+   "no_copy": 1, 
    "options": "", 
    "permlevel": 0, 
    "precision": "", 
@@ -429,6 +431,7 @@
    "fieldtype": "Date", 
    "hidden": 0, 
    "label": "Posting Date", 
+   "no_copy": 1, 
    "permlevel": 0, 
    "precision": "", 
    "read_only": 1
@@ -459,6 +462,16 @@
    "options": "Fiscal Year", 
    "permlevel": 0, 
    "precision": ""
+  }, 
+  {
+   "fieldname": "data_bank", 
+   "fieldtype": "Data", 
+   "hidden": 1, 
+   "label": "Data Bank", 
+   "no_copy": 1, 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
   }
  ], 
  "hide_heading": 0, 
@@ -468,7 +481,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-05-15 16:16:13.817405", 
+ "modified": "2015-05-16 17:51:10.679852", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 
