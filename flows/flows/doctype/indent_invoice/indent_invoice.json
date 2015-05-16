@@ -13,7 +13,6 @@
    "fieldname": "invoice_receive_date", 
    "fieldtype": "Date", 
    "label": "Invoice Receive Date", 
-   "no_copy": 1, 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -119,11 +118,21 @@
    "precision": ""
   }, 
   {
+   "default": "Today", 
+   "fieldname": "posting_date", 
+   "fieldtype": "Date", 
+   "hidden": 0, 
+   "label": "Posting Date", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 0, 
+   "reqd": 1
+  }, 
+  {
    "default": "", 
    "fieldname": "transaction_date", 
    "fieldtype": "Date", 
    "label": "Invoice Date", 
-   "no_copy": 1, 
    "options": "", 
    "permlevel": 0, 
    "precision": "", 
@@ -426,17 +435,6 @@
    "precision": ""
   }, 
   {
-   "default": "", 
-   "fieldname": "posting_date", 
-   "fieldtype": "Date", 
-   "hidden": 0, 
-   "label": "Posting Date", 
-   "no_copy": 1, 
-   "permlevel": 0, 
-   "precision": "", 
-   "read_only": 1
-  }, 
-  {
    "fieldname": "amended_from", 
    "fieldtype": "Link", 
    "label": "Amended From", 
@@ -468,10 +466,8 @@
    "fieldtype": "Data", 
    "hidden": 1, 
    "label": "Data Bank", 
-   "no_copy": 1, 
    "permlevel": 0, 
-   "precision": "", 
-   "read_only": 1
+   "precision": ""
   }
  ], 
  "hide_heading": 0, 
@@ -481,7 +477,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-05-16 18:58:39.405534", 
+ "modified": "2015-05-16 19:16:53.819746", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 
