@@ -116,7 +116,7 @@ class IndentInvoice(StockController):
 
 	def set_missing_values(self, *args, **kwargs):
 
-		if self.posting_date and not self.ammended_from:
+		if self.posting_date and not self.amended_from:
 			self.posting_date = ''
 			self.posting_time = ''
 		if not self.posting_date:
