@@ -163,9 +163,9 @@ def initialize_voucher_maps(filters, vouchers):
 
 	for voucher in vouchers:
 		active_map = opening_map if voucher.posting_date < filters['from_date'] else current_map
-		active_map.setdefault(voucher.item, get_default_map())
+		active_map.setdefault(get_item(voucher.item, filters), get_default_map())
 
-		active_map[voucher.item].entries.append(voucher)
+		active_map[get_item(voucher.item, filters)].entries.append(voucher)
 
 	return opening_map, current_map
 
@@ -206,3 +206,8 @@ def debit_or_credit_voucher(voucher):
 def get_credit_balance_in_debit_credit_split(bal):
 	if bal > 0: return 0, bal
 	else: return abs(bal), 0
+
+def get_item(item, filters):
+	if cint(filters.lot_vot_bifurcate) == 0:
+		return item.replace('L','')
+	return item
