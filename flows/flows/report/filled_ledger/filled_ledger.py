@@ -3,7 +3,8 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import cint
+from frappe.utils import cint, flt
+
 
 def execute(filters=None):
 	columns, data = get_columns(filters), get_data(filters)
@@ -11,8 +12,17 @@ def execute(filters=None):
 
 
 def get_columns(filters):
-	return ["Date:Date:100", "Voucher Type::120", "Voucher No:Dynamic Link/Voucher Type:160",
-	        "Debit:Float:100", "Credit:Float:100", "Remarks::400"]
+	return [
+		"Date:Date:100",
+		"Voucher Type::120",
+		"Voucher No:Dynamic Link/Voucher Type:160",
+		"Billed Qty:Float:100",
+		"Qty Delivered:Float:100",
+		"Empty Received:Float:100",
+		"Filled Balance:Float:",
+		"Empty Pending:Float:",
+		"Remarks::400"
+	]
 
 
 def get_data(filters):
@@ -31,26 +41,23 @@ def get_data(filters):
 	for item in sorted(current_map.keys()):
 		map = current_map[item]
 
-		debit, credit = get_credit_balance_in_debit_credit_split(map.opening)
-		data.append(["", item, "Opening", debit, credit, ""])
+		data.append(get_opening_row(map))
 
 		for voucher in map.entries:
-			debit, credit = debit_or_credit_voucher(voucher)
+			billed, delivered, received = bill_filled_empty_status(voucher)
 			data.append([
 				voucher.get("posting_date"),
-			    voucher.voucher_type if voucher.v_type == 'Stock Ledger Entry' else voucher.v_type,
-			    voucher.voucher_no  if voucher.v_type == 'Stock Ledger Entry' else voucher.get("name"),
-				debit,
-			    credit,
-			    ""
+				voucher.voucher_type if voucher.v_type == 'Stock Ledger Entry' else voucher.v_type,
+				voucher.voucher_no if voucher.v_type == 'Stock Ledger Entry' else voucher.get("name"),
+				billed,
+				delivered,
+				received,
+				voucher.filled,
+				voucher.empty,
+				""
 			])
+		data.extend(get_closing_row_with_totals(map))
 
-		data.append(["", "", "Totals", map.total_debit, map.total_credit, ""])
-
-		debit, credit = get_credit_balance_in_debit_credit_split(map.closing)
-		data.append(["", item, "Closing (Opening + Totals)", debit, credit, ""])
-
-		data.append(["", "", "", "", "", ""])
 		data.append(["", "", "", "", "", ""])
 
 	return data
@@ -60,10 +67,10 @@ def get_sle_conditions(filters):
 	conditions = []
 	# item_conditions = get_item_conditions(filters)
 	# if item_conditions:
-	# 	conditions.append("""item_code in (select name from tabItem
-	# 		{item_conditions})""".format(item_conditions=item_conditions))
+	# conditions.append("""item_code in (select name from tabItem
+	# {item_conditions})""".format(item_conditions=item_conditions))
 	# if filters.get("warehouse"):
-	# 	conditions.append("warehouse=%(warehouse)s")
+	# conditions.append("warehouse=%(warehouse)s")
 
 	conditions.append('warehouse like "{}%%"'.format(filters.customer))
 
@@ -92,7 +99,7 @@ def get_sl_entries(filters):
 		WHERE
 	      posting_date <= %(to_date)s AND
 	      ifnull(process, '') = '' AND
-	      item_code like 'FC%%'
+	      voucher_type != "Goods Receipt"
 		  {sle_conditions}
 		ORDER BY posting_date desc, posting_time desc, name desc""".format(
 			sle_conditions=get_sle_conditions(filters)),
@@ -118,7 +125,7 @@ def get_invoices_entries(filters):
 		cross_sold = 0 AND
 		transaction_date <= %(to_date)s
 		ORDER BY transaction_date desc, posting_time desc, name desc;""".format(filters['customer']),
-	    filters,
+		filters,
 		as_dict=True
 	)
 	for i in indent_invoices:
@@ -126,19 +133,21 @@ def get_invoices_entries(filters):
 
 	return indent_invoices
 
+
 def get_opening_gr(filters):
 	# posting_date
 	grs = frappe.db.sql(
 		"""
-		SELECT is_opening, name, posting_date, customer, item_delivered as item, delivered_quantity as qty
+		SELECT is_opening, name,
+		posting_date, customer,
+		item_delivered, delivered_quantity,
+		item_received, received_quantity
 		FROM `tabGoods Receipt`
 		WHERE docstatus = 1 AND
-		is_opening = 1 AND
 		customer="{}" AND
-		item_delivered like 'FC%%' AND
 		posting_date <= %(to_date)s
 		ORDER BY posting_date desc, posting_time desc, name desc;""".format(filters['customer']),
-	    filters,
+		filters,
 		as_dict=True
 	)
 	for i in grs:
@@ -147,13 +156,17 @@ def get_opening_gr(filters):
 	return grs
 
 
-def get_default_map():
+def get_default_map(item):
 	return frappe._dict({
 	"opening": 0,
+	"empty_opening": 0,
 	"entries": [],
-	"total_debit": 0,
-	"total_credit": 0,
-	"closing": 0
+	"total_billed": 0,
+	"total_delivered": 0,
+	"total_returned": 0,
+	"closing": 0,
+	"empty_closing": 0,
+	"item": item
 	})
 
 
@@ -162,10 +175,26 @@ def initialize_voucher_maps(filters, vouchers):
 	current_map = frappe._dict()
 
 	for voucher in vouchers:
-		active_map = opening_map if voucher.posting_date < filters['from_date'] else current_map
-		active_map.setdefault(get_item(voucher.item, filters), get_default_map())
+		from flows.stdlogger import root
 
-		active_map[get_item(voucher.item, filters)].entries.append(voucher)
+		root.debug(voucher)
+		active_map = opening_map if voucher.posting_date < filters['from_date'] else current_map
+
+		if voucher.v_type == "Goods Receipt":
+			if voucher.item_delivered:
+				active_map.setdefault(get_item(voucher.item_delivered, filters),
+									  get_default_map(voucher.item_delivered))
+				active_map[get_item(voucher.item_delivered, filters)].entries.append(voucher)
+
+			if (not voucher.item_delivered) or (
+					voucher.item_delivered and voucher.item_received and
+					get_base_item(voucher.item_delivered, filters) != get_base_item(voucher.item_received, filters)
+			):
+				active_map.setdefault(get_item(voucher.item_received, filters), get_default_map(voucher.item_received))
+				active_map[get_item(voucher.item_received, filters)].entries.append(voucher)
+		else:
+			active_map.setdefault(get_item(voucher.item, filters), get_default_map(voucher.item))
+			active_map[get_item(voucher.item, filters)].entries.append(voucher)
 
 	return opening_map, current_map
 
@@ -177,37 +206,108 @@ def get_data_with_opening_closing(filters, opening_map, current_map):
 
 	return current_map
 
+
 def compute_closing(active_map):
 	for item, voucher_map in active_map.items():
-		for entry in voucher_map.entries:
-			debit, credit = debit_or_credit_voucher(entry)
-			voucher_map.total_debit += debit
-			voucher_map.total_credit += credit
+		last_entry_filled = flt(voucher_map.opening)
+		last_entry_empty = flt(voucher_map.empty_opening)
 
-		diff = voucher_map.opening + voucher_map.total_credit - voucher_map.total_debit
-		voucher_map.closing = diff
+		from flows.stdlogger import root
+
+		root.debug((last_entry_filled, last_entry_empty))
+
+		for entry in voucher_map.entries:
+			billed, filled, empty = bill_filled_empty_status(entry)
+
+			billed = flt(billed)
+			filled = flt(filled)
+			empty = flt(empty)
+
+			entry.filled = last_entry_filled + billed - filled
+			entry.empty = last_entry_empty + filled - empty
+			last_entry_filled = entry.filled
+			last_entry_empty = entry.empty
+
+			voucher_map.total_billed += billed
+			voucher_map.total_delivered += filled
+			voucher_map.total_returned += empty
+
+		voucher_map.closing = voucher_map.opening + voucher_map.total_billed - voucher_map.total_delivered
+		voucher_map.empty_closing = voucher_map.empty_opening + voucher_map.total_delivered - \
+									voucher_map.total_returned
+
 
 def copy_closing_over_to_opening(opening_map, current_map):
 	for item, voucher_map in opening_map.items():
-		current_map.setdefault(item, get_default_map())
+		current_map.setdefault(item, get_default_map(item))
 		active_map_instance = current_map[item]
 		active_map_instance.opening = voucher_map.closing
+		active_map_instance.empty_opening = voucher_map.empty_closing
 
-def debit_or_credit_voucher(voucher):
+
+def bill_filled_empty_status(voucher):
 	if voucher.v_type == 'Indent Invoice':
-		return 0, voucher.qty
-	elif voucher.v_type == 'Goods Receipt':
-		return voucher.qty, 0
-	elif voucher.v_type == 'Stock Ledger Entry':
-		qty = abs(voucher.qty)
-		if voucher.qty > 0: return qty, 0
-		else: return 0, qty
+		return voucher.qty, 0, 0
 
-def get_credit_balance_in_debit_credit_split(bal):
-	if bal > 0: return 0, bal
-	else: return abs(bal), 0
+	elif voucher.v_type == 'Goods Receipt':
+		filled = empty = 0
+		if voucher.item_delivered and 'FC' in voucher.item_delivered:
+			filled = voucher.delivered_quantity
+		elif voucher.item_delivered and 'EC' in voucher.item_delivered:
+			empty = -1 * voucher.delivered_quantity
+
+		if voucher.item_received and 'FC' in voucher.item_received:
+			filled = -1 * voucher.received_quantity
+		elif voucher.item_received and 'EC' in voucher.item_received:
+			empty = voucher.received_quantity
+		return 0, filled, empty
+
+	elif voucher.v_type == 'Stock Ledger Entry':
+		filled = empty = 0
+		if 'FC' in voucher.item:
+			filled = voucher.qty
+		elif 'EC' in voucher.item:
+			empty = -1 * voucher.qty
+
+		return 0, filled, empty
+
+
+def get_opening_row(active_map):
+	row = ["", active_map.item, "Opening"]
+	row.append(active_map.opening if active_map.opening > 0 else 0)
+	row.append(abs(active_map.opening) if active_map.opening < 0 else 0)
+	row.extend(["", ""])
+	row.append(active_map.empty_opening)
+	return row
+
+
+def get_closing_row_with_totals(active_map):
+	rows = []
+	rows.append(["", "", "Totals", active_map.total_billed, active_map.total_delivered, active_map.total_returned])
+
+	row = [
+		"",
+		active_map.item,
+		"Closing (Opening + Totals)",
+		active_map.closing if active_map.closing > 0 else 0,
+		abs(active_map.closing) if active_map.closing < 0 else 0,
+		"",
+		"",
+		active_map.empty_closing
+	]
+
+	rows.append(row)
+
+	return rows
+
 
 def get_item(item, filters):
 	if cint(filters.lot_vot_bifurcate) == 0:
-		return item.replace('L','')
-	return item
+		item = item.replace('L', '')
+	return item.replace('EC', 'FC')
+
+
+def get_base_item(item, filters):
+	if cint(filters.lot_vot_bifurcate) == 0:
+		item = item.replace('L', '')
+	return item.replace('EC', '').replace('FC', '')
