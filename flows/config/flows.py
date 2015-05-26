@@ -135,21 +135,25 @@ def get_data():
 					"type": "report",
 					"is_query_report": True,
 					"name": "GR Missing Report",
+					"doctype": "Item",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Purchase Cycle Report",
+					"doctype": "Item",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "GR Summary",
+					"doctype": "Item",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Vendor Report",
+					"doctype": "Gatepass",
 				}
 			]
 		},
