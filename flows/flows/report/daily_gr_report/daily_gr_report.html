@@ -42,7 +42,7 @@
 	    <tbody>
 	    {% for(var i=cur_page * rows_per_page; (i < data.length) && (i < (cur_page + 1) * rows_per_page); i++) { %}
             <tr>
-                <td style="text-align: right">{%= i + 1 %}</td>
+                <td>{%= i + 1 %}</td>
                 <td>{%= data[i][__("Customer")] %}</td>
                 <td style="text-align: right">{%= data[i][__("19 Kg")] %}</td>
                 <td style="text-align: right">{%= data[i][__("35 Kg")] %}</td>
