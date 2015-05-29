@@ -22,7 +22,7 @@ def execute(filters=None):
 		row.extend(missing_list)
 		data.append(row)
 
-	data = sorted(data, key = lambda x: (x[1], x[2]))
+	data = sorted(data, key=lambda x: (x[1], x[2]))
 
 	return columns, data
 
@@ -42,9 +42,6 @@ def get_missing_map(filters=None):
 	max_missing = 0
 	for book in books:
 		books_map[book.name] = book
-
-		from flows.stdlogger import root
-		root.debug(book)
 
 		data = frappe.db.sql("""
 		SELECT goods_receipt_number FROM `tabGoods Receipt` WHERE docstatus = 1
@@ -82,6 +79,6 @@ def get_columns(max_missing):
 		"Issued To::100",
 	]
 	if max_missing > 0:
-		d.extend(["Missing {}".format(i) for i in xrange(1, max_missing)])
+		d.extend(["Missing {}".format(i + 1) for i in xrange(0, max_missing)])
 
 	return d

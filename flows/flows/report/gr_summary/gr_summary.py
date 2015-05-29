@@ -16,7 +16,7 @@ def execute(filters=None):
 
 def get_columns(filters):
 	row = [
-		"ID::",
+		"ID:Link/Goods Receipt:",
 		"Date:Date:",
 		"Customer:Data:200",
 		"Warehouse::150",
@@ -66,7 +66,7 @@ def get_data(filters):
 			gr_end = gr_start - 1 + 50
 
 		row = [
-			gr.goods_receipt_number,
+			gr.name,
 			gr.posting_date,
 			gr.customer,
 			gr.warehouse,
