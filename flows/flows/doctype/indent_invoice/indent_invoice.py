@@ -553,7 +553,7 @@ class IndentInvoice(StockController):
 		"doctype": "Sales Invoice",
 		"customer": self.customer,
 		"customer_name": self.customer.strip(),
-		"posting_date": self.transaction_date,
+		"posting_date": self.transaction_date if today() < '2015-06-01' else self.posting_date,
 		"posting_time": self.posting_time,
 		"fiscal_year": self.fiscal_year,
 		"entries": [
