@@ -121,3 +121,33 @@ def get_address_display(address_of, address_type):
 	from erpnext.utilities.doctype.address.address import get_address_display as gda
 
 	return gda("{}-{}".format(address_of.strip(), address_type))
+
+
+def report_build_erv_item_map(erv_map):
+	rs = set()
+	for erv_map in erv_map.values():
+		for items in erv_map.keys():
+			rs.add(items)
+
+	rs_list = []
+
+	if 'FC19' in rs:
+		rs_list.append('FC19')
+	if 'FC35' in rs:
+		rs_list.append('FC35')
+	if 'FC47.5' in rs:
+		rs_list.append('FC47.5')
+	if 'FC47.5L' in rs:
+		rs_list.append('FC47.5L')
+	if 'EC19':
+		rs_list.append('EC19')
+	if 'EC35':
+		rs_list.append('EC35')
+	if 'EC35' in rs:
+		rs_list.append('EC35')
+	if 'EC47.5' in rs:
+		rs_list.append('EC47.5')
+	if 'EC47.5L':
+		rs_list.append('EC47.5L')
+
+	return rs_list

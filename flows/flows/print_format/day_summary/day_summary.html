@@ -1,251 +1,298 @@
+<style>
+	.print-format {
+		padding: 0.1in;
+	}
+
+	.print-format td, .print-format th {
+		vertical-align: top !important;
+		padding: 0px 3px 0px 3px !important;
+	}
+
+	h1, .h1, h2, .h2, h3, .h3 {
+		margin-top: 10px;
+		margin-bottom: 5px;
+	}
+</style>
+
 <div class="container">
 
-	{% if letter_head and not no_letterhead %}
-		<p class="text-left">
-
-		<div class="letter-head">{{ letter_head }}</div>
-		</p>
-		<br/>
-		<br/>
-	{% endif %}
-
+	{# ERV HEADING #}
 	<div class="row clearfix">
-		<div class="col-xs-9 column">
-			<p class="text-left">
-			<h4>
-				Vehicle No. {{ doc.vehicle }} -
-				{{ frappe.db.get_value("Supplier", doc.plant, "supplier_name") or doc.plant }}
-			</h4><br/>
-			</p>
-		</div>
-
-		<div class="col-xs-3 column">
-			<p class="text-right">
-				Indent No. {{ doc.name }}<br/>
-				Date: {{ doc.get_formatted("posting_date") }}
-			</p>
-
+		<div class="col-md-12 column">
+			<h3>
+				ERV
+			</h3>
 		</div>
 	</div>
 
-	{% set show_contract = doc.naming_series == 'IOC' %}
-
-
+	{# ERV IN #}
+	{% set erp_in_item_set = doc.summary.erv_in_map|report_build_erv_item_map %}
 	<div class="row clearfix">
-		<div class="col-xs-12 column">
-			<table class="table table-bordered table-striped">
+		<div class="col-md-12 column">
+			<h4>In</h4>
+			<table class="table table-bordered table-condensed">
 				<thead>
 				<tr>
 					<th>
-						#
+						V.No
 					</th>
 					<th>
-						Customer
+						Vehicle
 					</th>
-					<th>
-						SAP
-					</th>
-					{% if show_contract %}
+					{% for item in erp_in_item_set %}
 						<th>
-							Contract No.
+							{{ item }}
 						</th>
-					{% endif %}
-					<th>
-						TIN No.
-					</th>
-					<th>
-						Cap In KG
-					</th>
-					<th>
-						Oneway
-					</th>
-					<th>
-						Refill
-					</th>
-					<th>
-						Modvat
-					</th>
-					<th>
-						Payment
-					</th>
-					<th>
-						Rate
-					</th>
-					<th>
-						Amount
-					</th>
+					{% endfor %}
 				</tr>
 				</thead>
 				<tbody>
-				{% for indent_item in doc.indent %}
+				{% for erv_no, erv_map in doc.summary.erv_in_map.items() %}
 					<tr>
 						<td>
-							{{ indent_item.idx }}
+							{{ erv_no }}
 						</td>
 						<td>
-							{{ indent_item.customer }}
+							{{ erv_map.voucher.vehicle }}
 						</td>
-						<td>
-							{{ indent_item.customer | get_registration_code(doc.naming_series) }}
-						</td>
-						{% if show_contract %}
-							<td>
-								{{ indent_item.customer | get_contract_number(doc.posting_date, doc.plant) or '' }}
-							</td>
-						{% endif %}
-						<td>
-							{{ indent_item.customer | get_customer_tin_number }}
-						</td>
-						<td>
-							{{ frappe.db.get_value("Item", indent_item.item, "description") }}
-						</td>
-						<td>
-							{% if indent_item.load_type == 'Oneway' %}
-								{{ indent_item.qty }}
-							{% endif %}
-						</td>
-						<td>
-							{% if indent_item.load_type == 'Refill' %}
-								{{ indent_item.qty }}
-							{% endif %}
-						</td>
-						<td>
-							{{ indent_item.customer | get_cenvat_status(doc.posting_date, doc.plant) or '' }}
-						</td>
-						<td>
-							{% if doc.naming_series != 'HPC' %}
-								{% if indent_item.payment_type == 'Indirect' %}
-									PAYER
-								{% else %}
-									BAL SAP
-								{% endif %}
+
+						{% for item in erp_in_item_set %}
+							{% if item in  erv_map %}
+								<th style="text-align: right">{{ erv_map[item] }}</th>
 							{% else %}
-								Bal Pending
+								<th></th>
 							{% endif %}
-						</td>
-						<td>
-							{{ indent_item.get_formatted("rate") }}
-						</td>
-						<td>
-							{{ indent_item.get_formatted("amount") }}
-						</td>
+						{% endfor %}
+
 					</tr>
-
 				{% endfor %}
-
-
-				<tr>
-					<td></td>
-					<td></td>
-					<td></td>
-					{% if show_contract %}
-						<td></td>
-					{% endif %}
-					<td></td>
-					<td>Total</td>
-					<td>{{ doc.indent| indent_oneway_qty }}</td>
-					<td>{{ doc.indent| indent_refill_qty }}</td>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td>{{ doc.grand_total }}</td>
-				</tr>
-
-
 				</tbody>
 			</table>
 		</div>
 	</div>
 
+	{# ERV OUT #}
+	{% set erp_out_item_set = doc.summary.erv_out_map|report_build_erv_item_map %}
 	<div class="row clearfix">
-		<br/>
-
-		<div class="col-xs-12 column">
-			<p>
-				We are sending vehicle no. {{ doc.vehicle }} &amp; we hear by authorise Mr. {{ doc.driver|capitalize }}
-				as driver (whose driving licence number is
-				{{ frappe.db.get_value("Driver", doc.driver, "dl_number") or "N/A" }}) to the above mentioned vehicle.
-			</p>
-		</div>
-	</div>
-
-	<div class="row clearfix">
-		<div class="col-xs-6 column">
-			<p class="text-left">
-				<br/>
-				<br/>
-				_________________________<br/>
-				Signature Of The Driver
-			</p>
-		</div>
-		<div class="col-xs-6 column">
-			<p class="text-right">
-				For {{ doc.letter_head }}
-				<br/>
-				<br/>
-				<span>Authorised Signatory</span>
-			</p>
-		</div>
-	</div>
-
-
-	<div class="row clearfix">
-		<div class="col-xs-12 column">
-			<strong>
-				THIS IS A COMPUTER-GENERATED DOCUMENT AND IT DOES NOT REQUIRE A SIGNATURE. THIS DOCUMENT SHALL NOT
-				BE INVALIDATED SOLELY ON THE GROUND THAT IT IS NOT SIGNED.
-			</strong>
-		</div>
-	</div>
-
-	<div class="row clearfix">
-		<div class="col-xs-12 column">
-			<h3 class="text-center">
-			</h3>
-
-			<h3 class="text-center">
-				<strong>Equipment Return Voucher (Plant Use)</strong>
-			</h3>
-
-			{% set map = doc.indent|compute_erv_for_refill_in_indent %}
-
-			<table class="table table-bordered table-striped">
+		<div class="col-md-12 column">
+			<h4>Out</h4>
+			<table class="table table-bordered table-condensed">
 				<thead>
 				<tr>
-					{% for key in map.keys() %}
+					<th>
+						V.No
+					</th>
+					<th>
+						Vehicle
+					</th>
+					{% for item in erp_out_item_set %}
 						<th>
-							{{ key }}
+							{{ item }}
 						</th>
 					{% endfor %}
 				</tr>
 				</thead>
 				<tbody>
-				<tr>
-					{% for value in map.values() %}
+				{% for erv_no, erv_map in doc.summary.erv_out_map.items() %}
+					<tr>
 						<td>
-							{{ value }}
+							{{ erv_no }}
 						</td>
-					{% endfor %}
-				</tr>
-				<tr>
-					{% for value in map.values() %}
-						<td style="padding: 14px!important;">
+						<td>
+							{{ erv_map.voucher.vehicle }}
+						</td>
 
-						</td>
-					{% endfor %}
-				</tr>
+						{% for item in erp_out_item_set %}
+							{% if item in  erv_map %}
+								<th style="text-align: right">{{ erv_map[item] }}</th>
+							{% else %}
+								<th></th>
+							{% endif %}
+						{% endfor %}
+
+					</tr>
+				{% endfor %}
 				</tbody>
 			</table>
 		</div>
-		<div class="col-xs-6 column">
-			Please acknowledge the receipt of equipment returned to plant.
-		</div>
-		<div class="col-xs-6 column">
-			<strong>
-				Tallyman's Name & Sig.<br/><br/>
-				Shift Officer Name & Sig.
-			</strong>
+	</div>
+
+	{# GR Heading #}
+	<div class="row clearfix">
+		<div class="col-md-12 column">
+			<h3>
+				Goods Receipts
+			</h3>
 		</div>
 	</div>
+
+	{# GR Details #}
+	<table class="table table-condensed table-bordered table-striped table-nowrap">
+		<thead>
+		<tr>
+			<th>Sr</th>
+			<th>ID</th>
+			<th>Customer</th>
+			<th>ItmD</th>
+			<th>DQ</th>
+			<th>ItmR</th>
+			<th>RQ</th>
+			<th>Warehouse</th>
+		</tr>
+		</thead>
+		<tbody>
+		{% for gr_no, gr_map in doc.summary.gr_map.items() %}
+			<tr>
+				<td></td>
+				<td>{{ gr_no }}</td>
+				<td>{{ gr_map.voucher.customer }}</td>
+				<td>{{ gr_map.item_delivered }}</td>
+				<td style="text-align: right">{{ gr_map.delivered_quantity }}</td>
+				<td>{{ gr_map.item_received }}</td>
+				<td style="text-align: right">{{ gr_map.received_quantity }}</td>
+				<td>{{ gr_map.voucher.warehouse }}</td>
+			</tr>
+		{% endfor %}
+		</tbody>
+	</table>
+
+	{# PR Heading #}
+	<div class="row clearfix">
+		<div class="col-md-12 column">
+			<h3>
+				Payment Receipts
+			</h3>
+		</div>
+	</div>
+
+	{# PR Details #}
+	<table class="table table-condensed table-bordered table-striped table-nowrap">
+		<thead>
+		<tr>
+			<th>V.No</th>
+			<th>D.Qty</th>
+			<th>R.Qty</th>
+			<th>DQ</th>
+			<th>Rate</th>
+			<th>Amount</th>
+			<th>Vendor</th>
+		</tr>
+		</thead>
+		<tbody>
+		{% for pr_no, pr_map in doc.summary.pr_map.items() %}
+			<tr>
+				<td>{{ pr_no }}</td>
+				<td>{{ pr_map.item }}</td>
+				<td style="text-align: right">{{ pr_map.d_qty }}</td>
+				<td style="text-align: right">{{ pr_map.r_qty }}</td>
+				<td style="text-align: right">{{ pr_map.voucher.amount_per_item }}</td>
+				<td style="text-align: right">{{ pr_map.voucher.total }}</td>
+				<td>{{ pr_map.voucher.stock_owner }}</td>
+			</tr>
+		{% endfor %}
+		</tbody>
+	</table>
+
+	{# Gatepass/Non-erv Headings #}
+	<div class="row clearfix">
+		<div class="col-md-12 column">
+			<h3>
+				Transfers
+			</h3>
+		</div>
+	</div>
+
+	{# Gatepass IN/Non-erv Details #}
+	{% set gatepass_in_item_set = doc.summary.gatepass_in_map|report_build_erv_item_map %}
+	<div class="row clearfix">
+		<div class="col-md-12 column">
+			<h4>In</h4>
+			<table class="table table-bordered table-condensed">
+				<thead>
+				<tr>
+					<th>
+						V.No
+					</th>
+					<th>
+						Vehicle
+					</th>
+					{% for item in erp_in_item_set %}
+						<th>
+							{{ item }}
+						</th>
+					{% endfor %}
+				</tr>
+				</thead>
+				<tbody>
+				{% for gp_no, gp_map in doc.summary.gatepass_in_map.items() %}
+					<tr>
+						<td>
+							{{ gp_no }}
+						</td>
+						<td>
+							{{ gp_map.voucher.driver }}
+						</td>
+
+						{% for item in gatepass_in_item_set %}
+							{% if item in  erv_map %}
+								<th style="text-align: right">{{ erv_map[item] }}</th>
+							{% else %}
+								<th></th>
+							{% endif %}
+						{% endfor %}
+
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	{# Gatepass OUT/Non-erv Details #}
+	{% set gatepass_out_item_set = doc.summary.gatepass_out_map|report_build_erv_item_map %}
+	<div class="row clearfix">
+		<div class="col-md-12 column">
+			<h4>Out</h4>
+			<table class="table table-bordered table-condensed">
+				<thead>
+				<tr>
+					<th>
+						V.No
+					</th>
+					<th>
+						Vehicle
+					</th>
+					{% for item in erp_in_item_set %}
+						<th>
+							{{ item }}
+						</th>
+					{% endfor %}
+				</tr>
+				</thead>
+				<tbody>
+				{% for gp_no, gp_map in doc.summary.gatepass_out_map.items() %}
+					<tr>
+						<td>
+							{{ gp_no }}
+						</td>
+						<td>
+							{{ gp_map.voucher.driver }}
+						</td>
+
+						{% for item in gatepass_in_item_set %}
+							{% if item in  erv_map %}
+								<th style="text-align: right">{{ erv_map[item] }}</th>
+							{% else %}
+								<th></th>
+							{% endif %}
+						{% endfor %}
+
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+
 
 </div>

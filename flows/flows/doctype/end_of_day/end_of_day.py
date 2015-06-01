@@ -4,6 +4,9 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
+from frappe.utils import flt
+from summary import get_data as get_day_summary
+
 
 class EndOfDay(Document):
 	def validate(self):
@@ -14,3 +17,13 @@ class EndOfDay(Document):
 				frappe.msgprint("Day/Days Unlocked")
 			else:
 				frappe.throw("Can Not Unlock Days")
+
+
+
+	def before_print(self):
+		self.summary = get_day_summary(self.report_date, self.report_warehouse)
+
+
+
+
+

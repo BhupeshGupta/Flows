@@ -117,7 +117,7 @@ doc_events = {
 # before_tests = "flows.install.before_tests"
 
 doctype_js = {
-"Warehouse": ["asserts/js/warehouse.js"]
+"Warehouse": ["asserts/js/warehouse.js"],
 }
 
 # Overriding Whitelisted Methods
@@ -140,5 +140,6 @@ jenv_filter = [
 	'get_registration_code:flows.jinja_filters.get_registration_code',
 	'get_customer_tin_number:flows.jinja_filters.get_customer_tin_number',
 	'get_cenvat_status:flows.jinja_filters.get_cenvat_status',
-	'get_address_display:flows.jinja_filters.get_address_display'
+	'get_address_display:flows.jinja_filters.get_address_display',
+	'report_build_erv_item_map:flows.jinja_filters.report_build_erv_item_map'
 ]
