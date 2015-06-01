@@ -24,6 +24,10 @@ class IndentInvoice(StockController):
 		super(IndentInvoice, self).__init__(*args, **kwargs)
 
 	def before_submit(self):
+		if not self.posting_date:
+			self.posting_date = today()
+			self.fiscal_year = account_utils.get_fiscal_year(self.get("transaction_date"))[0]
+			
 		self.check_previous_doc()
 		self.make_gl_entries()
 		self.make_stock_refill_entry()
@@ -118,17 +122,9 @@ class IndentInvoice(StockController):
 
 	def set_missing_values(self, *args, **kwargs):
 
-		if self.posting_date and not self.amended_from:
-			self.posting_date = ''
-			self.posting_time = ''
-		if not self.posting_date:
-			self.posting_date = today()
-		if not self.posting_time:
-			self.posting_time = now()
-
-		self.fiscal_year = account_utils.get_fiscal_year(self.get("transaction_date"))[0]
-
-		super(IndentInvoice, self).set_missing_values(*args, **kwargs)
+		# self.fiscal_year = account_utils.get_fiscal_year(self.get("transaction_date"))[0]
+		#
+		# super(IndentInvoice, self).set_missing_values(*args, **kwargs)
 
 		if self.supplier and self.supplier != '' and \
 				self.company and self.company != '' and \

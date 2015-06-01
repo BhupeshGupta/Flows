@@ -118,17 +118,6 @@
    "precision": ""
   }, 
   {
-   "default": "Today", 
-   "fieldname": "posting_date", 
-   "fieldtype": "Date", 
-   "hidden": 0, 
-   "label": "Posting Date", 
-   "permlevel": 0, 
-   "precision": "", 
-   "read_only": 0, 
-   "reqd": 1
-  }, 
-  {
    "default": "", 
    "fieldname": "transaction_date", 
    "fieldtype": "Date", 
@@ -445,6 +434,17 @@
    "read_only": 1
   }, 
   {
+   "default": "", 
+   "fieldname": "posting_date", 
+   "fieldtype": "Date", 
+   "hidden": 0, 
+   "label": "Posting Date", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1, 
+   "reqd": 0
+  }, 
+  {
    "fieldname": "posting_time", 
    "fieldtype": "Time", 
    "hidden": 1, 
@@ -468,6 +468,22 @@
    "label": "Data Bank", 
    "permlevel": 0, 
    "precision": ""
+  }, 
+  {
+   "fieldname": "per_delivered", 
+   "fieldtype": "Float", 
+   "label": "per delivered", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "qty_delivered", 
+   "fieldtype": "Float", 
+   "label": "qty delivered", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
   }
  ], 
  "hide_heading": 0, 
@@ -477,7 +493,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-05-16 19:16:53.819746", 
+ "modified": "2015-06-01 09:06:16.392050", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 
