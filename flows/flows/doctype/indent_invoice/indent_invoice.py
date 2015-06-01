@@ -592,8 +592,10 @@ class IndentInvoice(StockController):
 			consignment_note_json_doc["customer_address"] = "{}-Billing".format(self.customer.strip())
 
 		if customer_object.service_tax_liability == "Transporter":
-			consignment_note_json_doc["taxes_and_charges"] = "Road Transport"
-
+			if consignment_note_json_doc['posting_date'] < '2015-06-01':
+				consignment_note_json_doc["taxes_and_charges"] = "Road Transport"
+			else:
+				consignment_note_json_doc["taxes_and_charges"] = "Road Transport_June_1_15"
 		data_bank = self.get_data_bank()
 		root.debug(data_bank)
 		if 'transportation_invoice' in data_bank:
