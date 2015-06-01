@@ -1,0 +1,251 @@
+<div class="container">
+
+	{% if letter_head and not no_letterhead %}
+		<p class="text-left">
+
+		<div class="letter-head">{{ letter_head }}</div>
+		</p>
+		<br/>
+		<br/>
+	{% endif %}
+
+	<div class="row clearfix">
+		<div class="col-xs-9 column">
+			<p class="text-left">
+			<h4>
+				Vehicle No. {{ doc.vehicle }} -
+				{{ frappe.db.get_value("Supplier", doc.plant, "supplier_name") or doc.plant }}
+			</h4><br/>
+			</p>
+		</div>
+
+		<div class="col-xs-3 column">
+			<p class="text-right">
+				Indent No. {{ doc.name }}<br/>
+				Date: {{ doc.get_formatted("posting_date") }}
+			</p>
+
+		</div>
+	</div>
+
+	{% set show_contract = doc.naming_series == 'IOC' %}
+
+
+	<div class="row clearfix">
+		<div class="col-xs-12 column">
+			<table class="table table-bordered table-striped">
+				<thead>
+				<tr>
+					<th>
+						#
+					</th>
+					<th>
+						Customer
+					</th>
+					<th>
+						SAP
+					</th>
+					{% if show_contract %}
+						<th>
+							Contract No.
+						</th>
+					{% endif %}
+					<th>
+						TIN No.
+					</th>
+					<th>
+						Cap In KG
+					</th>
+					<th>
+						Oneway
+					</th>
+					<th>
+						Refill
+					</th>
+					<th>
+						Modvat
+					</th>
+					<th>
+						Payment
+					</th>
+					<th>
+						Rate
+					</th>
+					<th>
+						Amount
+					</th>
+				</tr>
+				</thead>
+				<tbody>
+				{% for indent_item in doc.indent %}
+					<tr>
+						<td>
+							{{ indent_item.idx }}
+						</td>
+						<td>
+							{{ indent_item.customer }}
+						</td>
+						<td>
+							{{ indent_item.customer | get_registration_code(doc.naming_series) }}
+						</td>
+						{% if show_contract %}
+							<td>
+								{{ indent_item.customer | get_contract_number(doc.posting_date, doc.plant) or '' }}
+							</td>
+						{% endif %}
+						<td>
+							{{ indent_item.customer | get_customer_tin_number }}
+						</td>
+						<td>
+							{{ frappe.db.get_value("Item", indent_item.item, "description") }}
+						</td>
+						<td>
+							{% if indent_item.load_type == 'Oneway' %}
+								{{ indent_item.qty }}
+							{% endif %}
+						</td>
+						<td>
+							{% if indent_item.load_type == 'Refill' %}
+								{{ indent_item.qty }}
+							{% endif %}
+						</td>
+						<td>
+							{{ indent_item.customer | get_cenvat_status(doc.posting_date, doc.plant) or '' }}
+						</td>
+						<td>
+							{% if doc.naming_series != 'HPC' %}
+								{% if indent_item.payment_type == 'Indirect' %}
+									PAYER
+								{% else %}
+									BAL SAP
+								{% endif %}
+							{% else %}
+								Bal Pending
+							{% endif %}
+						</td>
+						<td>
+							{{ indent_item.get_formatted("rate") }}
+						</td>
+						<td>
+							{{ indent_item.get_formatted("amount") }}
+						</td>
+					</tr>
+
+				{% endfor %}
+
+
+				<tr>
+					<td></td>
+					<td></td>
+					<td></td>
+					{% if show_contract %}
+						<td></td>
+					{% endif %}
+					<td></td>
+					<td>Total</td>
+					<td>{{ doc.indent| indent_oneway_qty }}</td>
+					<td>{{ doc.indent| indent_refill_qty }}</td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td>{{ doc.grand_total }}</td>
+				</tr>
+
+
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div class="row clearfix">
+		<br/>
+
+		<div class="col-xs-12 column">
+			<p>
+				We are sending vehicle no. {{ doc.vehicle }} &amp; we hear by authorise Mr. {{ doc.driver|capitalize }}
+				as driver (whose driving licence number is
+				{{ frappe.db.get_value("Driver", doc.driver, "dl_number") or "N/A" }}) to the above mentioned vehicle.
+			</p>
+		</div>
+	</div>
+
+	<div class="row clearfix">
+		<div class="col-xs-6 column">
+			<p class="text-left">
+				<br/>
+				<br/>
+				_________________________<br/>
+				Signature Of The Driver
+			</p>
+		</div>
+		<div class="col-xs-6 column">
+			<p class="text-right">
+				For {{ doc.letter_head }}
+				<br/>
+				<br/>
+				<span>Authorised Signatory</span>
+			</p>
+		</div>
+	</div>
+
+
+	<div class="row clearfix">
+		<div class="col-xs-12 column">
+			<strong>
+				THIS IS A COMPUTER-GENERATED DOCUMENT AND IT DOES NOT REQUIRE A SIGNATURE. THIS DOCUMENT SHALL NOT
+				BE INVALIDATED SOLELY ON THE GROUND THAT IT IS NOT SIGNED.
+			</strong>
+		</div>
+	</div>
+
+	<div class="row clearfix">
+		<div class="col-xs-12 column">
+			<h3 class="text-center">
+			</h3>
+
+			<h3 class="text-center">
+				<strong>Equipment Return Voucher (Plant Use)</strong>
+			</h3>
+
+			{% set map = doc.indent|compute_erv_for_refill_in_indent %}
+
+			<table class="table table-bordered table-striped">
+				<thead>
+				<tr>
+					{% for key in map.keys() %}
+						<th>
+							{{ key }}
+						</th>
+					{% endfor %}
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+					{% for value in map.values() %}
+						<td>
+							{{ value }}
+						</td>
+					{% endfor %}
+				</tr>
+				<tr>
+					{% for value in map.values() %}
+						<td style="padding: 14px!important;">
+
+						</td>
+					{% endfor %}
+				</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="col-xs-6 column">
+			Please acknowledge the receipt of equipment returned to plant.
+		</div>
+		<div class="col-xs-6 column">
+			<strong>
+				Tallyman's Name & Sig.<br/><br/>
+				Shift Officer Name & Sig.
+			</strong>
+		</div>
+	</div>
+
+</div>

@@ -125,8 +125,8 @@
    "label": "Posting Date", 
    "permlevel": 0, 
    "precision": "", 
-   "read_only": 1, 
-   "reqd": 0
+   "read_only": 0, 
+   "reqd": 1
   }, 
   {
    "default": "", 
@@ -493,7 +493,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-06-01 15:14:36.473252", 
+ "modified": "2015-06-01 15:20:57.632122", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 
