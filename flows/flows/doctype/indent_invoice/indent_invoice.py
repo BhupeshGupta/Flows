@@ -14,7 +14,7 @@ from erpnext.accounts import utils as account_utils
 from erpnext.accounts.party import get_party_account
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.stock.stock_ledger import make_sl_entries
-from frappe.utils import today, now
+from frappe.utils import today
 from frappe.utils import cint
 from frappe.utils import get_first_day
 
@@ -27,7 +27,7 @@ class IndentInvoice(StockController):
 		if not self.posting_date:
 			self.posting_date = today()
 			self.fiscal_year = account_utils.get_fiscal_year(self.get("transaction_date"))[0]
-			
+
 		self.check_previous_doc()
 		self.make_gl_entries()
 		self.make_stock_refill_entry()
@@ -82,7 +82,6 @@ class IndentInvoice(StockController):
 				self.credit_note = ''
 			else:
 				self.data_bank = ''
-
 
 		if cint(self.indent_linked) == 1:
 			if not (self.indent_item and self.indent_item != ''):
@@ -373,7 +372,6 @@ class IndentInvoice(StockController):
 				credit_note.docstatus = 2
 				credit_note.save()
 
-
 	def raise_transportation_bill(self):
 
 		# Hard code skip for now, will fix this later
@@ -452,7 +450,6 @@ class IndentInvoice(StockController):
 		self.transportation_invoice_rate = transportation_rate
 		self.applicable_transportation_invoice_rate = transportation_rate - discount
 		self.transportation_invoice_amount = self.applicable_transportation_invoice_rate * qty_in_kg
-
 
 	def get_terms_for_commercial_invoice(self, commercial_invoice, settings, *args, **kwargs):
 
@@ -587,13 +584,16 @@ class IndentInvoice(StockController):
 		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
 			consignment_note_json_doc["customer_address"] = "{}-Billing".format(self.customer.strip())
 
-		if customer_object.service_tax_liability == "Transporter":
-			if consignment_note_json_doc['posting_date'] < '2015-06-01':
-				consignment_note_json_doc["taxes_and_charges"] = "Road Transport"
-			else:
-				consignment_note_json_doc["taxes_and_charges"] = "Road Transport_June_1_15"
+		if consignment_note_json_doc['posting_date'] < '2015-06-01':
+			consignment_note_json_doc["taxes_and_charges"] = "Road Transport"
+		else:
+			consignment_note_json_doc["taxes_and_charges"] = "Road Transport_June_1_15"
+
+		consignment_note_json_doc[
+			"tax_paid_by_supplier"
+		] = 1 if customer_object.service_tax_liability == "Transporter" else 0
+
 		data_bank = self.get_data_bank()
-		root.debug(data_bank)
 		if 'transportation_invoice' in data_bank:
 			consignment_note_json_doc["amended_from"] = data_bank.transportation_invoice
 
