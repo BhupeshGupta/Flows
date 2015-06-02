@@ -139,15 +139,13 @@ def report_build_erv_item_map(erv_map):
 		rs_list.append('FC47.5')
 	if 'FC47.5L' in rs:
 		rs_list.append('FC47.5L')
-	if 'EC19':
+	if 'EC19' in rs:
 		rs_list.append('EC19')
-	if 'EC35':
-		rs_list.append('EC35')
 	if 'EC35' in rs:
 		rs_list.append('EC35')
 	if 'EC47.5' in rs:
 		rs_list.append('EC47.5')
-	if 'EC47.5L':
+	if 'EC47.5L' in rs:
 		rs_list.append('EC47.5L')
 
 	return rs_list
