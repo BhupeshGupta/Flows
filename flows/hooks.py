@@ -118,6 +118,7 @@ doc_events = {
 
 doctype_js = {
 "Warehouse": ["asserts/js/warehouse.js"],
+"Journal Voucher": ["c_scripts/journal_voucher.js"]
 }
 
 # Overriding Whitelisted Methods
