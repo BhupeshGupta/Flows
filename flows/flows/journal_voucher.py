@@ -1,6 +1,8 @@
 from frappe import throw
 
 def journal_voucher_autoname(doc, method=None, *args, **kwargs):
+	doc.naming_series = doc.naming_series.strip()
+
 	if doc.voucher_type == "Cash Receipt(CR)":
 		doc.name = doc.id
 
