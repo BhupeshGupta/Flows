@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.utils import flt, cint
-
+from flows.utils import get_ac_debit_balances_as_on
 
 ## Need report via transaction_date
 
@@ -19,12 +19,19 @@ def execute(filters=None):
 
 	data = []
 
+	debit_balances_list = get_ac_debit_balances_as_on(filters.to_date)
+	debit_balance_map = {x.account: x.debit_balance for x in debit_balances_list}
+	from flows.stdlogger import root
+
+	root.debug(debit_balance_map)
+
 	for customer in sorted(data_map):
 		for item in sorted(data_map[customer]):
 			qty_dict = data_map[customer][item]
 			row = [
 				customer_map.get(customer.strip(), frappe._dict({'customer_group': 'CNF'})).customer_group,
 				customer,
+				debit_balance_map[customer] if customer in debit_balance_map else "-",
 				item,
 				int(qty_dict.opening),
 				int(qty_dict.i_requested),
@@ -52,6 +59,7 @@ def get_columns(filters):
 	columns = [
 		"Group:Link/Customer Group:100",
 		"Customer:Link/Customer:250",
+		"Debit Balance:Currency:100",
 		"Item:Link/Item:75",
 		"Opening:Float:85",
 		"Indent Placed:Float:85",
