@@ -49,7 +49,7 @@ def get_indents():
 		`tabIndent` WHERE
 		docstatus != 2 AND
 		posting_date >= '2015-05-01'
-		order by posting_date desc;
+		order by creation desc;
 		""", as_dict=True)
 
 def get_indent_linked_gp_map():
