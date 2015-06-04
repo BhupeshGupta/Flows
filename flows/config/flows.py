@@ -172,6 +172,12 @@ def get_data():
 					"is_query_report": True,
 					"name": "HPCL Incentive",
 					"doctype": "Item",
+				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "IOCL Incentive",
+					"doctype": "Item",
 				}
 			]
 		},
