@@ -164,6 +164,18 @@ def get_data():
 			]
 		},
 		{
+			"label": _("Monthly Reports"),
+			"icon": "icon-table",
+			"items": [
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "HPCL Incentive",
+					"doctype": "Item",
+				}
+			]
+		},
+		{
 			"label": _("Setup"),
 			"icon": "icon-cog",
 			"items": [
