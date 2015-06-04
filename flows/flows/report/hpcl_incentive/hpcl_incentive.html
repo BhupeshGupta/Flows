@@ -1,0 +1,85 @@
+<style>
+	.print-format {
+		padding: 0.125in !important;
+	}
+
+	.print-format td, .print-format th {
+		vertical-align: top !important;
+		padding: 0px 3px 0px 3px !important;
+	}
+
+	h1, .h1, h2, .h2, h3, .h3 {
+		margin-top: 10px;
+		margin-bottom: 5px;
+	}
+
+	body {
+    	font-family: Cambria,Georgia,serif;
+	}
+
+</style>
+
+{% var rows_per_page = 20; var total_pages = Math.ceil(data.length / rows_per_page) %}
+
+{%  var cur_page = 0; %}
+
+{% for(var cur_page=0; cur_page < total_pages; cur_page++) { %}
+
+<!--
+    <h2 class="text-center">{%= __("Purchase Sale") %}</h2>
+    <h5 class="text-center">
+         <p class="text-center text-muted">
+             {%= dateutil.str_to_user(filters.from_date) %} to {%= dateutil.str_to_user(filters.to_date) %},
+             printed on {%= dateutil.str_to_user(dateutil.get_datetime_as_string()) %}, page {%= cur_page+1 %} of {%= total_pages %}
+         </p>
+    </h5>
+    <hr>
+-->
+    <table class="table table-condensed table-bordered table-striped table-nowrap">
+        <thead>
+            <tr>
+                <th>{%= __("Sr") %}</th>
+                <th>{%= __("Customer") %}</th>
+	            <th>{%= __("ERO") %}</th>
+                <th>{%= __("Date") %}</th>
+                <th>{%= __("Bill No.") %}</th>
+                <th>{%= __("Bill Amt.") %}</th>
+                <th>{%= __("Rate Per Kg") %}</th>
+                <th>{%= __("DA Per Cylinder") %}</th>
+                <th>{%= __("FC 19") %}</th>
+                <th>{%= __("FC 35") %}</th>
+                <th>{%= __("FC 47.5") %}</th>
+	            <th>{%= __("Qty In KG") %}</th>
+	            <th>{%= __("LPG Handling") %}</th>
+	            <th>{%= __("Incentive Amt") %}</th>
+            </tr>
+        </thead>
+	    <tbody>
+	    {% for(var i=cur_page * rows_per_page; (i < data.length) && (i < (cur_page + 1) * rows_per_page); i++) { %}
+            <tr>
+                <td>{%= data[i][__("Sr")] %}</td>
+                <td style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{%= data[i][__("Customer")] %}</td>
+	            <td style="text-align: right">{%= data[i]["ERO"] %}</td>
+                <td>{%= data[i][__("Date")] %}
+                <td>{%= data[i][__("Bill No.")] %}</td>
+                <td style="text-align: right">{%= format_currency(data[i][__("Bill Amt")]) %}</td>
+                <td style="text-align: right">{%= format_currency(data[i][__("Rate Per Kg")]) %}</td>
+                <td style="text-align: right">{%= format_currency(data[i][__("DA per Cylinder")]) %}</td>
+                <td style="text-align: right">{%= data[i][__("FC19")] %}</td>
+                <td style="text-align: right">{%= data[i][__("FC35")] %}</td>
+                <td style="text-align: right">{%= data[i][__("FC47.5")] %}</td>
+                <td style="text-align: right">{%= data[i][__("Qty in Kg")] %}</td>
+	            <td style="text-align: right">{%= format_currency(data[i][__("LPG Handling Charges")]) %}</td>
+	            <td style="text-align: right">{%= format_currency(data[i][__("Incentive Amt.")]) %}</td>
+            </tr>
+	    {% } %}
+	    </tbody>
+    </table>
+
+
+    {% if (cur_page + 1 < total_pages) { %}
+        <div class="page-break"></div>
+    {% } %}
+
+
+{% } %}

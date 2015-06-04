@@ -27,10 +27,10 @@ def get_columns(filters):
 		"Bill Amt.:Currency:",
 		"Rate per Kg.:Currency:",
 		"DA per Cylinder:Currency:",
-		"FC 19::",
-		"FC 35::",
-		"FC 47.5::",
-		"Qty in Kg:Int:",
+		"FC19::",
+		"FC35::",
+		"FC47.5::",
+		"Qty in Kg:Float:",
 		"LPG Handling Charges:Currency:",
 		"Incentive Amt.:Currency:"
 	]
@@ -42,7 +42,7 @@ def get_data(filters):
 
 	for invoice in invoices:
 		net_incentive = incentive_per_cylinder[invoice.item] * invoice.qty
-		qty_in_kg = invoice.qty * flt(invoice.item.replace('FC', '').replace('L', ''))
+		qty_in_kg = float(invoice.qty) * flt(invoice.item.replace('FC', '').replace('L', ''))
 
 		rows.append([
 			invoice.customer,
@@ -52,9 +52,9 @@ def get_data(filters):
 			invoice.actual_amount,
 			invoice.actual_amount/qty_in_kg,
 			invoice.handling_charges/invoice.qty,
-			invoice.qty if 'FC19' in invoice.item else 0,
-			invoice.qty if 'FC35' in invoice.item else 0,
-			invoice.qty if 'FC47.5' in invoice.item else 0,
+			invoice.qty if 'FC19' in invoice.item else "",
+			invoice.qty if 'FC35' in invoice.item else "",
+			invoice.qty if 'FC47.5' in invoice.item else "",
 			qty_in_kg,
 			invoice.handling_charges,
 			net_incentive,
@@ -64,14 +64,24 @@ def get_data(filters):
 
 
 def get_invoices(filters):
-	return frappe.db.sql("""
+
+	cond = ' and customer in (select name from `tabCustomer` where hpcl_field_officer = "{}")'.format(filters.field_officer) \
+	if filters.field_officer else ''
+
+	sql = """
 	Select * from `tabIndent Invoice`
 	where docstatus = 1
 	and supplier like '%hpc%'
 	and item not like 'BK%'
 	and transaction_date between "{from_date}" and "{to_date}"
+	{cond}
 	order by customer, transaction_date, invoice_number
-	""".format(**filters), as_dict=True)
+	""".format(cond=cond, **filters)
+
+	from flows.stdlogger import root
+	root.debug(sql)
+
+	return frappe.db.sql(sql, as_dict=True)
 
 
 sap_code_map = {}
