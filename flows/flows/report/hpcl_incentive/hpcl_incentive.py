@@ -23,10 +23,10 @@ def get_columns(filters):
 		"Customer::200",
 		"ERO::",
 		"Date:Date:",
-		"Bill No.:Link/Indent Invoice:",
+		"Bill No.::",
 		"Bill Amt.:Currency:",
 		"Rate per Kg.:Currency:",
-		"DA per Cylinder:Currency:"
+		"DA per Cylinder:Currency:",
 		"FC 19::",
 		"FC 35::",
 		"FC 47.5::",
@@ -70,6 +70,7 @@ def get_invoices(filters):
 	and supplier like '%hpc%'
 	and item not like 'BK%'
 	and transaction_date between "{from_date}" and "{to_date}"
+	order by customer, transaction_date, invoice_number
 	""".format(**filters), as_dict=True)
 
 
