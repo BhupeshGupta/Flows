@@ -109,4 +109,8 @@ def get_uplift_in_mt(filters):
 
 
 def get_discount(uplift):
+	if float(uplift) >= 19:
+		return 6
+	elif float(uplift) >= 9.5:
+		return 5
 	return 4
