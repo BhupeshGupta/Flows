@@ -78,9 +78,6 @@ def get_invoices(filters):
 	order by customer, transaction_date, invoice_number
 	""".format(cond=cond, **filters)
 
-	from flows.stdlogger import root
-	root.debug(sql)
-
 	return frappe.db.sql(sql, as_dict=True)
 
 
