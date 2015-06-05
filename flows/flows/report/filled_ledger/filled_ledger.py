@@ -144,6 +144,7 @@ def get_opening_gr(filters):
 		item_received, received_quantity
 		FROM `tabGoods Receipt`
 		WHERE docstatus = 1 AND
+		cancelled = 0 AND
 		customer="{}" AND
 		posting_date <= %(to_date)s
 		ORDER BY posting_date desc, posting_time desc, name desc;""".format(filters['customer']),
@@ -175,9 +176,6 @@ def initialize_voucher_maps(filters, vouchers):
 	current_map = frappe._dict()
 
 	for voucher in vouchers:
-		from flows.stdlogger import root
-
-		root.debug(voucher)
 		active_map = opening_map if voucher.posting_date < filters['from_date'] else current_map
 
 		if voucher.v_type == "Goods Receipt":
