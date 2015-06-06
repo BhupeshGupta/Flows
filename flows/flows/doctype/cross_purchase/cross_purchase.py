@@ -162,6 +162,7 @@ def get_pending_invoices(doctype, txt, searchfield, start, page_len, filters, as
 		SELECT name, transaction_date, item, qty, actual_amount, transportation_invoice, transportation_invoice_amount
 		FROM `tabIndent Invoice`
 		WHERE cross_sold = 1 AND
+		docstatus = 1 AND
 		customer IN ({customer}) AND
 		transaction_date <= "{date}" AND
 		name NOT IN (SELECT invoice FROM `tabCross Purchase Item` WHERE docstatus = 1)
