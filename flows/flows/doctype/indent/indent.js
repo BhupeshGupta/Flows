@@ -274,6 +274,9 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 			case 'HPC':
 				company = 'Alpine Energy';
 				break;
+			case 'OTR':
+				company = 'VK Logistics';
+				break;
 		}
 
 		if (!company) return;

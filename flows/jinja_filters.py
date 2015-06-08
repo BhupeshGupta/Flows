@@ -76,6 +76,8 @@ def get_registration_code(customer, vendor):
 		key = "bpcl_sap_code"
 	elif vendor == "ioc":
 		key = "iocl_sap_code"
+	else:
+		return ""
 
 	val = get_customer_field(customer, key)
 	return val if val else ""
