@@ -249,22 +249,22 @@ def bill_filled_empty_status(voucher):
 
 	elif voucher.v_type == 'Goods Receipt':
 		filled = empty = 0
-		if voucher.item_delivered and 'FC' in voucher.item_delivered:
+		if voucher.item_delivered and 'FC' in voucher.item_delivered and voucher.delivered_quantity:
 			filled = voucher.delivered_quantity
-		elif voucher.item_delivered and 'EC' in voucher.item_delivered:
+		elif voucher.item_delivered and 'EC' in voucher.item_delivered and voucher.delivered_quantity:
 			empty = -1 * voucher.delivered_quantity
 
-		if voucher.item_received and 'FC' in voucher.item_received:
+		if voucher.item_received and 'FC' in voucher.item_received and voucher.received_quantity:
 			filled = -1 * voucher.received_quantity
-		elif voucher.item_received and 'EC' in voucher.item_received:
+		elif voucher.item_received and 'EC' in voucher.item_received and voucher.received_quantity:
 			empty = voucher.received_quantity
 		return 0, filled, empty
 
 	elif voucher.v_type == 'Stock Ledger Entry':
 		filled = empty = 0
-		if 'FC' in voucher.item:
+		if 'FC' in voucher.item and voucher.qty:
 			filled = voucher.qty
-		elif 'EC' in voucher.item:
+		elif 'EC' in voucher.item and voucher.qty:
 			empty = -1 * voucher.qty
 
 		return 0, filled, empty
