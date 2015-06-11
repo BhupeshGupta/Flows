@@ -262,7 +262,7 @@ def bill_filled_empty_status(voucher, item, filters):
 		filled = empty = 0
 		if 'FC' + item_base == voucher.item and voucher.qty:
 			filled = voucher.qty
-		elif 'EC' + item == voucher.item and voucher.qty:
+		elif 'EC' + item_base == voucher.item and voucher.qty:
 			empty = -1 * voucher.qty
 
 		return 0, filled, empty
