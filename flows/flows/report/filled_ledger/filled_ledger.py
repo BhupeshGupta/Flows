@@ -44,7 +44,7 @@ def get_data(filters):
 		data.append(get_opening_row(map))
 
 		for voucher in map.entries:
-			billed, delivered, received = bill_filled_empty_status(voucher)
+			billed, delivered, received = bill_filled_empty_status(voucher, item, filters)
 			data.append([
 				voucher.get("posting_date"),
 				voucher.voucher_type if voucher.v_type == 'Stock Ledger Entry' else voucher.v_type,
@@ -198,24 +198,20 @@ def initialize_voucher_maps(filters, vouchers):
 
 
 def get_data_with_opening_closing(filters, opening_map, current_map):
-	compute_closing(opening_map)
+	compute_closing(opening_map, filters)
 	copy_closing_over_to_opening(opening_map, current_map)
-	compute_closing(current_map)
+	compute_closing(current_map, filters)
 
 	return current_map
 
 
-def compute_closing(active_map):
+def compute_closing(active_map, filters):
 	for item, voucher_map in active_map.items():
 		last_entry_filled = flt(voucher_map.opening)
 		last_entry_empty = flt(voucher_map.empty_opening)
 
-		from flows.stdlogger import root
-
-		root.debug((last_entry_filled, last_entry_empty))
-
 		for entry in voucher_map.entries:
-			billed, filled, empty = bill_filled_empty_status(entry)
+			billed, filled, empty = bill_filled_empty_status(entry, item, filters)
 
 			billed = flt(billed)
 			filled = flt(filled)
@@ -243,28 +239,30 @@ def copy_closing_over_to_opening(opening_map, current_map):
 		active_map_instance.empty_opening = voucher_map.empty_closing
 
 
-def bill_filled_empty_status(voucher):
+def bill_filled_empty_status(voucher, item, filters):
+	item_base = get_base_item(item, filters)
+
 	if voucher.v_type == 'Indent Invoice':
 		return voucher.qty, 0, 0
 
 	elif voucher.v_type == 'Goods Receipt':
 		filled = empty = 0
-		if voucher.item_delivered and 'FC' in voucher.item_delivered and voucher.delivered_quantity:
+		if voucher.item_delivered and 'FC' + item_base == voucher.item_delivered and voucher.delivered_quantity:
 			filled = voucher.delivered_quantity
-		elif voucher.item_delivered and 'EC' in voucher.item_delivered and voucher.delivered_quantity:
+		elif voucher.item_delivered and 'EC' + item_base == voucher.item_delivered and voucher.delivered_quantity:
 			empty = -1 * voucher.delivered_quantity
 
-		if voucher.item_received and 'FC' in voucher.item_received and voucher.received_quantity:
+		if voucher.item_received and 'FC' + item_base == voucher.item_received and voucher.received_quantity:
 			filled = -1 * voucher.received_quantity
-		elif voucher.item_received and 'EC' in voucher.item_received and voucher.received_quantity:
+		elif voucher.item_received and 'EC' + item_base == voucher.item_received and voucher.received_quantity:
 			empty = voucher.received_quantity
 		return 0, filled, empty
 
 	elif voucher.v_type == 'Stock Ledger Entry':
 		filled = empty = 0
-		if 'FC' in voucher.item and voucher.qty:
+		if 'FC' + item_base == voucher.item and voucher.qty:
 			filled = voucher.qty
-		elif 'EC' in voucher.item and voucher.qty:
+		elif 'EC' + item == voucher.item and voucher.qty:
 			empty = -1 * voucher.qty
 
 		return 0, filled, empty
