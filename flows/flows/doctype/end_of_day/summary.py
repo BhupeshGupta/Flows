@@ -1,7 +1,9 @@
 from __future__ import unicode_literals
 
-import frappe
 from collections import OrderedDict
+
+import frappe
+
 
 def get_data(date, warehouse):
 	filters = frappe._dict({'date': date, 'warehouse': warehouse})
@@ -22,7 +24,7 @@ def get_data(date, warehouse):
 			voucher_map['Payment Receipt'].append(sle)
 		elif sle.voucher_type == 'Gatepass':
 			doc = frappe.get_doc(sle.voucher_type, sle.voucher_no)
-			if doc.indent and doc.indent != '':
+			if doc.voucher_type == 'ERV':
 				voucher_map['erv'].append(sle)
 			else:
 				voucher_map['Gatepass'].append(sle)
@@ -32,6 +34,7 @@ def get_data(date, warehouse):
 	gatepass_in_map, gatepass_out_map = compute_gatepass(voucher_map, filters)
 	pr_map = compute_pr(voucher_map, filters)
 
+
 	result_map = frappe._dict({
 	'gr_map': gr_map,
 	'erv_in_map': erv_in_map,
@@ -39,7 +42,7 @@ def get_data(date, warehouse):
 	'gatepass_in_map': gatepass_in_map,
 	'gatepass_out_map': gatepass_out_map,
 	'pr_map': pr_map,
-	'sle_list': sle_list_map
+	'sle_list': sle_list_map,
 	})
 
 	return result_map
@@ -48,39 +51,30 @@ def get_data(date, warehouse):
 def get_sl_entries(filters):
 	filtered_sl_entries = []
 
-	warehouse = frappe.db.sql("SELECT lft, rgt FROM `tabWarehouse` WHERE name = '{}';"
-								  .format(filters.warehouse), as_dict=True)[0]
-	warehouse_list = [
-		x[0] for x in frappe.db.sql(
-			"SELECT name FROM `tabWarehouse` WHERE lft >= '{}' AND rgt <= '{}';".format(warehouse.lft, warehouse.rgt)
-		)
-	]
-	warehouse_list_srt = '"{}"'.format('","'.join(warehouse_list))
+	warehouse_list, warehouse_list_srt = get_warehouse_list(filters.warehouse)
 
-	vouchers = [x[0] for x in frappe.db.sql("""
-	SELECT DISTINCT(voucher_no)
+	sl_enteries = frappe.db.sql("""
+	SELECT voucher_type, voucher_no,
+	CASE WHEN warehouse IN ({warehouse_list_srt}) THEN '{warehouse}' ELSE warehouse END AS ware_house,
+	item_code,
+	CASE WHEN voucher_type='Payment Receipt' THEN sum(actual_qty) ELSE -1 * sum(actual_qty) END AS actual_qty
 	FROM `tabStock Ledger Entry`
-	WHERE posting_date = "{date}"
-	AND warehouse IN ({warehouse_list_srt});
-	""".format(warehouse_list_srt=warehouse_list_srt, **filters))]
-
-	for voucher in vouchers:
-		sl_enteries = frappe.db.sql("""
-		SELECT voucher_type, voucher_no,
-		CASE WHEN warehouse IN ({warehouse_list_srt}) THEN '{warehouse}' ELSE warehouse END AS ware_house,
-		item_code, -1 * sum(actual_qty) AS actual_qty
+	WHERE voucher_no IN (
+		SELECT DISTINCT(voucher_no)
 		FROM `tabStock Ledger Entry`
-		WHERE voucher_no = "{voucher}"
-	    AND ifnull(process, '') IN ('', 'Refill')
-		GROUP BY ware_house,  item_code
-		HAVING ((voucher_type='Payment Receipt') OR ware_house != '{warehouse}')
-		AND actual_qty != 0;
-		""".format(warehouse_list_srt=warehouse_list_srt, voucher=voucher, **filters), as_dict=True)
+		WHERE posting_date = "{date}"
+		AND warehouse IN ({warehouse_list_srt})
+	)
+	AND ifnull(process, '') IN ('', 'Refill')
+	GROUP BY voucher_type, voucher_no, ware_house, item_code
+	HAVING ((voucher_type='Payment Receipt') OR ware_house != '{warehouse}')
+	AND actual_qty != 0;
+	""".format(warehouse_list_srt=warehouse_list_srt, **filters), as_dict=True)
 
-		for sle in sl_enteries:
-			sle.warehouse = sle.ware_house
+	for sle in sl_enteries:
+		sle.warehouse = sle.ware_house
 
-		filtered_sl_entries.extend(sl_enteries)
+	filtered_sl_entries.extend(sl_enteries)
 
 	return filtered_sl_entries
 
@@ -111,7 +105,6 @@ def compute_grs(voucher_map, filters):
 		if not gr_dict.voucher:
 			gr_dict.voucher = frappe.get_doc(gr_sle.voucher_type, gr_sle.voucher_no)
 
-
 	gr_map = OrderedDict(
 		sorted(gr_map.items(), key=lambda x: (x[1]['item_delivered'] + x[1]['item_received']))
 	)
@@ -121,7 +114,7 @@ def compute_grs(voucher_map, filters):
 
 def compute_erv(voucher_map, filters):
 	def erp_map_item():
-		return frappe._dict({'voucher': ''})
+		return frappe._dict({'voucher': '', 'warehouse': ''})
 
 	erv_in_map = {}
 	erv_out_map = {}
@@ -129,6 +122,7 @@ def compute_erv(voucher_map, filters):
 		active_map = erv_in_map if erv_voucher.actual_qty > 0 else erv_out_map
 		active_map.setdefault(erv_voucher.voucher_no, erp_map_item())
 		active_map[erv_voucher.voucher_no][erv_voucher.item_code] = int(abs(erv_voucher.actual_qty))
+		active_map[erv_voucher.voucher_no]['warehouse'] = erv_voucher.warehouse
 
 		if not active_map[erv_voucher.voucher_no]['voucher']:
 			active_map[erv_voucher.voucher_no]['voucher'] = \
@@ -140,7 +134,8 @@ def compute_erv(voucher_map, filters):
 def compute_gatepass(voucher_map, filters):
 	def gatepass_map_item():
 		return frappe._dict({
-		'voucher': ''
+		'voucher': '',
+		'warehouse': ''
 		})
 
 	gatepass_in_map = {}
@@ -149,6 +144,7 @@ def compute_gatepass(voucher_map, filters):
 		active_map = gatepass_in_map if gatepass_voucher.actual_qty > 0 else gatepass_out_map
 		active_map.setdefault(gatepass_voucher.voucher_no, gatepass_map_item())
 		active_map[gatepass_voucher.voucher_no][gatepass_voucher.item_code] = int(abs(gatepass_voucher.actual_qty))
+		active_map[gatepass_voucher.voucher_no]['warehouse'] = gatepass_voucher.warehouse
 
 		if not active_map[gatepass_voucher.voucher_no]['voucher']:
 			active_map[gatepass_voucher.voucher_no]['voucher'] = \
@@ -180,3 +176,16 @@ def compute_pr(voucher_map, filters):
 		pr_map[pr.name]['voucher'] = pr
 
 	return pr_map
+
+
+def get_warehouse_list(warehouse):
+	warehouse = frappe.db.sql("SELECT lft, rgt FROM `tabWarehouse` WHERE name = '{}';"
+								  .format(warehouse), as_dict=True)[0]
+	warehouse_list = [
+		x[0] for x in frappe.db.sql(
+			"SELECT name FROM `tabWarehouse` WHERE lft >= '{}' AND rgt <= '{}';".format(warehouse.lft, warehouse.rgt)
+		)
+	]
+	warehouse_list_srt = '"{}"'.format('","'.join(warehouse_list))
+
+	return warehouse_list, warehouse_list_srt

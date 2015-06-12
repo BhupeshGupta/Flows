@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.utils import flt
-from summary import get_data as get_day_summary
+from summary_aggr import get_data as get_day_summary
 
 
 class EndOfDay(Document):

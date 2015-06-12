@@ -14,11 +14,87 @@
 	}
 </style>
 
-<div class="container">
+<div>
+	{# Summary HEADING #}
+	<div class="row clearfix">
+		<div class="col-xs-12 column">
+			<h3>
+				Summary
+			</h3>
+		</div>
+	</div>
+
+	{# Summary #}
+	{% set item='35' %}
+	{% for item in ['19', '35', '47.5', '47.5L'] %}
+
+
+		{% if loop.index % 2 ==0 %}
+			<div class="row clearfix">
+		{% endif %}
+
+	<div class="col-xs-6">
+		<h5>{{ item }} Kg</h5>
+		<table class="table table-bordered table-condensed">
+			<thead>
+			<tr>
+				<th colspan="2">Filled</th>
+				<th colspan="2">Empty</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr>
+				<td>Opening</td>
+				<td style="text-align: right">{{ doc.summary.op_cl_map['FC' + item]['Opening'] | int }}</td>
+				<td>Opening</td>
+				<td style="text-align: right">{{ doc.summary.op_cl_map['EC' + item]['Opening'] | int  }}</td>
+			</tr>
+			<tr>
+				<td>ERV Rec.</td>
+				<td style="text-align: right">{{ doc.summary.op_cl_map['FC' + item]['ERV Rec.'] }}</td>
+				<td>GR Sale</td>
+				<td style="text-align: right">{{ doc.summary.op_cl_map['EC' + item]['GR Sale'] }}</td>
+			</tr>
+			<tr>
+				<td>GR Sale</td>
+				<td style="text-align: right">{{ doc.summary.op_cl_map['FC' + item]['GR Sale'] }}</td>
+				<td>PR Sale</td>
+				<td style="text-align: right">{{ doc.summary.op_cl_map['EC' + item]['PR Sale'] }}</td>
+			</tr>
+			<tr>
+				<td>PR Sale</td>
+				<td style="text-align: right">{{ doc.summary.op_cl_map['FC' + item]['PR Sale'] }}</td>
+				<td>ERV Out</td>
+				<td style="text-align: right">{{ doc.summary.op_cl_map['EC' + item]['ERV Out'] }}</td>
+			</tr>
+			<tr>
+				<td>Other</td>
+				<td style="text-align: right">{{ doc.summary.op_cl_map['FC' + item]['Other'] }}</td>
+				<td>Other</td>
+				<td style="text-align: right">{{ doc.summary.op_cl_map['EC' + item]['Other'] }}</td>
+				</td>
+			</tr>
+			<tr>
+				<td>Closing</td>
+				<td style="text-align: right">{{ doc.summary.op_cl_map['FC' + item]['Closing'] | int  }}</td>
+				<td>Closing</td>
+				<td style="text-align: right">{{ doc.summary.op_cl_map['EC' + item]['Closing'] | int  }}</td>
+			</tr>
+			</tbody>
+		</table>
+	</div>
+
+	{% if loop.index % 2 ==0 %}
+		</div>
+	{% endif %}
+
+
+	{% endfor %}
+
 
 	{# ERV HEADING #}
 	<div class="row clearfix">
-		<div class="col-md-12 column">
+		<div class="col-xs-12 column">
 			<h3>
 				ERV
 			</h3>
@@ -28,11 +104,14 @@
 	{# ERV IN #}
 	{% set erp_in_item_set = doc.summary.erv_in_map|report_build_erv_item_map %}
 	<div class="row clearfix">
-		<div class="col-md-12 column">
+		<div class="col-xs-12 column">
 			<h4>In</h4>
 			<table class="table table-bordered table-condensed">
 				<thead>
 				<tr>
+					<th>
+						Sr
+					</th>
 					<th>
 						V.No
 					</th>
@@ -47,21 +126,22 @@
 				</tr>
 				</thead>
 				<tbody>
-				{% for erv_no, erv_map in doc.summary.erv_in_map.items() %}
+				{% for erv_row in doc.summary.erv_in_rows %}
 					<tr>
 						<td>
-							{{ erv_no }}
+							{{ erv_row[0] }}
 						</td>
 						<td>
-							{{ erv_map.voucher.vehicle }}
+							{{ erv_row[1] }}
+						</td>
+						<td>
+							{{ erv_row[2] }}
 						</td>
 
+						{% set index = 3 %}
 						{% for item in erp_in_item_set %}
-							{% if item in  erv_map %}
-								<th style="text-align: right">{{ erv_map[item] }}</th>
-							{% else %}
-								<th></th>
-							{% endif %}
+							<td style="text-align: right">{{ erv_row[index] }}</td>
+							{% set index = index + 1 %}
 						{% endfor %}
 
 					</tr>
@@ -74,11 +154,14 @@
 	{# ERV OUT #}
 	{% set erp_out_item_set = doc.summary.erv_out_map|report_build_erv_item_map %}
 	<div class="row clearfix">
-		<div class="col-md-12 column">
+		<div class="col-xs-12 column">
 			<h4>Out</h4>
 			<table class="table table-bordered table-condensed">
 				<thead>
 				<tr>
+					<th>
+						Sr
+					</th>
 					<th>
 						V.No
 					</th>
@@ -93,21 +176,22 @@
 				</tr>
 				</thead>
 				<tbody>
-				{% for erv_no, erv_map in doc.summary.erv_out_map.items() %}
+				{% for erv_row in doc.summary.erv_out_rows %}
 					<tr>
 						<td>
-							{{ erv_no }}
+							{{ erv_row[0] }}
 						</td>
 						<td>
-							{{ erv_map.voucher.vehicle }}
+							{{ erv_row[1] }}
+						</td>
+						<td>
+							{{ erv_row[2] }}
 						</td>
 
+						{% set index = 3 %}
 						{% for item in erp_out_item_set %}
-							{% if item in  erv_map %}
-								<th style="text-align: right">{{ erv_map[item] }}</th>
-							{% else %}
-								<th></th>
-							{% endif %}
+							<td style="text-align: right">{{ erv_row[index] }}</td>
+							{% set index = index + 1 %}
 						{% endfor %}
 
 					</tr>
@@ -117,9 +201,10 @@
 		</div>
 	</div>
 
+
 	{# GR Heading #}
 	<div class="row clearfix">
-		<div class="col-md-12 column">
+		<div class="col-xs-12 column">
 			<h3>
 				Goods Receipts
 			</h3>
@@ -141,16 +226,16 @@
 		</tr>
 		</thead>
 		<tbody>
-		{% for gr_no, gr_map in doc.summary.gr_map.items() %}
+		{% for gr_row in doc.summary.gr_rows %}
 			<tr>
-				<td></td>
-				<td>{{ gr_no }}</td>
-				<td>{{ gr_map.voucher.customer }}</td>
-				<td>{{ gr_map.item_delivered }}</td>
-				<td style="text-align: right">{{ gr_map.delivered_quantity }}</td>
-				<td>{{ gr_map.item_received }}</td>
-				<td style="text-align: right">{{ gr_map.received_quantity }}</td>
-				<td>{{ gr_map.voucher.warehouse }}</td>
+				<td>{{ gr_row[0] }}</td>
+				<td>{{ gr_row[1] }}</td>
+				<td>{{ gr_row[2] }}</td>
+				<td>{{ gr_row[3] }}</td>
+				<td style="text-align: right">{{ gr_row[4] }}</td>
+				<td>{{ gr_row[5] }}</td>
+				<td style="text-align: right">{{ gr_row[6] }}</td>
+				<td>{{ gr_row[7] or '' }}</td>
 			</tr>
 		{% endfor %}
 		</tbody>
@@ -158,7 +243,7 @@
 
 	{# PR Heading #}
 	<div class="row clearfix">
-		<div class="col-md-12 column">
+		<div class="col-xs-12 column">
 			<h3>
 				Payment Receipts
 			</h3>
@@ -169,25 +254,23 @@
 	<table class="table table-condensed table-bordered table-striped table-nowrap">
 		<thead>
 		<tr>
+			<th>Sr</th>
 			<th>V.No</th>
-			<th>D.Qty</th>
-			<th>R.Qty</th>
-			<th>DQ</th>
-			<th>Rate</th>
-			<th>Amount</th>
 			<th>Vendor</th>
+			<th>Item</th>
+			<th>DQ</th>
+			<th>RQ</th>
 		</tr>
 		</thead>
 		<tbody>
-		{% for pr_no, pr_map in doc.summary.pr_map.items() %}
+		{% for pr_row in doc.summary.pr_rows %}
 			<tr>
-				<td>{{ pr_no }}</td>
-				<td>{{ pr_map.item }}</td>
-				<td style="text-align: right">{{ pr_map.d_qty }}</td>
-				<td style="text-align: right">{{ pr_map.r_qty }}</td>
-				<td style="text-align: right">{{ pr_map.voucher.amount_per_item }}</td>
-				<td style="text-align: right">{{ pr_map.voucher.total }}</td>
-				<td>{{ pr_map.voucher.stock_owner }}</td>
+				<td>{{ pr_row[0] }}</td>
+				<td>{{ pr_row[1] }}</td>
+				<td>{{ pr_row[2] }}</td>
+				<td>{{ pr_row[3] }}</td>
+				<td style="text-align: right">{{ pr_row[4] }}</td>
+				<td style="text-align: right">{{ pr_row[5] }}</td>
 			</tr>
 		{% endfor %}
 		</tbody>
@@ -195,104 +278,125 @@
 
 	{# Gatepass/Non-erv Headings #}
 	<div class="row clearfix">
-		<div class="col-md-12 column">
+		<div class="col-xs-12 column">
 			<h3>
 				Transfers
 			</h3>
 		</div>
 	</div>
 
-	{# Gatepass IN/Non-erv Details #}
-	{% set gatepass_in_item_set = doc.summary.gatepass_in_map|report_build_erv_item_map %}
-	<div class="row clearfix">
-		<div class="col-md-12 column">
-			<h4>In</h4>
-			<table class="table table-bordered table-condensed">
-				<thead>
-				<tr>
-					<th>
-						V.No
-					</th>
-					<th>
-						Vehicle
-					</th>
-					{% for item in erp_in_item_set %}
-						<th>
-							{{ item }}
-						</th>
-					{% endfor %}
-				</tr>
-				</thead>
-				<tbody>
-				{% for gp_no, gp_map in doc.summary.gatepass_in_map.items() %}
-					<tr>
-						<td>
-							{{ gp_no }}
-						</td>
-						<td>
-							{{ gp_map.voucher.driver }}
-						</td>
+	{% if doc.summary.gatepass_out_rows or doc.summary.gatepass_in_rows %}
+		{# Gatepass IN/Non-erv Details #}
+		{% set gatepass_in_item_set = doc.summary.gatepass_in_map|report_build_erv_item_map %}
+		<div class="row clearfix">
+			<div class="col-xs-12 column">
+				<h4>In</h4>
+				{% if doc.summary.gatepass_out_rows %}
+					<table class="table table-bordered table-condensed">
+						<thead>
+						<tr>
+							<th>
+								Sr
+							</th>
+							<th>
+								V.No
+							</th>
+							<th>
+								Warehouse
+							</th>
+							{% for item in gatepass_in_item_set %}
+								<th>
+									{{ item }}
+								</th>
+							{% endfor %}
+						</tr>
+						</thead>
+						<tbody>
+						{% for gp_row in doc.summary.gatepass_in_rows %}
+							<tr>
+								<td>
+									{{ gp_row[0] }}
+								</td>
+								<td>
+									{{ gp_row[1] }}
+								</td>
+								<td>
+									{{ gp_row[2] }}
+								</td>
 
-						{% for item in gatepass_in_item_set %}
-							{% if item in  erv_map %}
-								<th style="text-align: right">{{ erv_map[item] }}</th>
-							{% else %}
-								<th></th>
-							{% endif %}
+								{% set index = 3 %}
+								{% for item in gatepass_in_item_set %}
+									<td style="text-align: right">{{ gp_row[index] }}</td>
+									{% set index = index + 1 %}
+								{% endfor %}
+							</tr>
 						{% endfor %}
+						</tbody>
+					</table>
+				{% else %}
+					NA
+				{% endif %}
+			</div>
 
-					</tr>
-				{% endfor %}
-				</tbody>
-			</table>
 		</div>
-	</div>
 
-	{# Gatepass OUT/Non-erv Details #}
-	{% set gatepass_out_item_set = doc.summary.gatepass_out_map|report_build_erv_item_map %}
-	<div class="row clearfix">
-		<div class="col-md-12 column">
-			<h4>Out</h4>
-			<table class="table table-bordered table-condensed">
-				<thead>
-				<tr>
-					<th>
-						V.No
-					</th>
-					<th>
-						Vehicle
-					</th>
-					{% for item in erp_in_item_set %}
-						<th>
-							{{ item }}
-						</th>
-					{% endfor %}
-				</tr>
-				</thead>
-				<tbody>
-				{% for gp_no, gp_map in doc.summary.gatepass_out_map.items() %}
-					<tr>
-						<td>
-							{{ gp_no }}
-						</td>
-						<td>
-							{{ gp_map.voucher.driver }}
-						</td>
+		{# Gatepass OUT/Non-erv Details #}
+		{% set gatepass_out_item_set = doc.summary.gatepass_out_map|report_build_erv_item_map %}
+		<div class="row clearfix">
+			<div class="col-xs-12 column">
+				<h4>Out</h4>
+				{% if doc.summary.gatepass_out_rows %}
 
-						{% for item in gatepass_in_item_set %}
-							{% if item in  erv_map %}
-								<th style="text-align: right">{{ erv_map[item] }}</th>
-							{% else %}
-								<th></th>
-							{% endif %}
+					<table class="table table-bordered table-condensed">
+						<thead>
+						<tr>
+							<th>
+								Sr
+							</th>
+							<th>
+								V.No
+							</th>
+							<th>
+								Warehouse
+							</th>
+							{% for item in gatepass_out_item_set %}
+								<th>
+									{{ item }}
+								</th>
+							{% endfor %}
+						</tr>
+						</thead>
+						<tbody>
+						{% for gp_row in doc.summary.gatepass_out_rows %}
+							<tr>
+								<td>
+									{{ gp_row[0] }}
+								</td>
+								<td>
+									{{ gp_row[1] }}
+								</td>
+								<td>
+									{{ gp_row[2] }}
+								</td>
+
+								{% set index = 3 %}
+								{% for item in gatepass_out_item_set %}
+									<td style="text-align: right">{{ gp_row[index] }}</td>
+									{% set index = index + 1 %}
+								{% endfor %}
+							</tr>
 						{% endfor %}
+						</tbody>
+					</table>
+				{% else %}
+					NA
+				{% endif %}
 
-					</tr>
-				{% endfor %}
-				</tbody>
-			</table>
+			</div>
 		</div>
-	</div>
+	{% else %}
+		NA
+	{% endif %}
 
 
 </div>

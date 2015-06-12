@@ -34,16 +34,15 @@
         <thead>
             <tr>
                 <th>{%= __("Sr") %}</th>
-                <th>{%= __("ID") %}</th>
                 <th>{%= __("Date") %}</th>
+                <th>{%= __("ID") %}</th>
                 <th>{%= __("Customer") %}</th>
-                <th>{%= __("Warehouse") %}</th>
                 <th>{%= __("ItmD") %}</th>
                 <th>{%= __("DQ") %}</th>
                 <th>{%= __("ItmR") %}</th>
                 <th>{%= __("RQ") %}</th>
-                <th>{%= __("CN") %}</th>
                 {%= filters.show_draft_entries == 1? "<th>DS</th>" : "" %}
+                <th>{%= __("Warehouse") %}</th>
             </tr>
         </thead>
 	    <tbody>
@@ -56,16 +55,15 @@
 	            {% } else { %}
 	                <td></td>
 	            {% } %}
-                <td>{%= data[i][__("ID")] %}</td>
                 <td>{%= data[i][__("Date")] %}
+                <td>{%= data[i][__("ID")] %}</td>
                 <td>{%= data[i][__("Customer")] %}</td>
-                <td>{%= data[i][__("Warehouse")] %}</td>
                 <td style="text-align: right">{%= data[i][__("Item Delivered")] %}</td>
                 <td style="text-align: right">{%= data[i][__("Delivered Qty")] %}</td>
                 <td style="text-align: right">{%= data[i][__("Item Received")] %}</td>
                 <td style="text-align: right">{%= data[i][__("Received Qty")] %}</td>
-                <td style="text-align: right">{%= data[i][__("Cancelled")] %}</td>
 	            {%= filters.show_draft_entries == 1? "<td style=\"text-align: right\">" + data[i]["Docstatus"]+ "</td>" : "" %}
+                <td>{%= data[i][__("Warehouse")] %}</td>
             </tr>
 	    {% } %}
 	    </tbody>

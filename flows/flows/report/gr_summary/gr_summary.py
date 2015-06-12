@@ -16,15 +16,16 @@ def execute(filters=None):
 
 def get_columns(filters):
 	row = [
-		"ID:Link/Goods Receipt:",
 		"Date:Date:",
+		"ID:Link/Goods Receipt:",
 		"Customer:Data:200",
-		"Warehouse::150",
 		"Item Delivered::",
 		"Delivered Qty:Int:",
 		"Item Received::",
 		"Received Qty:Int:",
-		"Cancelled::"]
+		"Warehouse::150",
+		"Cancelled::",
+	]
 
 	if cint(filters.show_draft_entries) == 1:
 		row.append("Docstatus::")
@@ -66,14 +67,14 @@ def get_data(filters):
 			gr_end = gr_start - 1 + 50
 
 		row = [
-			gr.name,
 			gr.posting_date,
+			gr.name,
 			gr.customer,
-			gr.warehouse,
 			gr.item_delivered,
 			gr.delivered_quantity,
 			gr.item_received,
 			gr.received_quantity,
+			gr.warehouse,
 			gr.cancelled,
 		]
 
@@ -121,7 +122,7 @@ def get_total_rows(warehouse_wise_gr):
 	for warehouse, rd_map in warehouse_wise_gr.items():
 		for item in items:
 			data_append = False
-			row = ["", "", "Totals", warehouse]
+			row = ["", "", "Totals"]
 
 			if item in rd_map["delivered"]:
 				row.extend([item, rd_map["delivered"][item]])
@@ -137,14 +138,15 @@ def get_total_rows(warehouse_wise_gr):
 				row.extend(["", ""])
 
 			if data_append:
-				row.extend(["", "", "Total"])
+				row.append(warehouse)
 				rows.append(row)
 
 	return rows
 
 
-def get_grand_totals_rows(warehouse_wise_gr):
-	grand_total_map = item_totals_map()
+def get_grand_totals_rows(warehouse_wise_gr, grand_total_map=None):
+	if not grand_total_map:
+		grand_total_map = item_totals_map()
 	rows = []
 
 	for warehouse, rd_map in warehouse_wise_gr.items():
@@ -154,7 +156,7 @@ def get_grand_totals_rows(warehouse_wise_gr):
 				grand_total_map[rd][item] += qty
 
 	for item in items:
-		row = ["", "", "Grand Totals", ""]
+		row = ["", "", "Grand Totals"]
 		row_append = False
 
 		if item in grand_total_map["delivered"]:
@@ -171,7 +173,6 @@ def get_grand_totals_rows(warehouse_wise_gr):
 			row.extend(["", ""])
 
 		if row_append:
-			row.extend(["", "", "Grand Total"])
 			rows.append(row)
 
 	return rows
