@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 from summary import get_data as get_raw_data, get_warehouse_list
 import frappe
-from flows.flows.report.gr_summary.gr_summary import item_totals_map, get_total_rows, get_grand_totals_rows
+from flows.flows.report.gr_summary.gr_summary import item_totals_map, get_total_rows, get_grand_totals_rows, item_conjugate
 from flows.jinja_filters import report_build_erv_item_map
 
 
@@ -50,9 +50,6 @@ def get_data(date, warehouse):
 	raw_data['erv_out_rows'] = erv_out_rows
 	raw_data['gatepass_in_rows'] = gatepass_in_rows
 	raw_data['gatepass_out_rows'] = gatepass_out_rows
-
-	from flows.stdlogger import root
-	root.debug(op_cl_map)
 
 	return raw_data
 
@@ -115,7 +112,7 @@ def compute_closings(op_cl_map,
 		if 'FC' in item:
 			return OrderedDict({
 			'Opening': op_cl_map['op'][item] if item in op_cl_map['op'] else 0,
-			'ERV Rec.': erv_in_totals[item] if item in erv_in_totals else 0,
+			'ERV Rec': erv_in_totals[item] if item in erv_in_totals else 0,
 			'GR Sale': gr_totals['delivered'][item] if item in gr_totals['delivered'] else 0,
 			'PR Sale': pr_totals['d'][item] if item in pr_totals['d'] else 0,
 			'Other': get_others(item),
@@ -132,19 +129,27 @@ def compute_closings(op_cl_map,
 			})
 
 	# Opening Filled And Empty Templates
-	op_cl_map = {item: get_aggr_map(item) for item in items}
+	op_cl_final_map = {item: get_aggr_map(item) for item in items}
 
-	for item in op_cl_map:
+	for item in op_cl_final_map:
 		if 'FC' in item:
-			r_dict = op_cl_map[item]
-			r_dict['Closing'] = r_dict['Opening'] + r_dict['ERV Rec.'] - r_dict['GR Sale'] - \
+			r_dict = op_cl_final_map[item]
+			r_dict['Closing'] = r_dict['Opening'] + r_dict['ERV Rec'] - r_dict['GR Sale'] - \
 								r_dict['PR Sale'] + r_dict['Other']
 		else:
-			r_dict = op_cl_map[item]
+			r_dict = op_cl_final_map[item]
 			r_dict['Closing'] = r_dict['Opening'] + r_dict['GR Sale'] + r_dict['PR Sale'] - \
 								r_dict['ERV Out'] + r_dict['Other']
 
-	return op_cl_map
+		if item in op_cl_map['cl'] and item in op_cl_final_map and\
+			op_cl_map['cl'][item] != op_cl_final_map[item]['Closing']:
+			frappe.msgprint(
+				"Closing Mismatch. Please contact Admin.\n [{}: actual [{}] computed [{}]]".\
+				format(item, op_cl_map['cl'][item], op_cl_final_map[item]['Closing'])
+			)
+
+
+	return op_cl_final_map
 
 
 def compute_grs(raw_data, gr_totals):
@@ -184,7 +189,7 @@ def compute_grs(raw_data, gr_totals):
 
 def compute_prs(raw_data, pr_total):
 	rows = []
-	pr_total.update({'r': {'FC19': 0}, 'd': {'FC19': 0}})
+	pr_total.update({'d': {'FC19': 0}, 'r': {'EC19': 0}})
 
 	sr = 0
 	for pr_no, pr_value in raw_data['pr_map'].items():
@@ -200,7 +205,7 @@ def compute_prs(raw_data, pr_total):
 		])
 
 		pr_total['d'][pr_value.item] += pr_value.d_qty
-		pr_total['r'][pr_value.item] += pr_value.r_qty
+		pr_total['r'][item_conjugate(pr_value.item)] += pr_value.r_qty
 
 	rows.append([
 		'',
@@ -208,7 +213,7 @@ def compute_prs(raw_data, pr_total):
 		'Grand Total',
 		'',
 		pr_total['d']['FC19'],
-		pr_total['r']['FC19']
+		pr_total['r']['EC19']
 	])
 
 	return rows
