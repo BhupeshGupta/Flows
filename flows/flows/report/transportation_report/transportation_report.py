@@ -35,7 +35,7 @@ def get_data(filters):
 				e.fuel_rate,
 				e.fuel_cost, e.amount_to_be_paid
 			])
-		rows.append(['', '', 'Total',
+		rows.append(['', '', '', 'Total',
 		             vehicle_map.route_cost, vehicle_map.advance, vehicle_map.fuel_qty,
 		             '',
 		             vehicle_map.fuel_cost, vehicle_map.amount_to_be_paid])
