@@ -131,7 +131,8 @@ def get_gatepasses(filters):
 		"""
 	select * from tabGatepass
 	where docstatus = 1
-	and dispatch_destination = 'Plant'
+	and voucher_type='ERV' and
+	gatepass_type='Out'
 	and posting_date between "{from_date}" and "{to_date}"
 	{cond}
 	order by posting_date asc;
