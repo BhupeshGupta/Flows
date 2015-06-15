@@ -42,14 +42,14 @@ def get_data(filters):
 		rows.append([])
 
 		route_cost += vehicle_map.route_cost
-		advance = vehicle_map.advance
-		fuel_qty = vehicle_map.fuel_qty
+		advance += vehicle_map.advance
+		fuel_qty += vehicle_map.fuel_qty
 		fuel_cost += vehicle_map.fuel_cost
 		amount_to_be_paid += vehicle_map.amount_to_be_paid
 
 	rows.append([])
 
-	rows.append(['', '', 'Grand Total',
+	rows.append(['', '', '', 'Grand Total',
 	             route_cost, advance, fuel_qty,
 	             '',
 	             fuel_cost, amount_to_be_paid])
