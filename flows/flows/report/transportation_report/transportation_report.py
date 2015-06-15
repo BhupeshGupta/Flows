@@ -6,20 +6,20 @@ import frappe
 
 
 def execute(filters=None):
-	columns, data = get_columns(), get_data()
+	columns, data = get_columns(), get_data(filters)
 	return columns, data
 
 
 def get_columns():
 	return [
-		"Date:Date:95", "Vehicle:Link/Transportation Vehicle:130", "Route::200",
-		"Route Cost:Float:100", "Advance:Float:100", "Fuel Qty:Float:100",
-		"Fuel Rate:Float:100", "Amount To Be Paid:Float:150"
+		"Date:Date:95", "Gatepass:Link/Gatepass:95", "Vehicle:Link/Transportation Vehicle:130", "Route::200",
+		"Route Cost:Currency:100", "Advance:Currency:100", "Fuel Qty:Float:100",
+		"Fuel Rate:Currency:100", "Fuel Amount:Currency:100", "Amount To Be Paid:Currency:150"
 	]
 
 
-def get_data():
-	gatepasses = get_gatepasses()
+def get_data(filters):
+	gatepasses = get_gatepasses(filters)
 
 	gatepasses_map = initialize_gatepasses_map(gatepasses)
 	populate_gatepasses_map(gatepasses_map, gatepasses)
@@ -30,7 +30,7 @@ def get_data():
 	for vehicle, vehicle_map in gatepasses_map.items():
 		for e in vehicle_map.gatepasses:
 			rows.append([
-				e.date, e.vehicle, e.route_name,
+				e.date, e.name, e.vehicle, e.route_name,
 				e.route_cost, e.advance, e.fuel_qty,
 				e.fuel_rate,
 				e.fuel_cost, e.amount_to_be_paid
@@ -117,9 +117,25 @@ def initialize_gatepasses_map(gatepasses):
 	return gatepasses_map
 
 
-def get_gatepasses():
+def get_gatepasses(filters):
+	cond = ''
+	if filters.supplier:
+		cond = """
+		and vehicle in (
+			select name from `tabTransportation Vehicle`
+			where vehicle_owner_company = "{supplier}"
+		)""".format(**filters)
+
+
 	return frappe.db.sql(
-		"select * from tabGatepass where docstatus = 1 and dispatch_destination = 'Plant' order by posting_date asc;",
+		"""
+	select * from tabGatepass
+	where docstatus = 1
+	and dispatch_destination = 'Plant'
+	and posting_date between "{from_date}" and "{to_date}"
+	{cond}
+	order by posting_date asc;
+	""".format(cond=cond, **filters),
 		as_dict=True
 	)
 
@@ -154,6 +170,7 @@ def get_fuel_cost(date, fuel_qty):
 def get_gatepass_entry(gatepass):
 	entry = frappe._dict({
 		"date": gatepass.posting_date,
+		"name": gatepass.name,
 		"vehicle": get_vehicle(gatepass.vehicle).name,
 		"route_name": get_route_name(gatepass.route),
 		"route_cost": get_route_cost(gatepass.posting_date, gatepass.route, gatepass.vehicle),
