@@ -9,21 +9,21 @@ app_url = "No URL yet"
 app_version = "0.0.1"
 
 fixtures = [
-	"Custom Field",
+	# "Custom Field",
 	# "Supplier Type",
 	# "Item Group",
 	# "Warehouse",
 	# "Item",
 	# "Item Conversion",
-	"Workflow State",
-	"Workflow Action",
-	"Workflow",
+	# "Workflow State",
+	# "Workflow Action",
+	# "Workflow",
 	# "Letter Head",
-	"Print Heading",
+	# "Print Heading",
 	# "Print Format",
 	# "Property Setter",
-    "Sales Taxes and Charges Master",
-    "Terms and Conditions"
+	# "Sales Taxes and Charges Master",
+	# "Terms and Conditions"
 ]
 
 # Includes in <head>

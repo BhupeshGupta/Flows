@@ -48,3 +48,20 @@ Consignee(Customer)","Service Tax To Be Paid By","service_tax_liability",0,0,0,0
 "","""Customer-customer_registration_number_cbreak2""","Customer","Column Break","Customer Registration Number CBREAK2","","","","","customer_registration_number_cbreak2",0,0,0,0,"","",0,"",0,0,0,0,0,0
 "","""Lead-customer_details""","Lead","Small Text","Customer Details","","","","","customer_details",0,0,0,0,"","",0,"",0,0,0,0,0,0
 "","""Customer-customer_registration_number_cbreak1""","Customer","Column Break","Customer Registration Number CBREAK1","","","","","customer_registration_number_cbreak1",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-hpcl_field_officer""","Customer","Link","HPCL Field Officer","","","Field Officer","","hpcl_field_officer",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-bpcl_field_officer""","Customer","Link","BPCL Field Officer","","","Field Officer","","bpcl_field_officer",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-iocl_field_officer""","Customer","Link","IOCL Field Officer","","","Field Officer","","iocl_field_officer",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-area_info""","Customer","Section Break","Area Info","","","","","area_info",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-customer_registration_number_cbreak1""","Customer","Column Break","Customer Registration Number CBREAK1","","","","","customer_registration_number_cbreak1",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-customer_registration_number_cbreak2""","Customer","Column Break","Customer Registration Number CBREAK2","","","","","customer_registration_number_cbreak2",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-hpcl_erp_number""","Customer","Data","HPCL ERP Number","","","","","hpcl_erp_number",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-bpcl_sap_code""","Customer","Data","BPCL SAP Code","","","","","bpcl_sap_code",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-iocl_sap_code""","Customer","Data","IOCL SAP Code","","","","","iocl_sap_code",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-service_tax_liability""","Customer","Select","Service Tax Liability","","","Transporter
+Consignee(Customer)","Service Tax To Be Paid By","service_tax_liability",0,0,0,0,"","Transporter",0,"",0,0,0,0,0,0
+"","""Customer-ecc_number""","Customer","Data","ECC Number","","","","","ecc_number",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-tin_number""","Customer","Data","TIN Number","","","","","tin_number",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-pan_number""","Customer","Data","PAN Number","","","","","pan_number",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-registration_number""","Customer","Section Break","Registration Number","","","","","registration_number",0,0,0,0,"","",0,"",0,0,0,0,0,0
+"","""Customer-rate_match_algorithm""","Customer","Select","Rate Match Algorithm","","","Discount & Credit Note
+Credit Note Only","","rate_match_algorithm",0,0,0,0,"","Discount & Credit Note",0,"",0,0,0,0,0,0
