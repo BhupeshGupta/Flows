@@ -15,6 +15,14 @@
 </style>
 
 <div>
+{#	<meta name="pdfkit-header-html" content="file:///tmp/header.html"/>#}
+
+    <meta name="pdfkit-header-left" content="EOD {{ doc.gr_eod | global_date_format }}"/>
+    <meta name="pdfkit-header-center" content="{{ doc.report_warehouse }} dt. {{ doc.report_date | global_date_format }}, printed {{ frappe.utils.nowtime() }}"/>
+    <meta name="pdfkit-header-right" content="[page]/[toPage]"/>
+
+    <meta name="pdfkit-header-spacing" content="5"/>
+
 	{# Summary HEADING #}
 	<div class="row clearfix">
 		<div class="col-xs-12 column">
@@ -27,8 +35,6 @@
 	{# Summary #}
 	{% set item='35' %}
 	{% for item in ['19', '35', '47.5', '47.5L'] %}
-
-
 		{% if loop.index % 2 ==0 %}
 			<div class="row clearfix">
 		{% endif %}
@@ -47,7 +53,7 @@
 				<td>Opening</td>
 				<td style="text-align: right">{{ doc.summary.op_cl_map['FC' + item]['Opening'] | int }}</td>
 				<td>Opening</td>
-				<td style="text-align: right">{{ doc.summary.op_cl_map['EC' + item]['Opening'] | int  }}</td>
+				<td style="text-align: right">{{ doc.summary.op_cl_map['EC' + item]['Opening'] | int }}</td>
 			</tr>
 			<tr>
 				<td>ERV Rec.</td>
@@ -76,9 +82,9 @@
 			</tr>
 			<tr>
 				<td>Closing</td>
-				<td style="text-align: right">{{ doc.summary.op_cl_map['FC' + item]['Closing'] | int  }}</td>
+				<td style="text-align: right">{{ doc.summary.op_cl_map['FC' + item]['Closing'] | int }}</td>
 				<td>Closing</td>
-				<td style="text-align: right">{{ doc.summary.op_cl_map['EC' + item]['Closing'] | int  }}</td>
+				<td style="text-align: right">{{ doc.summary.op_cl_map['EC' + item]['Closing'] | int }}</td>
 			</tr>
 			</tbody>
 		</table>
@@ -87,8 +93,6 @@
 	{% if loop.index % 2 ==0 %}
 		</div>
 	{% endif %}
-
-
 	{% endfor %}
 
 
@@ -200,7 +204,6 @@
 			</table>
 		</div>
 	</div>
-
 
 	{# GR Heading #}
 	<div class="row clearfix">
