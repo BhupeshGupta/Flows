@@ -17,6 +17,21 @@ erpnext.flows.CashReceiptController = frappe.ui.form.Controller.extend({
 		this.frm.set_value("stock_owner_company", "Arun Logistics");
 		this.frm.set_df_property("company", "read_only", true);
 		this.frm.set_df_property("stock_owner_company", "read_only", true);
+		this.cancelled(this.frm.doc, null, null);
+
+	},
+
+	cancelled:function (doc, dt, dn) {
+		this.frm.set_df_property("stock_owner", "reqd", !doc.cancelled);
+		this.frm.set_df_property("item", "reqd", !doc.cancelled);
+		this.frm.set_df_property("transaction_type", "reqd", !doc.cancelled);
+		this.frm.set_df_property("qty", "reqd", !doc.cancelled);
+		this.frm.set_df_property("amount_per_item", "reqd", !doc.cancelled);
+		this.frm.set_df_property("total", "reqd", !doc.cancelled);
+		this.frm.set_df_property("stock_date", "reqd", !doc.cancelled);
+		this.frm.set_df_property("posting_date", "reqd", !doc.cancelled);
+		this.frm.set_df_property("posting_time", "reqd", !doc.cancelled);
+		this.frm.set_df_property("remarks", "reqd", doc.cancelled);
 	},
 
 	qty:function (doc, cdt, cdn) {

@@ -78,6 +78,9 @@ class PaymentReceipt(Document):
 
 	def transfer_stock(self, is_cancelled=None):
 
+		if utils.cint(self.cancelled) == 1:
+			return
+
 		if not self.stock_date or self.stock_date.strip() == '':
 			return
 
@@ -150,6 +153,9 @@ class PaymentReceipt(Document):
 		return gl_dict
 
 	def make_gl_entry(self):
+
+		if utils.cint(self.cancelled) == 1:
+			return
 
 		gl_entries = []
 
