@@ -11,6 +11,8 @@ from erpnext.accounts.utils import get_fiscal_year
 from flows import utils
 from frappe.model.naming import make_autoname
 
+from erpnext.accounts.general_ledger import make_gl_entries
+
 
 class Gatepass(Document):
 	def autoname(self):
@@ -25,9 +27,11 @@ class Gatepass(Document):
 
 	def on_submit(self):
 		self.transfer_stock()
+		self.make_gl_entry()
 
 	def on_cancel(self):
 		self.transfer_stock()
+		self.make_gl_entry()
 
 	def transfer_stock(self):
 
@@ -46,19 +50,19 @@ class Gatepass(Document):
 		for d in self.items:
 			sl_entries.append(
 				self.get_sl_entry({
-					"item_code": d.item,
-					"actual_qty": -1 * d.quantity,
-					"warehouse": self.warehouse if self.gatepass_type.lower() == 'out' else
-					stock_owner_act_name
+				"item_code": d.item,
+				"actual_qty": -1 * d.quantity,
+				"warehouse": self.warehouse if self.gatepass_type.lower() == 'out' else
+				stock_owner_act_name
 				})
 			)
 
 			sl_entries.append(
 				self.get_sl_entry({
-					"item_code": d.item,
-					"actual_qty": 1 * d.quantity,
-					"warehouse": self.warehouse if self.gatepass_type.lower() == 'in' else
-					stock_owner_act_name
+				"item_code": d.item,
+				"actual_qty": 1 * d.quantity,
+				"warehouse": self.warehouse if self.gatepass_type.lower() == 'in' else
+				stock_owner_act_name
 				})
 			)
 
@@ -69,15 +73,15 @@ class Gatepass(Document):
 	def get_sl_entry(self, args):
 		sl_dict = frappe._dict(
 			{
-				"posting_date": self.posting_date,
-				"posting_time": self.posting_time,
-				"voucher_type": self.doctype,
-				"voucher_no": self.name,
-				"actual_qty": 0,
-				"incoming_rate": 0,
-				"company": self.company,
-				"fiscal_year": self.fiscal_year,
-				"is_cancelled": self.docstatus == 2 and "Yes" or "No"
+			"posting_date": self.posting_date,
+			"posting_time": self.posting_time,
+			"voucher_type": self.doctype,
+			"voucher_no": self.name,
+			"actual_qty": 0,
+			"incoming_rate": 0,
+			"company": self.company,
+			"fiscal_year": self.fiscal_year,
+			"is_cancelled": self.docstatus == 2 and "Yes" or "No"
 			})
 
 		sl_dict.update(args)
@@ -93,6 +97,79 @@ class Gatepass(Document):
 		if not self.get("posting_time"):
 			self.posting_time = now()
 
+	def get_gl_dict(self, args):
+		"""this method populates the common properties of a gl entry record"""
+		gl_dict = frappe._dict({
+		'company': self.company,
+		'posting_date': self.credit_date,
+		'voucher_type': self.doctype,
+		'voucher_no': self.name,
+		'aging_date': self.get("aging_date") or self.credit_date,
+		'remarks': self.get("remarks"),
+		'fiscal_year': self.fiscal_year,
+		'debit': 0,
+		'credit': 0,
+		'is_opening': "No"
+		})
+		gl_dict.update(args)
+		return gl_dict
+
+	def make_gl_entry(self):
+
+		gl_entries = []
+		flow_settings = frappe.db.get_values_from_single('*', None, 'Flow Settings', as_dict=True)[0]
+
+		if self.advance:
+			gl_entries.append(
+				self.get_gl_dict({
+				"account": self.credit_account,
+				"credit": self.advance,
+				"remarks": "Advance for {}".format(self.vehicle),
+				"against": flow_settings.gatepass_advance_account
+				})
+			)
+
+			gl_entries.append(
+				self.get_gl_dict({
+				"account": flow_settings.gatepass_advance_account,
+				"debit": self.advance,
+				"remarks": "Advance for {}".format(self.vehicle),
+				"against": self.credit_account
+				})
+			)
+
+		if self.expense:
+			gl_entries.append(
+				self.get_gl_dict({
+				"account": self.credit_account,
+				"credit": self.expense,
+				"remarks": "Expense for {}".format(self.vehicle),
+				"against": flow_settings.gatepass_expense_account
+				})
+			)
+
+			gl_entries.append(
+				self.get_gl_dict({
+				"account": flow_settings.gatepass_expense_account,
+				"debit": self.expense,
+				"remarks": "Expense for {}".format(self.vehicle),
+				"cost_center": "Main - AL",
+				"against": self.credit_account
+				})
+			)
+
+		from flows.stdlogger import root
+		root.debug(gl_entries)
+		root.debug(flow_settings)
+
+		if gl_entries:
+			make_gl_entries(
+				gl_entries,
+				cancel=(self.docstatus == 2),
+				update_outstanding='Yes',
+				merge_entries=False
+			)
+
 
 def get_indent_list(doctype, txt, searchfield, start, page_len, filters):
 	indent = frappe.db.sql("""
@@ -101,7 +178,7 @@ def get_indent_list(doctype, txt, searchfield, start, page_len, filters):
 	vehicle = '{vehicle}'""".format(**filters))
 
 	subquery = '"{}"'.format(indent[0][0]) if indent \
-	else """
+		else """
 	SELECT name FROM `tabIndent`
 	WHERE posting_date >= '2015-05-01'
 	AND vehicle = '{vehicle}'
@@ -116,13 +193,13 @@ def get_indent_list(doctype, txt, searchfield, start, page_len, filters):
 
 	# posting_date >= '2015-05-01' // feature start date
 	rs = frappe.db.sql("""
-	SELECT ind.name as name,
-	init.item as item,
-	sum(init.qty) as qty,
-	ind.plant as plant,
-	ind.posting_date as posting_date
+	SELECT ind.name AS name,
+	init.item AS item,
+	sum(init.qty) AS qty,
+	ind.plant AS plant,
+	ind.posting_date AS posting_date
 	FROM `tabIndent` ind, `tabIndent Item` init
-	WHERE ind.name in (
+	WHERE ind.name IN (
 		{subquery}
 	)
 	AND ind.name = init.parent

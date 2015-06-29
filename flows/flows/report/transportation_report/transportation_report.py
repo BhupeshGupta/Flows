@@ -135,9 +135,9 @@ def get_gatepasses(filters):
 	where docstatus = 1
 	and voucher_type='ERV' and
 	gatepass_type='Out'
-	and posting_date between "{from_date}" and "{to_date}"
+	and transaction_date between "{from_date}" and "{to_date}"
 	{cond}
-	order by posting_date asc;
+	order by transaction_date asc;
 	""".format(cond=cond, **filters),
 		as_dict=True
 	)
@@ -172,18 +172,18 @@ def get_fuel_cost(date, fuel_qty):
 
 def get_gatepass_entry(gatepass):
 	entry = frappe._dict({
-		"date": gatepass.posting_date,
+		"date": gatepass.transaction_date,
 		"name": gatepass.name,
 		"vehicle": get_vehicle(gatepass.vehicle).name,
 		"route_name": get_route_name(gatepass.route),
-		"route_cost": get_route_cost(gatepass.posting_date, gatepass.route, gatepass.vehicle),
+		"route_cost": get_route_cost(gatepass.transaction_date, gatepass.route, gatepass.vehicle),
 		"advance": gatepass.advance if gatepass.advance else 0,
 		"fuel_qty": gatepass.fuel_quantity if gatepass.fuel_quantity else 0,
 		"no_of_bills": frappe.db.sql("""
 		select count(name) from `tabIndent Item` where parent = "{}"
 		""".format(gatepass.indent))[0][0]
 	})
-	entry["fuel_rate"], entry["fuel_cost"] = get_fuel_cost(gatepass.posting_date, gatepass.fuel_quantity)
+	entry["fuel_rate"], entry["fuel_cost"] = get_fuel_cost(gatepass.transaction_date, gatepass.fuel_quantity)
 	entry.amount_to_be_paid = entry["route_cost"] - entry["advance"] - entry["fuel_cost"]
 	return entry
 

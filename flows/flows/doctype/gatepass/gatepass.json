@@ -43,12 +43,21 @@
    "precision": ""
   }, 
   {
+   "allow_on_submit": 1, 
+   "fieldname": "transaction_date", 
+   "fieldtype": "Date", 
+   "label": "Transaction Date", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
    "default": "Today", 
    "description": "", 
    "fieldname": "posting_date", 
    "fieldtype": "Date", 
    "in_list_view": 1, 
-   "label": "Date", 
+   "label": "Stock Date", 
    "options": "TransactionDate", 
    "permlevel": 0, 
    "precision": "", 
@@ -155,9 +164,26 @@
    "reqd": 1
   }, 
   {
-   "fieldname": "allocation", 
+   "fieldname": "accounting", 
    "fieldtype": "Section Break", 
-   "label": "Allocation", 
+   "label": "Accounting", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "description": "Account to register advance from ", 
+   "fieldname": "credit_account", 
+   "fieldtype": "Link", 
+   "label": "Credit Account", 
+   "options": "Account", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "description": "Date to register advance on", 
+   "fieldname": "credit_date", 
+   "fieldtype": "Date", 
+   "label": "Credit Date", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -169,6 +195,26 @@
    "precision": "2"
   }, 
   {
+   "fieldname": "column_break_19", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "expense", 
+   "fieldtype": "Currency", 
+   "label": "Expense", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "penalty", 
+   "fieldtype": "Currency", 
+   "label": "Penalty", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "pf", 
    "fieldtype": "Currency", 
    "label": "PF", 
@@ -176,8 +222,9 @@
    "precision": "2"
   }, 
   {
-   "fieldname": "column_break_19", 
-   "fieldtype": "Column Break", 
+   "fieldname": "allocation", 
+   "fieldtype": "Section Break", 
+   "label": "Allocation", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -197,9 +244,36 @@
    "precision": ""
   }, 
   {
+   "fieldname": "column_break_30", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "fuel_quantity", 
    "fieldtype": "Float", 
    "label": "Fuel Quantity", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "description": "Mobiloil qty in liters", 
+   "fieldname": "mobiloil", 
+   "fieldtype": "Int", 
+   "label": "Mobiloil", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "section_break_29", 
+   "fieldtype": "Section Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "remarks", 
+   "fieldtype": "Small Text", 
+   "label": "Remarks", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -251,7 +325,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-06-08 18:41:18.777247", 
+ "modified": "2015-06-29 16:55:28.402665", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Gatepass", 
