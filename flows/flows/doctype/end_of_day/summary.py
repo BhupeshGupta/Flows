@@ -65,7 +65,7 @@ def get_sl_entries(filters):
 		WHERE posting_date = "{date}"
 		AND warehouse IN ({warehouse_list_srt})
 	)
-	AND ifnull(process, '') IN ('', 'Refill', 'New Connection')
+	AND ifnull(process, '') IN ('', 'Refill', 'New Connection', 'TV Out')
 	GROUP BY voucher_type, voucher_no, ware_house, item_code
 	HAVING ((voucher_type='Payment Receipt') OR ware_house != '{warehouse}')
 	AND actual_qty != 0;
