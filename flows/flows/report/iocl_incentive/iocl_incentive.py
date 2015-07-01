@@ -71,7 +71,7 @@ def get_invoices(filters):
 	Select * from `tabIndent Invoice`
 	where docstatus = 1
 	and supplier like '%ioc%'
-	and item not like 'BK%'
+	and item != 'FCBK'
 	and transaction_date between "{from_date}" and "{to_date}"
 	{cond}
 	order by transaction_date asc
