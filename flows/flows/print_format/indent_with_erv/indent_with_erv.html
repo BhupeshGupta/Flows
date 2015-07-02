@@ -1,4 +1,20 @@
-<div class="container">
+<style>
+	.print-format {
+		padding: 0.1in;
+	}
+
+	.print-format td, .print-format th {
+		vertical-align: top !important;
+		padding: 0px 3px 0px 3px !important;
+	}
+
+	h1, .h1, h2, .h2, h3, .h3 {
+		margin-top: 10px;
+		margin-bottom: 5px;
+	}
+</style>
+
+<div>
 
 	{% if letter_head and not no_letterhead %}
 		<p class="text-left">
@@ -10,14 +26,16 @@
 	{% endif %}
 
 	<div class="row clearfix">
-		<div class="col-xs-6 column">
+		<div class="col-xs-9 column">
 			<p class="text-left">
-			<h4>Vehicle No. {{ doc.vehicle }}</h4><br/>
-			Summery for lifting <span>cylinders from {{ doc.get_formatted("plant") }}</span>
+			<h4>
+				Vehicle No. {{ doc.vehicle }} -
+				{{ frappe.db.get_value("Supplier", doc.plant, "supplier_name") or doc.plant }}
+			</h4><br/>
 			</p>
 		</div>
 
-		<div class="col-xs-6 column">
+		<div class="col-xs-3 column">
 			<p class="text-right">
 				Indent No. {{ doc.name }}<br/>
 				Date: {{ doc.get_formatted("posting_date") }}
@@ -95,7 +113,7 @@
 							{{ indent_item.customer | get_customer_tin_number }}
 						</td>
 						<td>
-							{{ indent_item.item.replace('FC', '') + ' Kg' }}
+							{{ frappe.db.get_value("Item", indent_item.item, "description") }}
 						</td>
 						<td>
 							{% if indent_item.load_type == 'Oneway' %}
@@ -154,42 +172,6 @@
 			</table>
 		</div>
 	</div>
-	<div class="row clearfix">
-		<div class="col-xs-12 column">
-			<h3 class="text-center">
-			</h3>
-
-			<h3 class="text-center">
-				<strong>Equipment Return Voucher Detail</strong>
-			</h3>
-
-			{% set map = doc.indent|compute_erv_for_refill_in_indent %}
-
-			<table class="table table-striped">
-				<thead>
-				<tr>
-					{% for key in map.keys() %}
-						<th>
-							{{ key }}
-						</th>
-					{% endfor %}
-				</tr>
-				</thead>
-				<tbody>
-				<tr>
-					{% for value in map.values() %}
-						<td>
-							{{ value }}
-						</td>
-					{% endfor %}
-				</tr>
-				</tbody>
-			</table>
-			<p>
-				Please acknowledge the receipt if equipment returned to plant.
-			</p>
-		</div>
-	</div>
 
 	<div class="row clearfix">
 		<br/>
@@ -197,8 +179,8 @@
 		<div class="col-xs-12 column">
 			<p>
 				We are sending vehicle no. {{ doc.vehicle }} &amp; we hear by authorise Mr. {{ doc.driver|capitalize }}
-				as
-				driver (whose signature has been attested below) to the above mentioned vehicle.
+				as driver (whose driving licence number is
+				{{ frappe.db.get_value("Driver", doc.driver, "dl_number") or "N/A" }}) to the above mentioned vehicle.
 			</p>
 		</div>
 	</div>
@@ -221,4 +203,65 @@
 			</p>
 		</div>
 	</div>
+
+
+	<div class="row clearfix">
+		<div class="col-xs-12 column">
+			<strong>
+				THIS IS A COMPUTER-GENERATED DOCUMENT AND IT DOES NOT REQUIRE A SIGNATURE. THIS DOCUMENT SHALL NOT
+				BE INVALIDATED SOLELY ON THE GROUND THAT IT IS NOT SIGNED.
+			</strong>
+		</div>
+	</div>
+
+	<div class="row clearfix">
+		<div class="col-xs-12 column">
+			<h3 class="text-center">
+			</h3>
+
+			<h3 class="text-center">
+				<strong>Equipment Return Voucher (Plant Use)</strong>
+			</h3>
+
+			{% set map = doc.indent|compute_erv_for_refill_in_indent %}
+
+			<table class="table table-bordered table-striped">
+				<thead>
+				<tr>
+					{% for key in map.keys() %}
+						<th>
+							{{ key }}
+						</th>
+					{% endfor %}
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+					{% for value in map.values() %}
+						<td>
+							{{ value }}
+						</td>
+					{% endfor %}
+				</tr>
+				<tr>
+					{% for value in map.values() %}
+						<td style="padding: 14px!important;">
+
+						</td>
+					{% endfor %}
+				</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="col-xs-6 column">
+			Please acknowledge the receipt of equipment returned to plant.
+		</div>
+		<div class="col-xs-6 column">
+			<strong>
+				Tallyman's Name & Sig.<br/><br/>
+				Shift Officer Name & Sig.
+			</strong>
+		</div>
+	</div>
+
 </div>

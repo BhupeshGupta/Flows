@@ -29,8 +29,8 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Cash Receipt",
-					"description": _("Cash Sale")
+					"name": "Payment Receipt",
+					"description": _("Payment Receipt(PR) Voucher")
 				},
 				{
 					"type": "doctype",
@@ -86,7 +86,7 @@ def get_data():
 				{
 					"type": "report",
 					"is_query_report": True,
-					"name": "Flows Invoice Report",
+					"name": "Purchase Sale",
 					"doctype": "Item",
 				},
 				{
@@ -112,7 +112,7 @@ def get_data():
 					"is_query_report": True,
 					"name": "Fuel Report",
 					"doctype": "Item",
-				},
+				}
 			]
 		},
 	    {
@@ -124,6 +124,66 @@ def get_data():
 					"is_query_report": True,
 					"name": "Stock Register",
 					"doctype": "Gatepass",
+				}
+			]
+		},
+		 {
+			"label": _("Daily Status"),
+			"icon": "icon-table",
+			"items": [
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "GR Missing Report",
+					"doctype": "Item",
+				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "Purchase Cycle Report",
+					"doctype": "Item",
+				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "GR Summary",
+					"doctype": "Item",
+				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "Daily GR Report",
+					"doctype": "Item",
+				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "Vendor Report",
+					"doctype": "Gatepass",
+				}
+			]
+		},
+		{
+			"label": _("Monthly Reports"),
+			"icon": "icon-table",
+			"items": [
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "HPCL Incentive",
+					"doctype": "Item",
+				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "IOCL Incentive",
+					"doctype": "Item",
+				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "IOCL Discount",
+					"doctype": "Item",
 				}
 			]
 		},

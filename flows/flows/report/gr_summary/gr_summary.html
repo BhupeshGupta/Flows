@@ -1,0 +1,78 @@
+<style>
+	.print-format {
+		padding: 0.1in;
+	}
+
+	.print-format td, .print-format th {
+		vertical-align: top !important;
+		padding: 0px 0px 0px 0px !important;
+	}
+
+	h1, .h1, h2, .h2, h3, .h3 {
+		margin-top: 10px;
+		margin-bottom: 5px;
+	}
+</style>
+
+{% var rows_per_page = 49; var total_pages = Math.ceil(data.length / rows_per_page) %}
+
+{%  var cur_page = 0; %}
+
+{% for(var cur_page=0; cur_page < total_pages; cur_page++) { %}
+
+    <h2 class="text-center">{%= __("GR Summary") %}</h2>
+    <h5 class="text-center">
+         <p class="text-center text-muted">
+             {%= dateutil.str_to_user(filters.from_date) %} to {%= dateutil.str_to_user(filters.to_date) %},
+             printed on {%= dateutil.str_to_user(dateutil.get_datetime_as_string()) %}, page {%= cur_page+1 %} of {%= total_pages %},
+	         MODE: {%= filters.show_draft_entries == 1 ? "Draft Mode": "Submitted Mode" %}
+         </p>
+    </h5>
+    <hr>
+
+    <table class="table table-condensed table-bordered table-striped table-nowrap">
+        <thead>
+            <tr>
+                <th>{%= __("Sr") %}</th>
+                <th>{%= __("Date") %}</th>
+                <th>{%= __("ID") %}</th>
+                <th>{%= __("Customer") %}</th>
+                <th>{%= __("ItmD") %}</th>
+                <th>{%= __("DQ") %}</th>
+                <th>{%= __("ItmR") %}</th>
+                <th>{%= __("RQ") %}</th>
+                {%= filters.show_draft_entries == 1? "<th>DS</th>" : "" %}
+                <th>{%= __("Warehouse") %}</th>
+            </tr>
+        </thead>
+	    <tbody>
+	    {% for(var i=cur_page * rows_per_page; (i < data.length) && (i < (cur_page + 1) * rows_per_page); i++) { %}
+            <tr class="{%= (data[i]["Row Value"] == data[i-1>0?i-1:0]["Row Value"] &&
+		            data[i]["Row Type"] == "GR")?"active":"" %}"
+                style="text-decoration: {%= data[i]["Cancelled"] == 1 ?"line-through":"" %}">
+                {% if(data[i]["Row Type"]=="GR") { %}
+	                <td>{%= i + 1 %}</td>
+	            {% } else { %}
+	                <td></td>
+	            {% } %}
+                <td>{%= data[i][__("Date")] %}
+                <td>{%= data[i][__("ID")] %}</td>
+                <td>{%= data[i][__("Customer")] %}</td>
+                <td style="text-align: right">{%= data[i][__("Item Delivered")] %}</td>
+                <td style="text-align: right">{%= data[i][__("Delivered Qty")] %}</td>
+                <td style="text-align: right">{%= data[i][__("Item Received")] %}</td>
+                <td style="text-align: right">{%= data[i][__("Received Qty")] %}</td>
+	            {%= filters.show_draft_entries == 1? "<td style=\"text-align: right\">" + data[i]["Docstatus"]+ "</td>" : "" %}
+                <td>{%= data[i][__("Warehouse")] %}</td>
+            </tr>
+	    {% } %}
+	    </tbody>
+    </table>
+
+
+    {% if (cur_page + 1 < total_pages) { %}
+        <div class="page-break"></div>
+    {% } %}
+
+
+{% } %}

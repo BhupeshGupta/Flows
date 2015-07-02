@@ -1,0 +1,17 @@
+{
+ "add_total_row": 0, 
+ "apply_user_permissions": 1, 
+ "creation": "2015-05-12 18:05:33.160816", 
+ "disabled": 0, 
+ "docstatus": 0, 
+ "doctype": "Report", 
+ "is_standard": "Yes", 
+ "modified": "2015-05-12 18:05:33.160816", 
+ "modified_by": "Administrator", 
+ "module": "Flows", 
+ "name": "Vendor Report", 
+ "owner": "Administrator", 
+ "ref_doctype": "Stock Ledger Entry", 
+ "report_name": "Vendor Report", 
+ "report_type": "Script Report"
+}

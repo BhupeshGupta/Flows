@@ -1,5 +1,5 @@
 {
- "allow_copy": 0, 
+ "allow_copy": 1, 
  "allow_import": 1, 
  "allow_rename": 0, 
  "autoname": "field:invoice_number", 
@@ -9,6 +9,19 @@
  "doctype": "DocType", 
  "document_type": "Master", 
  "fields": [
+  {
+   "fieldname": "invoice_receive_date", 
+   "fieldtype": "Date", 
+   "label": "Invoice Receive Date", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "column_break_2", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
   {
    "allow_on_submit": 1, 
    "default": "0", 
@@ -106,10 +119,21 @@
   }, 
   {
    "default": "Today", 
+   "fieldname": "posting_date", 
+   "fieldtype": "Date", 
+   "hidden": 0, 
+   "label": "Posting Date", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 0, 
+   "reqd": 1
+  }, 
+  {
+   "default": "", 
    "fieldname": "transaction_date", 
    "fieldtype": "Date", 
    "label": "Invoice Date", 
-   "options": "TransactionDate", 
+   "options": "", 
    "permlevel": 0, 
    "precision": "", 
    "reqd": 1
@@ -237,6 +261,36 @@
    "reqd": 1
   }, 
   {
+   "fieldname": "column_break_28", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "default": "0", 
+   "fieldname": "excise", 
+   "fieldtype": "Currency", 
+   "label": "Excise", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
+   "fieldname": "column_break_30", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "default": "0", 
+   "fieldname": "cst", 
+   "fieldtype": "Currency", 
+   "label": "CST", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
    "fieldname": "stock", 
    "fieldtype": "Section Break", 
    "label": "Stock", 
@@ -318,6 +372,13 @@
    "precision": ""
   }, 
   {
+   "fieldname": "customer_po_number", 
+   "fieldtype": "Data", 
+   "label": "Customer's Po Number", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "transportation_invoice", 
    "fieldtype": "Link", 
    "label": "Transportation Invoice", 
@@ -344,7 +405,16 @@
   {
    "fieldname": "transportation_invoice_rate", 
    "fieldtype": "Currency", 
-   "label": "Transportation Invoice Rate", 
+   "label": "Base Transportation Invoice Rate", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "applicable_transportation_invoice_rate", 
+   "fieldtype": "Currency", 
+   "hidden": 0, 
+   "label": "Applicable Transportation Invoice Rate", 
    "permlevel": 0, 
    "precision": "", 
    "read_only": 1
@@ -363,16 +433,6 @@
    "label": "References", 
    "permlevel": 0, 
    "precision": ""
-  }, 
-  {
-   "default": "", 
-   "fieldname": "posting_date", 
-   "fieldtype": "Date", 
-   "hidden": 0, 
-   "label": "Posting Date", 
-   "permlevel": 0, 
-   "precision": "", 
-   "read_only": 1
   }, 
   {
    "fieldname": "amended_from", 
@@ -400,6 +460,30 @@
    "options": "Fiscal Year", 
    "permlevel": 0, 
    "precision": ""
+  }, 
+  {
+   "fieldname": "data_bank", 
+   "fieldtype": "Data", 
+   "hidden": 1, 
+   "label": "Data Bank", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "per_delivered", 
+   "fieldtype": "Float", 
+   "label": "per delivered", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "qty_delivered", 
+   "fieldtype": "Float", 
+   "label": "qty delivered", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
   }
  ], 
  "hide_heading": 0, 
@@ -409,7 +493,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-04-09 16:27:35.158716", 
+ "modified": "2015-06-01 15:20:57.632122", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 

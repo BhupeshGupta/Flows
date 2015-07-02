@@ -6,36 +6,71 @@ from frappe.model.document import Document
 import frappe
 from frappe import _, throw
 from flows import utils
-from frappe.utils import today, now
+from frappe.utils import today, now, cint
 from erpnext.accounts.utils import get_fiscal_year
 
 
 class GoodsReceipt(Document):
-	def validate(self):
+	def validate_book(self):
 		verify_book_query = """
-		SELECT name, warehouse FROM `tabGoods Receipt Book` where serial_start <= {0} and serial_end >= {0}
+		SELECT * FROM `tabGoods Receipt Book` WHERE serial_start <= {0} AND serial_end >= {0};
 		""".format(self.goods_receipt_number)
 
-		rs = frappe.db.sql(verify_book_query)
+		rs = frappe.db.sql(verify_book_query, as_dict=True)
 
 		if len(rs) == 0:
 			throw(
 				_("Invalid serial. Can not find any receipt book for this serial {}").format(self.goods_receipt_number)
 			)
+		elif cint(rs[0].gr_enabled) == 0:
+			throw(
+				_("Receipt Book ({} - {}) Is Not Marked For GR. Please Contact Book Manager").
+					format(self.serial_start, self.serial_end)
+			)
+		elif rs[0].state == "Closed/Received":
+			throw(
+				_("GR Book has been closed, amendment prohibited").format(self.goods_receipt_number)
+			)
 
-		self.warehouse = rs[0][1]
+		self.warehouse = rs[0].warehouse
+
+	def validate(self):
+		# if self.amended_from:
+		# return
+		self.validate_date()
+		self.validate_book()
+		self.validate_unique()
+
+	def validate_date(self):
+		gr_eod = frappe.db.get_single_value("End Of Day", "gr_eod")
+		if self.posting_date <= gr_eod and not frappe.session.user == "Administrator":
+			frappe.throw("Day has been closed for GR. No amendment is allowed in closed days")
+
+		if utils.get_next_date(gr_eod) < self.posting_date:
+			frappe.throw("Date is disabled for entry, will be allowed when previous day is closed")
+
+	def validate_unique(self):
+		rs = frappe.db.sql("select name from `tabPayment Receipt` where name=\"{0}\" or name like \"{0}-%\"".format(self.goods_receipt_number))
+		if len(rs) > 0:
+			throw("Payment Receipt with this serial already exists {}".format(self.goods_receipt_number))
 
 	def on_submit(self):
 		if self.warehouse == '' or not self.warehouse:
 			throw(
-				_("Please specify warehouse, unable to find the same in GR book")
+				_("Warehouse Not Linked With Book. Please Contact Receipt Book Manager")
 			)
 		self.transfer_stock()
 
 	def on_cancel(self):
+		self.validate_date()
+		self.validate_book()
 		self.transfer_stock()
 
 	def transfer_stock(self):
+
+		if cint(self.cancelled) == 1:
+			return
+
 		from erpnext.stock.stock_ledger import make_sl_entries
 
 		self.set_missing_values()
@@ -54,17 +89,17 @@ class GoodsReceipt(Document):
 		if self.item_delivered and self.delivered_quantity:
 			sl_entries.append(
 				self.get_sl_entry({
-					"item_code": self.item_delivered,
-					"actual_qty": -1 * self.delivered_quantity,
-					"warehouse": transportation_vehicle_warehouse_name
+				"item_code": self.item_delivered,
+				"actual_qty": -1 * self.delivered_quantity,
+				"warehouse": transportation_vehicle_warehouse_name
 				})
 			)
 
 			sl_entries.append(
 				self.get_sl_entry({
-					"item_code": self.item_delivered,
-					"actual_qty": self.delivered_quantity,
-					"warehouse": customer_warehouse_name
+				"item_code": self.item_delivered,
+				"actual_qty": self.delivered_quantity,
+				"warehouse": customer_warehouse_name
 				})
 			)
 
@@ -73,16 +108,16 @@ class GoodsReceipt(Document):
 			if self.item_received.startswith('E'):
 
 				empty_cylinders_available_at_customers_warehouse = frappe.db.sql("""
-                select sum(actual_qty) as current_quantity from `tabStock Ledger Entry` where docstatus < 2
-                and item_code="{}" and warehouse="{}";
+                SELECT sum(actual_qty) AS current_quantity FROM `tabStock Ledger Entry` WHERE docstatus < 2
+                AND item_code="{}" AND warehouse="{}";
                 """.format(self.item_received, customer_warehouse_name), as_dict=1)[0]['current_quantity']
 
 				empty_cylinders_available_at_customers_warehouse = empty_cylinders_available_at_customers_warehouse \
 					if empty_cylinders_available_at_customers_warehouse else 0
 
 				filled_cylinders_available_at_customers_warehouse = frappe.db.sql("""
-                select sum(actual_qty) as current_quantity from `tabStock Ledger Entry` where docstatus < 2
-                and item_code="{}" and warehouse="{}";
+                SELECT sum(actual_qty) AS current_quantity FROM `tabStock Ledger Entry` WHERE docstatus < 2
+                AND item_code="{}" AND warehouse="{}";
                 """.format(self.item_received.replace('E', 'F'), customer_warehouse_name), as_dict=1)[0][
 					'current_quantity']
 
@@ -112,17 +147,17 @@ class GoodsReceipt(Document):
 
 			sl_entries.append(
 				self.get_sl_entry({
-					"item_code": self.item_received,
-					"actual_qty": -1 * self.received_quantity,
-					"warehouse": customer_warehouse_name
+				"item_code": self.item_received,
+				"actual_qty": -1 * self.received_quantity,
+				"warehouse": customer_warehouse_name
 				})
 			)
 
 			sl_entries.append(
 				self.get_sl_entry({
-					"item_code": self.item_received,
-					"actual_qty": 1 * self.received_quantity,
-					"warehouse": transportation_vehicle_warehouse_name
+				"item_code": self.item_received,
+				"actual_qty": 1 * self.received_quantity,
+				"warehouse": transportation_vehicle_warehouse_name
 				})
 			)
 
@@ -133,17 +168,17 @@ class GoodsReceipt(Document):
 
 		conversion_sl_entries.append(
 			self.get_sl_entry({
-				"item_code": from_item,
-				"actual_qty": -1 * item_quantity,
-				"warehouse": in_warehouse
+			"item_code": from_item,
+			"actual_qty": -1 * item_quantity,
+			"warehouse": in_warehouse
 			})
 		)
 		conversion_sl_entries.append(
 
 			self.get_sl_entry({
-				"item_code": to_item,
-				"actual_qty": 1 * item_quantity,
-				"warehouse": in_warehouse
+			"item_code": to_item,
+			"actual_qty": 1 * item_quantity,
+			"warehouse": in_warehouse
 			})
 		)
 
@@ -152,15 +187,15 @@ class GoodsReceipt(Document):
 	def get_sl_entry(self, args):
 		sl_dict = frappe._dict(
 			{
-				"posting_date": self.posting_date,
-				"posting_time": self.posting_time,
-				"voucher_type": self.doctype,
-				"voucher_no": self.name,
-				"actual_qty": 0,
-				"incoming_rate": 0,
-				"company": self.company,
-				"fiscal_year": self.fiscal_year,
-				"is_cancelled": self.docstatus == 2 and "Yes" or "No"
+			"posting_date": self.posting_date,
+			"posting_time": self.posting_time,
+			"voucher_type": self.doctype,
+			"voucher_no": self.name,
+			"actual_qty": 0,
+			"incoming_rate": 0,
+			"company": self.company,
+			"fiscal_year": self.fiscal_year,
+			"is_cancelled": self.docstatus == 2 and "Yes" or "No"
 			})
 
 		sl_dict.update(args)

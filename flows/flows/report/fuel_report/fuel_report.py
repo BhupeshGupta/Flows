@@ -33,9 +33,12 @@ def get_gatepasses(filters=None):
     WHERE
     docstatus = 1 and
     fuel_pump IS NOT Null AND
-    fuel_pump != ''
+    fuel_pump != '' and
+    fuel_pump = "{supplier}" and
+    posting_date >= "{from_date}" and
+    posting_date <= "{to_date}"
     ORDER BY posting_date ASC;
-    """, as_dict=True)
+    """.format(**filters), as_dict=True)
 
 
 def init_vehicle_map(gatepasses, filters):

@@ -9,21 +9,21 @@ app_url = "No URL yet"
 app_version = "0.0.1"
 
 fixtures = [
-	"Custom Field",
-	"Supplier Type",
-	"Item Group",
-	"Warehouse",
-	"Item",
-	"Item Conversion",
-	"Workflow State",
-	"Workflow Action",
-	"Workflow",
+	# "Custom Field",
+	# "Supplier Type",
+	# "Item Group",
+	# "Warehouse",
+	# "Item",
+	# "Item Conversion",
+	# "Workflow State",
+	# "Workflow Action",
+	# "Workflow",
 	# "Letter Head",
-	"Print Heading",
+	# "Print Heading",
 	# "Print Format",
-    "Property Setter",
-    "Sales Taxes and Charges Master",
-    "Terms and Conditions"
+	# "Property Setter",
+	# "Sales Taxes and Charges Master",
+	# "Terms and Conditions"
 ]
 
 # Includes in <head>
@@ -31,7 +31,7 @@ fixtures = [
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/flows/css/flows.css"
-# app_include_js = "/assets/flows/js/flows.js"
+app_include_js = "/assets/js/flows.min.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/flows/css/flows.css"
@@ -82,13 +82,12 @@ fixtures = [
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-#	}
-# }
+doc_events = {
+	"Journal Voucher": {
+		"autoname": "flows.flows.journal_voucher.journal_voucher_autoname",
+		"validate": "flows.flows.journal_voucher.journal_voucher_validate"
+	}
+}
 
 
 # Scheduled Tasks
@@ -117,6 +116,11 @@ fixtures = [
 
 # before_tests = "flows.install.before_tests"
 
+doctype_js = {
+"Warehouse": ["asserts/js/warehouse.js"],
+"Journal Voucher": ["c_scripts/journal_voucher.js"]
+}
+
 # Overriding Whitelisted Methods
 # ------------------------------
 #
@@ -137,5 +141,6 @@ jenv_filter = [
 	'get_registration_code:flows.jinja_filters.get_registration_code',
 	'get_customer_tin_number:flows.jinja_filters.get_customer_tin_number',
 	'get_cenvat_status:flows.jinja_filters.get_cenvat_status',
-	'get_address_display:flows.jinja_filters.get_address_display'
+	'get_address_display:flows.jinja_filters.get_address_display',
+	'report_build_erv_item_map:flows.jinja_filters.report_build_erv_item_map'
 ]

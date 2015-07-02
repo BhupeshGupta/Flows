@@ -1,0 +1,25 @@
+"Data Import Template"
+"Table:","Item Conversion"
+""
+""
+"Notes:"
+"Please do not change the template headings."
+"First data column must be blank."
+"If you are uploading new records, leave the ""name"" (ID) column blank."
+"If you are uploading new records, ""Naming Series"" becomes mandatory, if present."
+"Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish."
+"For updating, you can update only selective columns."
+"You can only upload upto 5000 records in one go. (may be less in some cases)"
+""
+"DocType:","Item Conversion","",""
+"Column Labels:","ID","Item","Conversion Factor"
+"Column Name:","name","item","conversion_factor"
+"Mandatory:","Yes","Yes","Yes"
+"Type:","Data (text)","Link","Float"
+"Info:","","Valid Item",""
+"Start entering data below this line"
+"","""FC35""","FC35",35.0
+"","""FC47.5L""","FC47.5L",47.5
+"","""FC47.5""","FC47.5",47.5
+"","""FC19""","FC19",19.0
+"","""BK""","BK",1000.0

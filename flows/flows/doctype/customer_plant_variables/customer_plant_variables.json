@@ -126,7 +126,7 @@
   }, 
   {
    "default": "0", 
-   "depends_on": "eval:doc.sales_tax_type==\"CST\"", 
+   "depends_on": "", 
    "fieldname": "cenvat", 
    "fieldtype": "Check", 
    "label": "Cenvat", 
@@ -169,7 +169,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-03-13 17:57:12.774921", 
+ "modified": "2015-04-17 13:59:25.988265", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Customer Plant Variables", 

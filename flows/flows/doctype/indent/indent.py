@@ -21,6 +21,10 @@ class Indent(Document):
 		super(Indent, self).__init__(*args, **kwargs)
 		self.set_missing_values()
 
+	def onload(self):
+		"""Load Gatepasses `__onload`"""
+		self.load_gatepasses()
+
 	def on_submit(self):
 		self.process_material_according_to_indent()
 
@@ -53,10 +57,6 @@ class Indent(Document):
 		self.transfer_stock_back_to_ba(sl_entries, stock_transfer_map)
 
 		self.transfer_stock_back_to_logistics_partner(sl_entries, stock_transfer_map)
-
-		from flows.stdlogger import root
-
-		root.debug(sl_entries)
 
 		make_sl_entries(sl_entries)
 
@@ -215,3 +215,85 @@ class Indent(Document):
 		if not self.posting_time:
 			self.posting_time = now()
 		self.fiscal_year = account_utils.get_fiscal_year(date=self.posting_date)[0]
+
+	def load_gatepasses(self):
+		self.get("__onload").gp_list = frappe.get_all("Gatepass",
+			fields="*", filters={'indent': self.name, 'docstatus': 1})
+
+
+@frappe.whitelist()
+def make_gatepass(source_name, target_doc=None):
+	import json
+
+	doc = frappe.get_doc(json.loads(target_doc))
+	doc.set('items', [])
+
+	rs = frappe.db.sql("""
+	SELECT item, sum(qty) FROM `tabIndent Item` WHERE parent = '{}' AND docstatus != 2 GROUP BY item""".
+						   format(source_name))
+
+	for r in rs:
+		itm = r[0] if doc.gatepass_type.lower() == 'in' else r[0].replace('FC', 'EC')
+		doc.append('items', {'item': itm, 'quantity': r[1]})
+
+	doc.dispatch_destination = 'Plant'
+
+	return doc.as_dict()
+
+def get_indent_list(doctype, txt, searchfield, start, page_len, filters):
+	# posting_date >= '2015-05-01' // feature start date
+	rs = frappe.db.sql("""
+	SELECT gp.name as name,
+	gpi.item as item,
+	sum(gpi.quantity) as qty,
+	gp.posting_date as posting_date,
+	gp.route as route
+	FROM `tabGatepass` gp, `tabGatepass Item` gpi
+	WHERE gp.name in (
+		SELECT name FROM `tabGatepass`
+		WHERE posting_date >= '2015-05-01'
+		AND vehicle = '{vehicle}'
+		AND ifnull(indent, '') = ''
+		AND name like '%{txt}%'
+		AND docstatus = 1
+	)
+	AND gp.name = gpi.parent
+	GROUP BY gp.name, gpi.item;
+	""".format(txt=txt, **filters), as_dict=True)
+
+	rs_map = {}
+	for r in rs:
+		rs_map.setdefault(r.name, frappe._dict({}))
+		rs_dict = rs_map[r.name]
+		rs_dict.setdefault('items', [])
+
+		rs_dict.route = r.route
+		rs_dict.posting_date = frappe.utils.formatdate(r.posting_date)
+		rs_dict['items'].append('{} X {}'.format(int(r.qty), r.item))
+
+	result = []
+	for key, rs_dict in rs_map.items():
+		result.append([key, '{} {} [{}]'.format(rs_dict.posting_date, rs_dict.route, ','.join(rs_dict['items']))])
+
+	return result
+
+@frappe.whitelist()
+def link_with_gatepass(gatepass, indent):
+	frappe.db.sql("""update `tabGatepass` set indent = '{indent}' where name = '{name}'""".
+					  format(indent=indent, name=gatepass))
+	frappe.msgprint("Linked Gatepass")
+
+@frappe.whitelist()
+def get_allowed_vehicle(doctype, txt, searchfield, start, page_len, filters):
+	superset_of_vehicles = set([x[0] for x in frappe.db.sql("""
+		select name from `tabTransportation Vehicle`
+		where {} like '%{}%';
+		""".format(searchfield, txt))])
+
+	from flows.flows.report.purchase_cycle_report.purchase_cycle_report import get_data
+	vehicles_with_state = get_data(frappe._dict())
+	bad_vehicles_set = set([x.indent.vehicle for x in vehicles_with_state if x.bill_state =='Pending'] + ['Self'])
+
+	rs = list(superset_of_vehicles - bad_vehicles_set)
+
+	return [[x] for x in rs]

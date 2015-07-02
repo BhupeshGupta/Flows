@@ -2,6 +2,8 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+import json
+
 import frappe
 from frappe.utils import flt
 from frappe.model.document import Document
@@ -9,11 +11,16 @@ from erpnext.accounts.party import get_party_account
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.accounts import utils as account_utils
 
+
 class CrossPurchase(Document):
 	def get_pending_invoices(self):
 		self.set('invoice_items', [])
 		for invoice in get_pending_invoices(
-				None, None, None, None, None, {'customer': self.customer, 'to_date': self.to_date}, as_dict=True
+				None, None, None, None, None,
+				{
+				'customer': [x.customer for x in self.customer_list],
+				'to_date': self.to_date
+				}, as_dict=True
 		):
 			invoice_item = self.append('invoice_items', {})
 			invoice_item.invoice = invoice.name
@@ -41,6 +48,19 @@ class CrossPurchase(Document):
 	def on_submit(self):
 		self.update_gl()
 
+	def validate(self):
+		invoices = frappe.db.sql("""
+		SELECT name
+		FROM `tabIndent Invoice`
+		WHERE name IN ({invoices})
+		AND cross_sold = 0;
+		""".format(invoices='"{}"'.format('","'.join([x.invoice for x in self.invoice_items]))),
+								 as_dict=True)
+
+		if invoices:
+			frappe.throw("{} is not cross sold anymore! Cant Not Save".format(", ".join([x.name for x in invoices])))
+
+
 	def update_gl(self):
 
 		# Pull out config
@@ -53,7 +73,7 @@ class CrossPurchase(Document):
 		buyer_company = indent_invoice_settings.buyer_company
 
 		gl_entries = []
-		remark = "Cross Purchase from {}".format(self.customer)
+		remark = "Cross Purchase from {}".format(", ".join([x.customer for x in self.customer_list]))
 
 		gl_entries.append(
 			self.get_gl_dict({
@@ -85,17 +105,39 @@ class CrossPurchase(Document):
 			})
 		)
 
-		gl_entries.append(
-			self.get_gl_dict({
-			"company": seller_company,
-			"account": get_party_account(seller_company, self.customer, "Customer"),
-			"credit": self.grand_total,
-			"remarks": remark
-			})
-		)
+		# Multi Party Support
+		invoice_map = {}
+		for (invoice_name, customer_name) in frappe.db.sql("""
+		SELECT name, `customer`
+		FROM `tabIndent Invoice`
+		WHERE name IN ({invoices})
+		""".format(invoices='"{}"'.format('","'.join([x.invoice for x in self.invoice_items])))):
+			invoice_map[invoice_name] = customer_name
+
+		amount_total_map = {}
+		for entry in self.invoice_items:
+			amount_total_map.setdefault(invoice_map[entry.invoice], 0)
+			amount_total_map[invoice_map[entry.invoice]] += entry.total
+
+		for customer, amount in amount_total_map.items():
+			gl_entries.append(
+				self.get_gl_dict({
+				"company": seller_company,
+				"account": get_party_account(seller_company, customer, "Customer"),
+				"credit": amount,
+				"remarks": remark
+				})
+			)
+
+		item_total_map = {}
+		for entry in self.invoice_items:
+			item_total_map.setdefault(entry.item, 0)
+			item_total_map[entry.item] += entry.qty
+
+		self.description = json.dumps({ 'amount total': amount_total_map, 'item total': item_total_map})
 
 		make_gl_entries(gl_entries, cancel=(self.docstatus == 2),
-		                update_outstanding='Yes', merge_entries=False)
+						update_outstanding='Yes', merge_entries=False)
 
 
 	def get_gl_dict(self, args):
@@ -115,15 +157,18 @@ class CrossPurchase(Document):
 		return gl_dict
 
 
-
 def get_pending_invoices(doctype, txt, searchfield, start, page_len, filters, as_dict=False):
 	rs = frappe.db.sql("""
 		SELECT name, transaction_date, item, qty, actual_amount, transportation_invoice, transportation_invoice_amount
 		FROM `tabIndent Invoice`
 		WHERE cross_sold = 1 AND
-		customer = "{customer}" AND
+		docstatus = 1 AND
+		customer IN ({customer}) AND
 		transaction_date <= "{date}" AND
 		name NOT IN (SELECT invoice FROM `tabCross Purchase Item` WHERE docstatus = 1)
 		ORDER BY transaction_date ASC;
-		""".format(customer=filters['customer'], date=filters['to_date']), as_dict=as_dict)
+		""".format(
+		customer='"{}"'.format('","'.join(filters['customer'])),
+		date=filters['to_date']), as_dict=as_dict
+	)
 	return rs

@@ -1,0 +1,17 @@
+{
+ "add_total_row": 0, 
+ "apply_user_permissions": 1, 
+ "creation": "2015-06-05 18:29:41.086112", 
+ "disabled": 0, 
+ "docstatus": 0, 
+ "doctype": "Report", 
+ "is_standard": "Yes", 
+ "modified": "2015-06-05 18:34:51.789949", 
+ "modified_by": "Administrator", 
+ "module": "Flows", 
+ "name": "Outstanding Report", 
+ "owner": "Administrator", 
+ "ref_doctype": "GL Entry", 
+ "report_name": "Outstanding Report", 
+ "report_type": "Script Report"
+}

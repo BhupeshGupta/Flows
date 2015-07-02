@@ -22,10 +22,17 @@ def indent_oneway_qty(indent_items):
 
 
 def compute_erv_for_refill_in_indent(indent_items):
+	item_desc_map = {}
+	def get_desc(item):
+		if item not in item_desc_map:
+			item_desc_map[item] = frappe.db.get_value("Item", indent_item.item, "description")
+		return item_desc_map[item]
+
 	map = {}
 	for indent_item in indent_items:
 		if indent_item.load_type == "Refill":
-			key = indent_item.item.replace("FC", "") + " Kg"
+			key = get_desc(indent_item.item).replace("FC", "")
+			key = key.replace('LOT', 'Kg LOT').replace('VOT', 'Kg VOT') if 'OT' in key else key + ' Kg'
 			map.setdefault(key, 0)
 			map[key] += indent_item.qty
 
@@ -33,7 +40,7 @@ def compute_erv_for_refill_in_indent(indent_items):
 	for values in map.values():
 		safety_caps += values
 	if safety_caps > 0:
-		map["Safety Caps"] = safety_caps
+		map["Saf Cap."] = safety_caps
 
 	return OrderedDict(sorted(map.items()))
 
@@ -69,6 +76,8 @@ def get_registration_code(customer, vendor):
 		key = "bpcl_sap_code"
 	elif vendor == "ioc":
 		key = "iocl_sap_code"
+	else:
+		return ""
 
 	val = get_customer_field(customer, key)
 	return val if val else ""
@@ -114,3 +123,31 @@ def get_address_display(address_of, address_type):
 	from erpnext.utilities.doctype.address.address import get_address_display as gda
 
 	return gda("{}-{}".format(address_of.strip(), address_type))
+
+
+def report_build_erv_item_map(erv_map):
+	rs = set()
+	for erv_map in erv_map.values():
+		for items in erv_map.keys():
+			rs.add(items)
+
+	rs_list = []
+
+	if 'FC19' in rs:
+		rs_list.append('FC19')
+	if 'FC35' in rs:
+		rs_list.append('FC35')
+	if 'FC47.5' in rs:
+		rs_list.append('FC47.5')
+	if 'FC47.5L' in rs:
+		rs_list.append('FC47.5L')
+	if 'EC19' in rs:
+		rs_list.append('EC19')
+	if 'EC35' in rs:
+		rs_list.append('EC35')
+	if 'EC47.5' in rs:
+		rs_list.append('EC47.5')
+	if 'EC47.5L' in rs:
+		rs_list.append('EC47.5L')
+
+	return rs_list

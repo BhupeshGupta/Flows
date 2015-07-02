@@ -1,0 +1,15 @@
+{
+ "creation": "2015-05-31 21:20:46.135488", 
+ "disabled": 0, 
+ "doc_type": "End Of Day", 
+ "docstatus": 0, 
+ "doctype": "Print Format", 
+ "html": "", 
+ "modified": "2015-05-31 21:20:49.170289", 
+ "modified_by": "Administrator", 
+ "module": "Flows", 
+ "name": "Day Summary", 
+ "owner": "Administrator", 
+ "print_format_type": "Server", 
+ "standard": "Yes"
+}

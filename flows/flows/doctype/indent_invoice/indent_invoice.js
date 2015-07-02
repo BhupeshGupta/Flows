@@ -104,7 +104,7 @@ erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
     indent: function (doc, cdt, cdn) {
         // "{"message":{"posting_date":"2015-03-06","plant":"IOCL una","logistics_partner":"Arun Logistics","vehicle":"HR58D4473"}}"
         var me = this;
-        this.frm.call({
+        frappe.call({
             "method": "frappe.client.get_value",
             "args": {
                 "doctype": "Indent",
@@ -147,3 +147,4 @@ cur_frm.add_fetch('indent_item', 'rate', 'rate');
 cur_frm.add_fetch('indent_item', 'parent', 'indent');
 cur_frm.add_fetch('indent_item', 'load_type', 'load_type');
 cur_frm.add_fetch('indent_item', 'payment_type', 'payment_type');
+cur_frm.add_fetch('indent_item', 'cross_sold', 'cross_sold');
