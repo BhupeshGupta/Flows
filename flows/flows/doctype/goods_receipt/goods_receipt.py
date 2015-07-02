@@ -176,3 +176,24 @@ class GoodsReceipt(Document):
 
 		if not self.get("fiscal_year"):
 			self.fiscal_year = get_fiscal_year(self.posting_date)[0]
+
+	def add_comment(self, comment_type, text=None):
+		from flows.stdlogger import root
+
+		result = super(GoodsReceipt, self).add_comment(comment_type, text)
+
+		client = frappe.form_dict.client
+		exec_attach = comment_type == "Attachment" and client == "app"
+
+		if exec_attach:
+			file_field = frappe.form_dict.file_field
+			file_url = text.split("'")[1]
+			setattr(self, file_field, file_url)
+
+			root.debug(self)
+			root.debug(self.as_json())
+
+			self.ignore_validate_update_after_submit = True
+			self.save()
+
+		return result
