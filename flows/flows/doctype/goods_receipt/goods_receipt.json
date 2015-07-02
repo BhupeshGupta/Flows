@@ -284,14 +284,14 @@
    "precision": ""
   }, 
   {
-   "fieldname": "customer_document_id",
+   "fieldname": "customer_document_id", 
    "fieldtype": "Data", 
    "label": "Customer Document Id", 
    "permlevel": 0, 
    "precision": ""
   }, 
   {
-   "default": "0",
+   "default": "0", 
    "fieldname": "cancelled", 
    "fieldtype": "Check", 
    "label": "Cancelled", 
@@ -329,7 +329,7 @@
    "label": "Remarks", 
    "permlevel": 0, 
    "precision": ""
-  },
+  }, 
   {
    "fieldname": "fold_31", 
    "fieldtype": "Fold", 
@@ -405,7 +405,7 @@
    "label": "Longitude", 
    "permlevel": 0, 
    "precision": ""
-  },
+  }, 
   {
    "fieldname": "section_break_41", 
    "fieldtype": "Section Break", 
@@ -416,6 +416,7 @@
    "fieldname": "map_html", 
    "fieldtype": "HTML", 
    "label": "map_html", 
+   "options": "", 
    "permlevel": 0, 
    "precision": ""
   }
@@ -427,8 +428,8 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-07-02 00:13:16.627832",
- "modified_by": "Administrator",
+ "modified": "2015-07-02 17:58:56.047488", 
+ "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Goods Receipt", 
  "name_case": "", 
