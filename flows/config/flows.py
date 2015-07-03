@@ -160,6 +160,12 @@ def get_data():
 					"is_query_report": True,
 					"name": "Vendor Report",
 					"doctype": "Gatepass",
+				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "Bill Tracking",
+					"doctype": "Indent Invoice",
 				}
 			]
 		},
