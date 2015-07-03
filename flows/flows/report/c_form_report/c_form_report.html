@@ -1,0 +1,61 @@
+<div style="margin-bottom: 7px;" class="text-center">
+	{%= frappe.boot.letter_heads["Arun Logistics"] %}
+</div>
+<div>
+	<div class="row">
+		<div class="col-md-12">
+			To,<br/>
+			<address>
+				<strong>{%= filters.customer %}</strong><br/>
+			</address>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<p>
+				Sub: Submission of Form "C" Quarterwise for the period {%= filters.from_date %} to {%= filters.to_date %}.<br/>
+				Dear Sir,<br/>
+                This is to inform you that "C" Form Against {%= filters.supplier %} invoices for the above mentioned
+				period is pending. Please issue "C" forms in favour of {%= filters.supplier %}.
+				Tin No. {%= data[0][__("Tin No.")] %}
+			</p>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<table class="table">
+				<thead>
+                    <tr>
+                        <th style="text-align: right">#</th>
+                        <th>Date</th>
+                        <th>Invoice No</th>
+                        <th style="text-align: right">No Of Cyl</th>
+                        <th style="text-align: right">Amount</th>
+                    </tr>
+				</thead>
+				<tbody>
+				{% for(var i=0; i < data.length; i++) { %}
+                    <tr>
+                        <td style="text-align: right">{% if (i + 1 != data.length) { %}{%= i+1  %}{% } %}</td>
+                        <td>{%= dateutil.str_to_user(data[i][__("Date")]) %}</td>
+                        <td>{%= data[i][__("Invoice No")] %}</td>
+                        <td style="text-align: right">{%= data[i][__("No Of Cylinders")] %}</td>
+                        <td style="text-align: right">{%= format_currency(data[i][__("Amount")]) %}</td>
+                    </tr>
+                {% } %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<p>
+				You are therefore requested to issue the required "C" forms within 10 days on receipt of this letter.<br/>
+                Thanking You,<br/>
+                Yours faithfully,<br/> for ARUN LOGISTICS<br/><br/>
+                AUTH.SIGNATORY<br/><br/>
+                <strong>THIS IS COMPUTER GENERATED DOCUMENT .AND. DOES NOT REQUIRE ANY SIGNATURE<strong/>
+			</p>
+		</div>
+	</div>
+</div>
