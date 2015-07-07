@@ -17,6 +17,7 @@ from erpnext.stock.stock_ledger import make_sl_entries
 from frappe.utils import today
 from frappe.utils import cint
 from frappe.utils import get_first_day
+from flows.flows import payer
 
 
 class IndentInvoice(StockController):
@@ -251,7 +252,8 @@ class IndentInvoice(StockController):
 		if break_out:
 			return
 
-		supplier_plant = flow_utils.get_supplier_account(self.company, self.supplier)
+		customer_obj = frappe.get_doc("Customer", self.customer)
+
 		logistics_partner_account = flow_utils.get_supplier_account(self.company, self.logistics_partner)
 
 		logistics_company_object = frappe.get_doc("Company", self.logistics_partner)
@@ -259,51 +261,66 @@ class IndentInvoice(StockController):
 			customer_account = get_party_account(self.logistics_partner, self.customer, "Customer")
 			ba_account = get_party_account(self.logistics_partner, self.company, "Customer")
 
-		root.debug({
-		"self.company": self.company,
-		"self.supplier": self.supplier,
-		"supplier_account": supplier_plant,
-		"logistics_partner_account": logistics_partner_account,
+		if self.actual_amount:
 
-		"customer_account": customer_account,
-		"ba_account": ba_account,
-
-		"payment_type": self.payment_type
-		})
-
-		if self.actual_amount and self.payment_type == "Indirect":
+			company = self.company if self.payment_type == "Indirect" else self.supplier.split(' ')[0].title()
 
 			# BA paid on behalf of Customer, but asks logistics partner to collect amount from customer
 			# and pay him the same
 
+			if self.payment_type == "Indirect":
+				gl_entry_1_debit_cost_center = ''
+				gl_entry_1_debit_ac = get_party_account(company, self.customer, "Customer") \
+					if customer_obj.payment_company == 'BA' else logistics_partner_account
+				gl_entry_1_credit_ac = payer.get_payer_account(company, self.supplier, self.customer,
+															   self.payment_type)
+			else:
+				# Invert entry to match our side of books
+				s_comp = frappe.db.get_value(
+					"Company", company,
+					["default_income_account", "cost_center"],
+					as_dict=True
+				)
+				gl_entry_1_debit_ac = s_comp.default_income_account
+				gl_entry_1_debit_cost_center = s_comp.cost_center
+				gl_entry_1_credit_ac = payer.get_payer_account(company, self.supplier, self.customer,
+															   self.payment_type)
+
+			gl_entry_2_enabled = customer_obj.payment_company != 'BA' and self.payment_type == "Indirect"
+			gl_entry_2_debit_ac = customer_account
+			gl_entry_2_credit_ac = ba_account
+
 			gl_entries.append(
 				self.get_gl_dict({
-				"account": logistics_partner_account,
-				"against": supplier_plant,
+				"account": gl_entry_1_debit_ac,
+				"cost_center": gl_entry_1_debit_cost_center,
+				"against": gl_entry_1_credit_ac,
 				"debit": self.actual_amount,
 				"remarks": "Against Invoice Id {}".format(self.invoice_number),
 				"against_voucher": self.name,
 				"against_voucher_type": self.doctype,
+				"company": company
 				})
 			)
 
 			gl_entries.append(
 				self.get_gl_dict({
-				"account": supplier_plant,
-				"against": logistics_partner_account,
+				"account": gl_entry_1_credit_ac,
+				"against": gl_entry_1_debit_ac,
 				"credit": self.actual_amount,
 				"remarks": "Against Invoice Id {}".format(self.invoice_number),
 				"against_voucher": self.name,
 				"against_voucher_type": self.doctype,
+				"company": company
 				})
 			)
 
-			if logistics_company_object:
+			if logistics_company_object and gl_entry_2_enabled:
 				# Entry in logistics partner account to get money form customer
 				gl_entries.append(
 					self.get_gl_dict({
-					"account": customer_account,
-					"against": ba_account,
+					"account": gl_entry_2_debit_ac,
+					"against": gl_entry_2_credit_ac,
 					"debit": self.actual_amount,
 					"remarks": "Against Invoice no. {}".format(self.invoice_number),
 					"against_voucher": self.name,
@@ -314,8 +331,8 @@ class IndentInvoice(StockController):
 
 				gl_entries.append(
 					self.get_gl_dict({
-					"account": ba_account,
-					"against": customer_account,
+					"account": gl_entry_2_credit_ac,
+					"against": gl_entry_2_debit_ac,
 					"credit": self.actual_amount,
 					"remarks": "Against Invoice no. {}".format(self.invoice_number),
 					"against_voucher": self.name,
