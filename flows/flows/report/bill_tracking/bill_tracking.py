@@ -17,7 +17,13 @@ def get_columns(filters):
 		"Customer::250",
 		"Bill Date:Date:100",
 		"Bill No.::100",
-		"Bill Receive Date:Date:100"
+		{
+		"label": "Bill Receive Date",
+		"fieldtype": "Date",
+		"width": 100,
+		"editor": "Slick.Editors.Date",
+		"toolTip": "Test"
+		},
 	]
 
 
