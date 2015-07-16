@@ -261,29 +261,45 @@ class IndentInvoice(StockController):
 			customer_account = get_party_account(self.logistics_partner, self.customer, "Customer")
 			ba_account = get_party_account(self.logistics_partner, self.company, "Customer")
 
-		if self.actual_amount and self.payment_type == "Indirect":
+		if self.actual_amount:
+
+			company = self.company if self.payment_type == "Indirect" else self.supplier.split(' ')[0].title()
 
 			# BA paid on behalf of Customer, but asks logistics partner to collect amount from customer
 			# and pay him the same
 
-			gl_entry_1_debit_ac = get_party_account(self.company, self.customer, "Customer") \
-				if customer_obj.payment_company == 'BA' else logistics_partner_account
+			if self.payment_type == "Indirect":
+				gl_entry_1_debit_cost_center = ''
+				gl_entry_1_debit_ac = get_party_account(company, self.customer, "Customer") \
+					if customer_obj.payment_company == 'BA' else logistics_partner_account
+				gl_entry_1_credit_ac = payer.get_payer_account(company, self.supplier, self.customer,
+															   self.payment_type)
+			else:
+				# Invert entry to match our side of books
+				s_comp = frappe.db.get_value(
+					"Company", company,
+					["default_income_account", "cost_center"],
+					as_dict=True
+				)
+				gl_entry_1_debit_ac = s_comp.default_income_account
+				gl_entry_1_debit_cost_center = s_comp.cost_center
+				gl_entry_1_credit_ac = payer.get_payer_account(company, self.supplier, self.customer,
+															   self.payment_type)
 
-			gl_entry_1_credit_ac = payer.get_payer_account(self.company, self.supplier, self.customer)
-
+			gl_entry_2_enabled = customer_obj.payment_company != 'BA' and self.payment_type == "Indirect"
 			gl_entry_2_debit_ac = customer_account
 			gl_entry_2_credit_ac = ba_account
-
-			gl_entry_2_enabled = customer_obj.payment_company != 'BA'
 
 			gl_entries.append(
 				self.get_gl_dict({
 				"account": gl_entry_1_debit_ac,
+				"cost_center": gl_entry_1_debit_cost_center,
 				"against": gl_entry_1_credit_ac,
 				"debit": self.actual_amount,
 				"remarks": "Against Invoice Id {}".format(self.invoice_number),
 				"against_voucher": self.name,
 				"against_voucher_type": self.doctype,
+				"company": company
 				})
 			)
 
@@ -295,6 +311,7 @@ class IndentInvoice(StockController):
 				"remarks": "Against Invoice Id {}".format(self.invoice_number),
 				"against_voucher": self.name,
 				"against_voucher_type": self.doctype,
+				"company": company
 				})
 			)
 
