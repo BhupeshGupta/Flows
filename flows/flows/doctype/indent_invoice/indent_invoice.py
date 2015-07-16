@@ -270,8 +270,9 @@ class IndentInvoice(StockController):
 
 			if self.payment_type == "Indirect":
 				gl_entry_1_debit_cost_center = ''
-				gl_entry_1_debit_ac = get_party_account(company, self.customer, "Customer") \
-					if customer_obj.payment_company == 'BA' else logistics_partner_account
+				# get_party_account(company, self.customer, "Customer") \
+				# 	if customer_obj.payment_company == 'BA' else
+				gl_entry_1_debit_ac = logistics_partner_account
 				gl_entry_1_credit_ac = payer.get_payer_account(company, self.supplier, self.customer,
 															   self.payment_type)
 			else:
@@ -685,4 +686,5 @@ def get_landed_rate_for_customer(customer, date):
 	if rs:
 		return rs[0]
 	frappe.throw('Landed Rate Not Found For Customer {} for date {}'.format(customer, date))
+
 
