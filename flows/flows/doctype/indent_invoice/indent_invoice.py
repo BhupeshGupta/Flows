@@ -287,7 +287,8 @@ class IndentInvoice(StockController):
 				gl_entry_1_credit_ac = payer.get_payer_account(company, self.supplier, self.customer,
 															   self.payment_type)
 
-			gl_entry_2_enabled = customer_obj.payment_company != 'BA' and self.payment_type == "Indirect"
+			# customer_obj.payment_company != 'BA' and 
+			gl_entry_2_enabled = self.payment_type == "Indirect"
 			gl_entry_2_debit_ac = customer_account
 			gl_entry_2_credit_ac = ba_account
 
