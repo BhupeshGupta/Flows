@@ -129,7 +129,7 @@ def get_stock_owner_via_sales_person_tree(person):
 
 
 def get_insight_depth_condition(depth=1, old_styp_format_escaped=False):
-	depth_2_doctypes = ['Cross Sale Purchase', 'Cross Sale', 'Cross Purchase', 'Purchase Receipt']
+	depth_2_doctypes = ['Cross Sale Purchase', 'Cross Sale', 'Cross Purchase', 'Payment Receipt']
 
 	basic_condition_for_depth_2 = \
 		"""(
