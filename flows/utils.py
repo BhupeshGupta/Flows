@@ -162,8 +162,8 @@ def get_ac_debit_balances_as_on(date):
 	GROUP BY account_con;
 	""".format(date=date), as_dict=True)
 
-	# for r in rs:
-	# 	r.account = r.account_con.strip()
+	for r in rs:
+		r.account = r.account_con.strip()
 
 	return rs
 
