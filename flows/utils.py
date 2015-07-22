@@ -155,15 +155,15 @@ def get_next_date(cur_date):
 
 def get_ac_debit_balances_as_on(date):
 	rs = frappe.db.sql("""
-	SELECT replace(account, SUBSTRING_INDEX(account, '-',-1), '') AS account_con,
+	SELECT REPLACE(account, CONCAT(' -', SUBSTRING_INDEX(account, '-',-1)), '') AS account_con,
 	sum(ifnull(debit, 0)) - sum(ifnull(credit, 0)) AS debit_balance
 	FROM `tabGL Entry` gle
 	WHERE posting_date <= "{date}"
 	GROUP BY account_con;
 	""".format(date=date), as_dict=True)
 
-	for r in rs:
-		r.account = '-'.join(r.account_con.split("-")[:-1]).strip()
+	# for r in rs:
+	# 	r.account = r.account_con.strip()
 
 	return rs
 
