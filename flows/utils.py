@@ -158,7 +158,8 @@ def get_ac_debit_balances_as_on(date):
 	SELECT REPLACE(account, CONCAT(' -', SUBSTRING_INDEX(account, '-',-1)), '') AS account_con,
 	sum(ifnull(debit, 0)) - sum(ifnull(credit, 0)) AS debit_balance
 	FROM `tabGL Entry` gle
-	WHERE posting_date <= "{date}"
+	WHERE posting_date <= "{date}" AND
+	account not like '%- AGE'
 	GROUP BY account_con;
 	""".format(date=date), as_dict=True)
 
