@@ -174,7 +174,7 @@ class Gatepass(Document):
 def get_indent_list(doctype, txt, searchfield, start, page_len, filters):
 	indent = frappe.db.sql("""
 	select indent from `tabGatepass`
-	where name like '{doc_id}%' and
+	where (name='{doc_id}' or name like '{doc_id}-%') and
 	vehicle = '{vehicle}'
 	and docstatus = 1
 	""".format(**filters))
