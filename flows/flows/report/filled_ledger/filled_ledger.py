@@ -247,14 +247,22 @@ def bill_filled_empty_status(voucher, item, filters):
 
 	elif voucher.v_type == 'Goods Receipt':
 		filled = empty = 0
-		if voucher.item_delivered and 'FC' + item_base == voucher.item_delivered and voucher.delivered_quantity:
+		if voucher.item_delivered and\
+			'FC' + item_base == normalize_lot_vot(voucher.item_delivered, filters) and\
+			voucher.delivered_quantity:
 			filled = voucher.delivered_quantity
-		elif voucher.item_delivered and 'EC' + item_base == voucher.item_delivered and voucher.delivered_quantity:
+		elif voucher.item_delivered and\
+			'EC' + item_base == normalize_lot_vot(voucher.item_delivered, filters) and\
+			 voucher.delivered_quantity:
 			empty = -1 * voucher.delivered_quantity
 
-		if voucher.item_received and 'FC' + item_base == voucher.item_received and voucher.received_quantity:
+		if voucher.item_received and\
+			'FC' + item_base == normalize_lot_vot(voucher.item_received, filters)\
+			and voucher.received_quantity:
 			filled = -1 * voucher.received_quantity
-		elif voucher.item_received and 'EC' + item_base == voucher.item_received and voucher.received_quantity:
+		elif voucher.item_received and\
+			'EC' + item_base == normalize_lot_vot(voucher.item_received, filters)\
+			and voucher.received_quantity:
 			empty = voucher.received_quantity
 		return 0, filled, empty
 
@@ -298,12 +306,14 @@ def get_closing_row_with_totals(active_map):
 
 
 def get_item(item, filters):
-	if cint(filters.lot_vot_bifurcate) == 0:
-		item = item.replace('L', '')
-	return item.replace('EC', 'FC')
+	return normalize_lot_vot(item, filters).replace('EC', 'FC')
 
 
 def get_base_item(item, filters):
+	return normalize_lot_vot(item, filters).replace('EC', '').replace('FC', '')
+
+
+def normalize_lot_vot(item, filters):
 	if cint(filters.lot_vot_bifurcate) == 0:
 		item = item.replace('L', '')
-	return item.replace('EC', '').replace('FC', '')
+	return item

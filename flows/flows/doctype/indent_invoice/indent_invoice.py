@@ -70,6 +70,9 @@ class IndentInvoice(StockController):
 		self.cancel_transport_bill()
 
 	def validate(self):
+		# strip invoice number to remove spaces
+		self.invoice_number = self.invoice_number.strip()
+
 		self.set_missing_values()
 		self.validate_branch_out_for_special_cases()
 
@@ -253,6 +256,8 @@ class IndentInvoice(StockController):
 			return
 
 		customer_obj = frappe.get_doc("Customer", self.customer)
+		# customer_obj.payment_company
+		payment_company_type = 'BA' if 'aggarwal' in self.supplier.lower() else 'Logistics Partner'
 
 		logistics_partner_account = flow_utils.get_supplier_account(self.company, self.logistics_partner)
 
@@ -263,16 +268,21 @@ class IndentInvoice(StockController):
 
 		if self.actual_amount:
 
-			company = self.company if self.payment_type == "Indirect" else self.supplier.split(' ')[0].title()
+			company = self.company
+			if self.payment_type == "Direct" and (
+				'ioc' in self.company.lower() or
+				'bpc' in self.company.lower() or
+				'hpc' in self.company.lower()
+			):
+				company = self.supplier.split(' ')[0].title()
 
 			# BA paid on behalf of Customer, but asks logistics partner to collect amount from customer
 			# and pay him the same
 
 			if self.payment_type == "Indirect":
 				gl_entry_1_debit_cost_center = ''
-				# get_party_account(company, self.customer, "Customer") \
-				# 	if customer_obj.payment_company == 'BA' else
-				gl_entry_1_debit_ac = logistics_partner_account
+				gl_entry_1_debit_ac = get_party_account(company, self.customer, "Customer") \
+					if payment_company_type == 'BA' else logistics_partner_account
 				gl_entry_1_credit_ac = payer.get_payer_account(company, self.supplier, self.customer,
 															   self.payment_type)
 			else:
@@ -287,8 +297,7 @@ class IndentInvoice(StockController):
 				gl_entry_1_credit_ac = payer.get_payer_account(company, self.supplier, self.customer,
 															   self.payment_type)
 
-			# customer_obj.payment_company != 'BA' and 
-			gl_entry_2_enabled = self.payment_type == "Indirect"
+			gl_entry_2_enabled = payment_company_type != 'BA' and self.payment_type == "Indirect"
 			gl_entry_2_debit_ac = customer_account
 			gl_entry_2_credit_ac = ba_account
 

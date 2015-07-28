@@ -26,13 +26,25 @@ erpnext.flows.GoodsReceiptController = frappe.ui.form.Controller.extend({
 		});
 	},
 
+	set_remarks_mandatory: function (doc) {
+		var mandatory = false;
+		if (doc.cancelled)
+			mandatory = true;
+		else if (doc.item_received && doc.item_received.indexOf('FC') >= 0)
+			mandatory = true;
+		else if (doc.item_delivered && doc.item_delivered.indexOf('EC') >= 0)
+			mandatory = true;
+		this.frm.set_df_property("remarks", "reqd", mandatory);
+	},
+
 	cancelled:function (doc, dt, dn) {
 		this.frm.set_df_property("customer", "reqd", !doc.cancelled);
-		this.frm.set_df_property("remarks", "reqd", doc.cancelled);
+		this.set_remarks_mandatory(doc);
 	},
 
 	item_delivered:function (doc, dt, dn) {
 		this.update_delivered_required(doc);
+		this.set_remarks_mandatory(doc);
 	},
 
 	delivered_quantity:function (doc, dt, dn) {
@@ -46,6 +58,7 @@ erpnext.flows.GoodsReceiptController = frappe.ui.form.Controller.extend({
 
 	item_received:function (doc, dt, dn) {
 		this.update_received_required(doc);
+		this.set_remarks_mandatory(doc);
 	},
 
 	received_quantity:function (doc, dt, dn) {
