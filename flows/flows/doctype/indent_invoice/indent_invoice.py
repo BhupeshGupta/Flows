@@ -70,9 +70,7 @@ class IndentInvoice(StockController):
 		self.cancel_transport_bill()
 
 	def validate(self):
-		# strip invoice number to remove spaces
-		self.invoice_number = self.invoice_number.strip()
-
+		self.invoice_number = self.invoice_number
 		self.set_missing_values()
 		self.validate_branch_out_for_special_cases()
 
@@ -270,9 +268,9 @@ class IndentInvoice(StockController):
 
 			company = self.company
 			if self.payment_type == "Direct" and (
-				'ioc' in self.company.lower() or
-				'bpc' in self.company.lower() or
-				'hpc' in self.company.lower()
+				'ioc' in self.supplier.lower() or
+				'bpc' in self.supplier.lower() or
+				'hpc' in self.supplier.lower()
 			):
 				company = self.supplier.split(' ')[0].title()
 
