@@ -26,7 +26,7 @@ def get_columns(filters):
 def get_data(filters):
 	tin_no = frappe.db.sql("SELECT tin_number FROM `tabSupplier` WHERE name = '{supplier}'".format(**filters))[0][0]
 	return frappe.db.sql("""
-		SELECT i.transaction_date, i.invoice_number, i.qty, i.actual_amount * 0.98 AS actual_amount,
+		SELECT i.transaction_date, i.invoice_number, i.qty, i.actual_amount * 100 / 102 AS actual_amount,
 		i.actual_amount AS amount_with_tax, s.name, s.tin_number
 		FROM `tabIndent Invoice` i, `tabSupplier` s
 		WHERE i.docstatus=1
