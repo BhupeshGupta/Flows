@@ -45,6 +45,16 @@ erpnext.flows.GatepassController = frappe.ui.form.Controller.extend({
 			};
 		});
 
+
+		this.frm.set_query("credit_account", function (doc, cdt, cdn) {
+			return {
+				filters:{
+					company: doc.company,
+					account_type: 'Imprest'
+				}
+			};
+		});
+
 	},
 
 
