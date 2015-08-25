@@ -18,6 +18,15 @@ class PaymentReceipt(Document):
 		super(PaymentReceipt, self).__init__(*args, **kwargs)
 		self.set_missing_values()
 
+	def validate_date(self):
+		gr_eod = frappe.db.get_single_value("End Of Day", "gr_eod")
+		if self.posting_date <= gr_eod and not frappe.session.user == "Administrator":
+			frappe.throw("Day has been closed for GR. No amendment is allowed in closed days")
+
+		if utils.get_next_date(gr_eod) < self.posting_date:
+			frappe.throw("Date is disabled for entry, will be allowed when previous day is closed")
+
+
 	def validate_book(self):
 		if not utils.cint(self.id): throw("ID needs to be a number, Please check the serial on PR receipt.")
 

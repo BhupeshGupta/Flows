@@ -1,0 +1,15 @@
+{
+ "creation": "2015-08-17 18:16:19.261073", 
+ "disabled": 0, 
+ "doc_type": "C Form Indent Invoice", 
+ "docstatus": 0, 
+ "doctype": "Print Format", 
+ "html": "<div class=\"letter-head\">{{ letter_head }}</div>\n\n<div>\n\t<div class=\"row\">\n\t\t<div class=\"col-md-12\">\n\t\t\tTo,<br/>\n\t\t\t<address>\n\t\t\t\t<strong>{{ filters.customer }}</strong><br/>\n\t\t\t</address>\n\t\t</div>\n\t</div>\n\t<div class=\"row\">\n\t\t<div class=\"col-md-12\">\n\t\t\t<p>\n\t\t\t\tSub: Submission of Form \"C\" Quarterwise for the period {{ filters.from_date }} to {{ filters.to_date }}.<br/>\n\t\t\t\tDear Sir,<br/>\n                This is to inform you that \"C\" Form Against {{ filters.supplier }} invoices for the above mentioned\n\t\t\t\tperiod is pending. Please issue \"C\" forms in favour of {{ filters.supplier }}.\n\t\t\t\tTin No. {{ data[0].tin_no }}\n\t\t\t</p>\n\t\t</div>\n\t</div>\n\t<div class=\"row\">\n\t\t<div class=\"col-md-12\">\n\t\t\t<table class=\"table\">\n\t\t\t\t<thead>\n                    <tr>\n                        <th style=\"text-align: right\">#</th>\n                        <th>Date</th>\n                        <th>Invoice No</th>\n                        <th style=\"text-align: right\">No Of Cyl</th>\n                        <th style=\"text-align: right\">Amount</th>\n                    </tr>\n\t\t\t\t</thead>\n\t\t\t\t<tbody>\n\t\t\t\t{% for row in data %}\n                    <tr>\n                        <td style=\"text-align: right\">{{ loop.index + 1 }}</td>\n                        <td>{{ row.date }}</td>\n                        <td>{{ row.invoice_no }}</td>\n                        <td style=\"text-align: right\">{{ row.no_of_cylinders }}</td>\n                        <td style=\"text-align: right\">{{ row.amount }}</td>\n                    </tr>\n                {% endfor %}\n\t\t\t\t</tbody>\n\t\t\t</table>\n\t\t</div>\n\t</div>\n\t<div class=\"row\">\n\t\t<div class=\"col-md-12\">\n\t\t\t<p>\n\t\t\t\tYou are therefore requested to issue the required \"C\" forms within 10 days on receipt of this letter.<br/>\n                Thanking You,<br/>\n                Yours faithfully,<br/> for ARUN LOGISTICS<br/><br/>\n                AUTH.SIGNATORY<br/><br/>\n                <strong>THIS IS COMPUTER GENERATED DOCUMENT .AND. DOES NOT REQUIRE ANY SIGNATURE<strong/>\n\t\t\t</p>\n\t\t</div>\n\t</div>\n</div>", 
+ "modified": "2015-08-17 18:16:19.261073", 
+ "modified_by": "Administrator", 
+ "module": "Flows", 
+ "name": "C Form", 
+ "owner": "Administrator", 
+ "print_format_type": "Server", 
+ "standard": "Yes"
+}
