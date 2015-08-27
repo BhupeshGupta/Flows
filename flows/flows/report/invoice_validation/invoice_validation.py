@@ -29,7 +29,7 @@ def get_data(filters):
 	rows = []
 
 	for data in frappe.db.sql("""
-	SELECT transaction_date,
+	SELECT name, transaction_date,
 	supplier, customer,
 	item, qty,
 	payment_type, load_type,
@@ -49,6 +49,7 @@ def get_data(filters):
 
 		rows.append([
 			data.transaction_date,
+			data.name,
 			data.customer,
 			data.item,
 			data.qty,
