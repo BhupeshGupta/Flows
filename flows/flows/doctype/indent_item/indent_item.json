@@ -56,6 +56,14 @@
    "precision": ""
   }, 
   {
+   "fieldname": "ship_to", 
+   "fieldtype": "Link", 
+   "label": "Ship To", 
+   "options": "Customer", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "sales_tax_type", 
    "fieldtype": "Select", 
    "label": "Sales Tax Type", 
@@ -264,7 +272,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 1, 
- "modified": "2015-04-25 09:24:52.817355", 
+ "modified": "2015-07-29 08:55:11.110238", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Item", 

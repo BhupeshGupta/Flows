@@ -34,6 +34,11 @@ def get_data():
 				},
 				{
 					"type": "doctype",
+					"name": "C Form Indent Invoice",
+					"description": _("C Form Collection On Behalf Of OMC")
+				},
+				{
+					"type": "doctype",
 					"name": "Customer",
 					"description": _("Customer database.")
 				},
@@ -87,30 +92,6 @@ def get_data():
 					"type": "report",
 					"is_query_report": True,
 					"name": "Purchase Sale",
-					"doctype": "Item",
-				},
-				{
-					"type": "report",
-					"is_query_report": True,
-					"name": "Transportation Report",
-					"doctype": "Item",
-				},
-				{
-					"type": "report",
-					"is_query_report": True,
-					"name": "C Form Report",
-					"doctype": "Item",
-				},
-				{
-					"type": "report",
-					"is_query_report": True,
-					"name": "C Form Analytics",
-					"doctype": "Item",
-				},
-				{
-					"type": "report",
-					"is_query_report": True,
-					"name": "Fuel Report",
 					"doctype": "Item",
 				}
 			]
@@ -190,7 +171,37 @@ def get_data():
 					"is_query_report": True,
 					"name": "IOCL Discount",
 					"doctype": "Item",
+				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "Transportation Report",
+					"doctype": "Item",
+				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "Fuel Report",
+					"doctype": "Item",
 				}
+			]
+		},
+		{
+			"label": _("Quarterly Reports"),
+			"icon": "icon-table",
+			"items": [
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "C Form Report",
+					"doctype": "Item",
+				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "C Form Analytics",
+					"doctype": "Item",
+				},
 			]
 		},
 		{
