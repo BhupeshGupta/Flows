@@ -12,6 +12,7 @@ def execute(filters=None):
 def get_columns(filters):
 	return [
 		"Date:Date:",
+		"Invoice:Link/Indent Invoice:",
 		"Customer:Link/Customer:250",
 		"Item:Data:",
 		"Qty:Int:",
