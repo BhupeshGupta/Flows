@@ -11,6 +11,12 @@ class CFormIndentInvoice(Document):
 		if self.c_form_number.strip() == '':
 			frappe.throw("Please enter C Form Number")
 
+	def before_save(self):
+		self.before_print()
+		self.amount = sum([i.actual_amount for i in self.invoices[:-1]])
+		self.cst = self.amount * 0.02
+		self.amount_with_tax = self.amount * 1.02
+
 	def before_print(self):
 		start_date = frappe.db.get_value('Fiscal Year', self.fiscal_year, 'year_start_date')
 		self.start_date, self.end_date = get_quarter_start_end(start_date, self.quarter)
@@ -45,8 +51,9 @@ class CFormIndentInvoice(Document):
 		SELECT name FROM `tabC Form Indent Invoice` WHERE docstatus != 2
 		AND customer = "{customer}" AND quarter = "{quarter}"
 		AND supplier = "{supplier}" AND fiscal_year = "{fiscal_year}"
+		AND name != "{self_name}"
 		""".format(customer=self.customer, quarter=self.quarter, supplier=self.supplier,
-				   fiscal_year=self.fiscal_year)
+				   fiscal_year=self.fiscal_year, self_name=self.name)
 		):
 			frappe.throw("C Form Instance Already exist for this combination of customer, supplier, year and quarter")
 
