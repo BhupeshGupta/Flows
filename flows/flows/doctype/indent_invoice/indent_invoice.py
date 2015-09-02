@@ -30,6 +30,7 @@ class IndentInvoice(StockController):
 			self.fiscal_year = account_utils.get_fiscal_year(self.get("transaction_date"))[0]
 
 		self.check_previous_doc()
+		self.validate_purchase_rate()
 		self.make_gl_entries()
 		self.make_stock_refill_entry()
 		self.raise_transportation_bill()
@@ -110,25 +111,34 @@ class IndentInvoice(StockController):
 			self.supplier = indent.plant
 			self.company = indent.company
 
-			from flows.flows.pricing_controller import compute_base_rate_for_a_customer
-			expected = compute_base_rate_for_a_customer(
-				self.customer, self.supplier,
-				self.item, indent_item.sales_tax_type,
-				self.transaction_date, extra_precision=1
-			)/float(self.item.replace('FC', '').replace('L', ''))
-
-			qty_in_kg, per_kg_rate_in_invoice = self.get_invoice_rate()
-			rate_diff = abs(round(expected - per_kg_rate_in_invoice, 2))
-
-			if rate_diff > .10:
-				frappe.throw(
-					"""
-					Rates do not agree with master, please check invoice (date, amount, handling, cst),
-					there is a diff of {diff}, rate in master is {master} and in invoice is {invoice}
-					""".format(diff=rate_diff, invoice=per_kg_rate_in_invoice, master=expected)
-				)
-
 		return super(IndentInvoice, self).validate()
+
+
+	def validate_purchase_rate(self):
+
+		if cint(self.indent_linked) != 1:
+			return
+
+		from flows.flows.pricing_controller import compute_base_rate_for_a_customer
+
+		indent_item = frappe.get_doc("Indent Item", self.indent_item)
+
+		expected = compute_base_rate_for_a_customer(
+			self.customer, self.supplier,
+			self.item, indent_item.sales_tax_type,
+			self.transaction_date, extra_precision=1
+		) / float(self.item.replace('FC', '').replace('L', ''))
+
+		qty_in_kg, per_kg_rate_in_invoice = self.get_invoice_rate()
+		rate_diff = abs(round(expected - per_kg_rate_in_invoice, 2))
+
+		if rate_diff > .10:
+			frappe.throw(
+				"""
+				Rates do not agree with master, please check invoice (date, amount, handling, cst),
+				there is a diff of {diff}, rate in master is {master} and in invoice is {invoice}
+				""".format(diff=rate_diff, invoice=per_kg_rate_in_invoice, master=expected)
+			)
 
 	def make_gl_entries(self, repost_future_gle=True):
 		gl_entries = self.get_gl_entries()
@@ -286,9 +296,9 @@ class IndentInvoice(StockController):
 
 			company = self.company
 			if self.payment_type == "Direct" and (
-				'ioc' in self.supplier.lower() or
-				'bpc' in self.supplier.lower() or
-				'hpc' in self.supplier.lower()
+						'ioc' in self.supplier.lower() or
+						'bpc' in self.supplier.lower() or
+					'hpc' in self.supplier.lower()
 			):
 				company = self.supplier.split(' ')[0].title()
 
@@ -688,6 +698,7 @@ def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
 
 	return frappe.db.sql(indent_items_sql)
 
+
 def get_conversion_factor(item):
 	conversion_factor_query = """
         SELECT conversion_factor
@@ -700,6 +711,7 @@ def get_conversion_factor(item):
 	root.debug(val)
 
 	return float(val) if val else 0
+
 
 def get_landed_rate_for_customer(customer, date):
 	month_start = get_first_day(date).strftime('%Y-%m-%d')
