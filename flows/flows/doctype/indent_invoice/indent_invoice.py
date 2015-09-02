@@ -110,6 +110,24 @@ class IndentInvoice(StockController):
 			self.supplier = indent.plant
 			self.company = indent.company
 
+			from flows.flows.pricing_controller import compute_base_rate_for_a_customer
+			expected = compute_base_rate_for_a_customer(
+				self.customer, self.supplier,
+				self.item, indent_item.sales_tax_type,
+				self.transaction_date, extra_precision=1
+			)/float(self.item.replace('FC', '').replace('L', ''))
+
+			qty_in_kg, per_kg_rate_in_invoice = self.get_invoice_rate()
+			rate_diff = abs(round(expected - per_kg_rate_in_invoice, 2))
+
+			if rate_diff > .10:
+				frappe.throw(
+					"""
+					Rates do not agree with master, please check invoice (date, amount, handling, cst),
+					there is a diff of {diff}, rate in master is {master} and in invoice is {invoice}
+					""".format(diff=rate_diff, invoice=per_kg_rate_in_invoice, master=expected)
+				)
+
 		return super(IndentInvoice, self).validate()
 
 	def make_gl_entries(self, repost_future_gle=True):
@@ -414,8 +432,7 @@ class IndentInvoice(StockController):
 		if not indent_invoice_settings.auto_raise_consignment_notes == '1':
 			return
 
-		qty_in_kg = get_conversion_factor(self.item) * float(self.qty)
-		per_kg_rate_in_invoice = self.actual_amount / qty_in_kg
+		qty_in_kg, per_kg_rate_in_invoice = self.get_invoice_rate()
 		landed_rate, transportation_rate = get_landed_rate_for_customer(self.customer, self.transaction_date)
 
 		discount = 0
@@ -646,6 +663,12 @@ class IndentInvoice(StockController):
 
 		return dbank
 
+	def get_invoice_rate(self):
+		qty_in_kg = get_conversion_factor(self.item) * float(self.qty)
+		per_kg_rate_in_invoice = self.actual_amount / qty_in_kg
+
+		return qty_in_kg, per_kg_rate_in_invoice
+
 
 def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
 	indent_items_sql = """
@@ -665,7 +688,6 @@ def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
 
 	return frappe.db.sql(indent_items_sql)
 
-
 def get_conversion_factor(item):
 	conversion_factor_query = """
         SELECT conversion_factor
@@ -678,7 +700,6 @@ def get_conversion_factor(item):
 	root.debug(val)
 
 	return float(val) if val else 0
-
 
 def get_landed_rate_for_customer(customer, date):
 	month_start = get_first_day(date).strftime('%Y-%m-%d')
