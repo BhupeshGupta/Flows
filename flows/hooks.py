@@ -84,8 +84,11 @@ app_include_js = "/assets/js/flows.min.js"
 
 doc_events = {
 	"Journal Voucher": {
-		"autoname": "flows.flows.journal_voucher.journal_voucher_autoname",
-		"validate": "flows.flows.journal_voucher.journal_voucher_validate"
+		"autoname": "flows.flows.custom_validation.journal_voucher_autoname",
+		"validate": "flows.flows.custom_validation.journal_voucher_validate"
+	},
+	"Contact": {
+		"validate": "flows.flows.custom_validation.contact_validate_for_sms"
 	}
 }
 
