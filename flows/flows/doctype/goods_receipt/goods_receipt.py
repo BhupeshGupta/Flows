@@ -35,8 +35,9 @@ class GoodsReceipt(Document):
 		self.warehouse = rs[0].warehouse
 
 	def validate(self):
-		# if self.amended_from:
-		# return
+		self.sms_tracker = None
+		self.sms_response = None
+		self.sms_status = None
 		self.validate_date()
 		self.validate_book()
 		self.validate_unique()
@@ -226,3 +227,73 @@ class GoodsReceipt(Document):
 			""".format(key=file_field, value=file_url, name=self.name))
 
 		return result
+
+	def send_sms(self):
+		from frappe.utils.data import getdate
+
+		template = """Dear Customer {delivered_quantity} no of {item_delivered} kg cylinders delivered against the GR
+		No {goods_receipt_number} Dt {txn_date} & {received_quantity} no of {item_received} kg empty cylinder received
+		from your premises."""
+
+		txn_date = getdate(self.transaction_date).strftime("%d/%m/%y")
+		context = self.as_dict()
+
+		# `0` Int Keys
+		for key in ['delivered_quantity', 'received_quantity']:
+			context[key] = context[key] if context[key] else 0
+
+		# empty string keys
+		for key in ['item_delivered', 'item_received']:
+			context[key] = context[key] if context[key] else ''
+
+		msg = template.format(txn_date=txn_date, **self.as_dict())
+
+		receiver_list = [
+			c[0] for c in frappe.db.sql("""
+			SELECT phone FROM `tabContact` WHERE ifnull(sms_optin, 0) = 1 AND customer = "{customer}"
+			""".format(customer=self.customer))
+		]
+
+		success, return_value = self.send_sms_via_gateway(receiver_list, msg)
+
+		if success:
+			frappe.db.sql("""
+			UPDATE `tabGoods Receipt` SET sms_tracker="{sms_tracker}" WHERE name = "{id}"
+			""".format(sms_tracker=return_value['data']['group_id'], id=self.name))
+		else:
+			frappe.db.sql("""
+			UPDATE `tabGoods Receipt` SET sms_response="{sms_response}" WHERE name = "{id}"
+			""".format(sms_response=str(return_value), id=self.name))
+
+		return success
+
+
+	def send_sms_via_gateway(self, receiver_list, msg):
+		from erpnext.setup.doctype.sms_settings.sms_settings import validate_receiver_nos, send_via_gateway, \
+			get_sender_name
+		import json
+
+		receiver_list = validate_receiver_nos(receiver_list)
+
+		arg = {
+		'receiver_list': receiver_list,
+		'message': msg,
+		'sender_name': get_sender_name()
+		}
+
+		if frappe.db.get_value('SMS Settings', None, 'sms_gateway_url'):
+			ret = send_via_gateway(arg)
+			try:
+				ret_json = json.loads(ret)
+
+				if ret_json['status'] == 'OK':
+					return True, ret_json['data']['group_id']
+			except (ValueError, TypeError) as e:
+				frappe.msgprint("Unable to send Msg {} {} {}".format(msg, ret, e))
+				return False, ret
+		else:
+			frappe.msgprint("Please Update SMS Settings")
+
+		return False, None
+
+

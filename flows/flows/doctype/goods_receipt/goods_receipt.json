@@ -337,6 +337,49 @@
    "precision": ""
   }, 
   {
+   "fieldname": "sms", 
+   "fieldtype": "Section Break", 
+   "label": "SMS", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "sms_tracker", 
+   "fieldtype": "Data", 
+   "label": "SMS Tracker", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "column_break_33", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "sms_status", 
+   "fieldtype": "Data", 
+   "label": "SMS Status", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "section_break_35", 
+   "fieldtype": "Section Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "sms_response", 
+   "fieldtype": "Small Text", 
+   "label": "SMS Response", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
+  }, 
+  {
    "fieldname": "attachments", 
    "fieldtype": "Section Break", 
    "label": "Attachments", 
@@ -428,7 +471,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-07-02 17:58:56.047488", 
+ "modified": "2015-09-05 13:13:23.270585", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Goods Receipt", 
