@@ -26,7 +26,7 @@ class EndOfDay(Document):
 
 	def send_sms_from_gr_from_to_day(self, from_day, to_day):
 		for gr in frappe.db.sql("""
-		SELECT gr.name
+		SELECT DISTINCT gr.name
 		FROM `tabGoods Receipt` gr, `tabContact` contact
 		WHERE gr.customer = contact.customer
 		AND ifnull(contact.sms_optin, 0) = 1
