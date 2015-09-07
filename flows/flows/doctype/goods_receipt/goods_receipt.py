@@ -38,17 +38,16 @@ class GoodsReceipt(Document):
 		self.sms_tracker = None
 		self.sms_response = None
 		self.sms_status = None
-		self.validate_date()
 		self.validate_book()
 		self.validate_unique()
 
 	def validate_date(self):
 		gr_eod = frappe.db.get_single_value("End Of Day", "gr_eod")
 		if self.posting_date <= gr_eod and not frappe.session.user == "Administrator":
-			frappe.throw("Day has been closed for GR. No amendment is allowed in closed days")
+			frappe.throw("Day Closed: {}. Day has been closed for GR. No amendment is allowed in closed days".format(gr_eod))
 
 		if utils.get_next_date(gr_eod) < self.posting_date:
-			frappe.throw("Date is disabled for entry, will be allowed when previous day is closed")
+			frappe.throw("Day Closed: {}. Date is disabled for entry, will be allowed when previous day is closed".format(gr_eod))
 
 	def validate_unique(self):
 		rs = frappe.db.sql("select name from `tabPayment Receipt` where name=\"{0}\" or name like \"{0}-%\"".format(self.goods_receipt_number))
@@ -56,6 +55,7 @@ class GoodsReceipt(Document):
 			throw("Payment Receipt with this serial already exists {}".format(self.goods_receipt_number))
 
 	def on_submit(self):
+		self.validate_date()
 		if self.warehouse == '' or not self.warehouse:
 			throw(
 				_("Warehouse Not Linked With Book. Please Contact Receipt Book Manager")
@@ -244,7 +244,7 @@ class GoodsReceipt(Document):
 
 		# empty string keys
 		for key in ['item_delivered', 'item_received']:
-			context[key] = context[key] if context[key] else ''
+			context[key] = context[key].replace('FC', '').replace('EC', '').replace('L', '') if context[key] else ''
 
 		msg = template.format(txn_date=txn_date, **self.as_dict())
 
