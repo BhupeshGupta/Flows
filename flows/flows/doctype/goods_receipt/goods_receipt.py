@@ -276,7 +276,7 @@ class GoodsReceipt(Document):
 		receiver_list = validate_receiver_nos(receiver_list)
 
 		arg = {
-		'receiver_list': ','.join(receiver_list),
+		'receiver_list': [','.join(receiver_list)],
 		'message': msg,
 		'sender_name': get_sender_name()
 		}
