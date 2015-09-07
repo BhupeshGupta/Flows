@@ -284,7 +284,7 @@ class GoodsReceipt(Document):
 		if frappe.db.get_value('SMS Settings', None, 'sms_gateway_url'):
 			ret = send_via_gateway(arg)
 			try:
-				ret_json = json.loads(ret)
+				ret_json = json.loads(ret[0])
 
 				if ret_json['status'] == 'OK':
 					return True, ret_json['data']['group_id']
