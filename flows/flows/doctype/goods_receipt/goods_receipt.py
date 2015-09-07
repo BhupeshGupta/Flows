@@ -276,7 +276,7 @@ class GoodsReceipt(Document):
 		receiver_list = validate_receiver_nos(receiver_list)
 
 		arg = {
-		'receiver_list': receiver_list,
+		'receiver_list': ','.join(receiver_list),
 		'message': msg,
 		'sender_name': get_sender_name()
 		}
@@ -287,7 +287,7 @@ class GoodsReceipt(Document):
 				ret_json = json.loads(ret[0])
 
 				if ret_json['status'] == 'OK':
-					return True, ret_json['data']['group_id']
+					return True, ret_json
 			except (ValueError, TypeError) as e:
 				frappe.msgprint("Unable to send Msg {} {} {}".format(msg, ret, e))
 				return False, ret
