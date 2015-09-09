@@ -246,7 +246,7 @@ class GoodsReceipt(Document):
 		for key in ['item_delivered', 'item_received']:
 			context[key] = context[key].replace('FC', '').replace('EC', '').replace('L', '') if context[key] else ''
 
-		msg = template.format(txn_date=txn_date, **self.as_dict())
+		msg = template.format(txn_date=txn_date, **context)
 
 		receiver_list = [
 			c[0] for c in frappe.db.sql("""
