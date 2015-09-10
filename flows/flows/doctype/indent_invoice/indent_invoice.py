@@ -113,7 +113,6 @@ class IndentInvoice(StockController):
 
 		return super(IndentInvoice, self).validate()
 
-
 	def validate_purchase_rate(self):
 
 		if cint(self.indent_linked) != 1:
@@ -426,6 +425,30 @@ class IndentInvoice(StockController):
 				credit_note.docstatus = 2
 				credit_note.save()
 
+	def load_transport_bill_variables(self):
+		if not hasattr(self, 'transport_vars'):
+			self.transport_vars = frappe.db.sql(
+				"""
+				select *
+				from `tabCustomer Sale`
+				where customer="{customer}"
+				and with_effect_from <= "{invoice_date}"
+				and ifnull(valid_up_to, "{invoice_date}") <= "{invoice_date}"
+				and docstatus = 1
+				order by with_effect_from desc limit 1
+				""".format(invoice_date=self.transaction_date, customer=self.customer),
+				as_dict=True
+			)
+			if not self.transport_vars:
+				frappe.throw("Customer Sale Variables Not Found")
+			self.transport_vars = self.transport_vars[0]
+
+	def transport_bill_variables(self):
+		self.load_transport_bill_variables()
+		transport_vars = self.transport_vars
+		discount = transport_vars.display_rate - transport_vars.applicable_transport_rate
+		return transport_vars.display_rate, discount, 0
+
 	def raise_transportation_bill(self):
 
 		# Hard code skip for now, will fix this later
@@ -436,44 +459,24 @@ class IndentInvoice(StockController):
 		# Pull out config
 		indent_invoice_settings = frappe.db.get_values_from_single(
 			'*', None, 'Indent Invoice Settings', as_dict=True)[0]
-		root.debug(indent_invoice_settings)
 
 		# Check if we are instructed to raise bills
 		if not indent_invoice_settings.auto_raise_consignment_notes == '1':
 			return
 
 		qty_in_kg, per_kg_rate_in_invoice = self.get_invoice_rate()
-		landed_rate, transportation_rate = get_landed_rate_for_customer(self.customer, self.transaction_date)
 
-		discount = 0
-		credit_note = None
-
-		# Customers purchase - landed rate
-		rate_diff = per_kg_rate_in_invoice + transportation_rate - landed_rate
-		rate_diff = round(rate_diff, 2)
-
-		if rate_diff < float(indent_invoice_settings.min_rate_diff_for_discount):
-			rate_diff = 0
-
-		# Discount & Credit Note
-		# Credit Note Only
-		algo = frappe.db.get_value("Customer", self.customer, "rate_match_algorithm")
-		algo = algo if algo else 'Discount & Credit Note'
-
-		if rate_diff < 0:
-			# Bump up transportation Rate
-			transportation_rate += (-1 * rate_diff)
-		elif rate_diff > 0 and algo == 'Discount & Credit Note':
-			discount = transportation_rate if rate_diff >= transportation_rate else rate_diff
-			rate_diff -= discount
+		transportation_rate, discount, credit_note_per_kg = self.transport_bill_variables()
 
 		logistics_company_object = frappe.get_doc("Company", self.logistics_partner)
 
-		if rate_diff > 0 and rate_diff * qty_in_kg > float(indent_invoice_settings.min_amount_for_credit_note) \
+		credit_note = None
+		# If there is min credit note amount and credit notes are enabled
+		if credit_note_per_kg > 0 and credit_note_per_kg * qty_in_kg > float(indent_invoice_settings.min_amount_for_credit_note) \
 				and cint(indent_invoice_settings.auto_raise_credit_note) == 1:
 			# Raise a credit note
 			credit_note = self.raise_credit_note(
-				logistics_company_object.name, rate_diff * qty_in_kg, indent_invoice_settings
+				logistics_company_object.name, credit_note_per_kg * qty_in_kg, indent_invoice_settings
 			)
 
 		transportation_invoice = self.raise_consignment_note(
@@ -532,8 +535,9 @@ class IndentInvoice(StockController):
 		'credit_note': credit_note,
 		}
 
-		return render_template(terms_template, context)
+		self.load_transport_bill_variables()
 
+		return render_template(terms_template, context) + '\n' + (self.transport_vars.terms if self.transport_vars.terms else '')
 
 	def raise_credit_note(self, from_company, amount, indent_invoice_settings):
 		credit_note_doc = {
@@ -678,7 +682,37 @@ class IndentInvoice(StockController):
 		per_kg_rate_in_invoice = self.actual_amount / qty_in_kg
 
 		return qty_in_kg, per_kg_rate_in_invoice
-
+	#
+	# def transport_bill_variables_old_method(self, indent_invoice_settings):
+	#
+	# 	qty_in_kg, per_kg_rate_in_invoice = self.get_invoice_rate()
+	#
+	#
+	# 	landed_rate, transportation_rate = get_landed_rate_for_customer(self.customer, self.transaction_date)
+	#
+	# 	discount = 0
+	#
+	# 	# Customers purchase - landed rate
+	# 	rate_diff = per_kg_rate_in_invoice + transportation_rate - landed_rate
+	# 	rate_diff = round(rate_diff, 2)
+	#
+	# 	if rate_diff < float(indent_invoice_settings.min_rate_diff_for_discount):
+	# 		rate_diff = 0
+	#
+	# 	# Discount & Credit Note
+	# 	# Credit Note Only
+	# 	algo = frappe.db.get_value("Customer", self.customer, "rate_match_algorithm")
+	# 	algo = algo if algo else 'Discount & Credit Note'
+	#
+	# 	if rate_diff < 0:
+	# 		# Bump up transportation Rate
+	# 		transportation_rate += (-1 * rate_diff)
+	# 	elif rate_diff > 0 and algo == 'Discount & Credit Note':
+	# 		discount = transportation_rate if rate_diff >= transportation_rate else rate_diff
+	# 		rate_diff -= discount
+	#
+	# 	return transportation_rate, discount, rate_diff
+	#
 
 def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
 	indent_items_sql = """
@@ -698,7 +732,6 @@ def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
 
 	return frappe.db.sql(indent_items_sql)
 
-
 def get_conversion_factor(item):
 	conversion_factor_query = """
         SELECT conversion_factor
@@ -711,7 +744,6 @@ def get_conversion_factor(item):
 	root.debug(val)
 
 	return float(val) if val else 0
-
 
 def get_landed_rate_for_customer(customer, date):
 	month_start = get_first_day(date).strftime('%Y-%m-%d')
