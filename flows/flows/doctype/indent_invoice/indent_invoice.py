@@ -432,14 +432,15 @@ class IndentInvoice(StockController):
 				select *
 				from `tabCustomer Sale`
 				where customer="{customer}"
-				and with_effect_from <= DATE("{invoice_date}")
+				and with_effect_from <= "{invoice_date}"
+				and ifnull(valid_up_to, "{invoice_date}") <= "{invoice_date}"
 				and docstatus = 1
 				order by with_effect_from desc limit 1
 				""".format(invoice_date=self.transaction_date, customer=self.customer),
 				as_dict=True
 			)
 			if not self.transport_vars:
-				frappe.throw("Customer Transport Variables Not Found")
+				frappe.throw("Customer Sale Variables Not Found")
 			self.transport_vars = self.transport_vars[0]
 
 	def transport_bill_variables(self):

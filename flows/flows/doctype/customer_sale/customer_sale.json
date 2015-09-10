@@ -1,6 +1,6 @@
 {
  "allow_copy": 0, 
- "allow_import": 0, 
+ "allow_import": 1, 
  "allow_rename": 0, 
  "autoname": "", 
  "creation": "2015-09-07 14:05:47.445830", 
@@ -120,7 +120,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-09-10 08:54:01.429736", 
+ "modified": "2015-09-10 09:01:57.502925", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Customer Sale", 
