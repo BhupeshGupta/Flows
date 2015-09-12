@@ -149,8 +149,8 @@ def get_insight_depth_condition(depth=1, old_styp_format_escaped=False):
 	return None
 
 
-def get_next_date(cur_date):
-	return (datetime.datetime.strptime(cur_date, "%Y-%m-%d") + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+def get_next_date(cur_date, days=1):
+	return (datetime.datetime.strptime(cur_date, "%Y-%m-%d") + datetime.timedelta(days=days)).strftime('%Y-%m-%d')
 
 
 def get_ac_debit_balances_as_on(date):
