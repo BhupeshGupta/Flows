@@ -6,7 +6,6 @@ import frappe
 from flows import utils
 from frappe.model.document import Document
 
-from flows.stdlogger import root
 
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.stock.stock_ledger import make_sl_entries
@@ -18,14 +17,14 @@ class PaymentReceipt(Document):
 		super(PaymentReceipt, self).__init__(*args, **kwargs)
 		self.set_missing_values()
 
-	def validate_date(self):
-		gr_eod = frappe.db.get_single_value("End Of Day", "gr_eod")
-		if self.posting_date <= gr_eod and not frappe.session.user == "Administrator":
+	def validate_date(self, date):
+		stock_eod = frappe.db.get_single_value("End Of Day", "gr_eod")
+
+		if str(date) <= str(stock_eod) and not frappe.session.user == "Administrator":
 			frappe.throw("Day has been closed for GR. No amendment is allowed in closed days")
 
-		if utils.get_next_date(gr_eod) < self.posting_date:
+		if date > utils.get_next_date(stock_eod, days=2):
 			frappe.throw("Date is disabled for entry, will be allowed when previous day is closed")
-
 
 	def validate_book(self):
 		if not utils.cint(self.id): throw("ID needs to be a number, Please check the serial on PR receipt.")
@@ -52,15 +51,12 @@ class PaymentReceipt(Document):
 
 		self.debit_account = rs[0].pr_debit
 
-
 	def validate_unique(self):
 		rs = frappe.db.sql("select name from `tabGoods Receipt` where name=\"{0}\" or name like \"{0}-%\"".format(self.id))
 		if len(rs) > 0:
 			throw("Goods Receipt with this serial already exists {}".format(self.id))
 
 	def validate(self):
-		# if self.amended_from:
-		# return
 		self.validate_book()
 		self.validate_unique()
 
@@ -69,19 +65,22 @@ class PaymentReceipt(Document):
 			self.name = self.id
 
 	def on_submit(self):
+		self.validate_date(self.stock_date)
 		self.make_gl_entry()
 		self.transfer_stock()
 
-	def on_update_after_submit(self):
-		from flows.stdlogger import root
+	def before_update_after_submit(self):
+		old_stock_date = frappe.db.sql("select stock_date from `tabPayment Receipt` where name = '{}'".format(self.name))[0][0]
+		self.validate_date(date=str(old_stock_date))
 
-		root.debug("on_update_after_submit")
+	def on_update_after_submit(self):
+		self.validate_date(date=self.stock_date)
 		self.transfer_stock(is_cancelled='Yes')
 		if self.stock_date != '':
-			root.debug("stock_date update")
 			self.transfer_stock()
 
 	def on_cancel(self):
+		self.validate_date(self.stock_date)
 		self.make_gl_entry()
 		self.transfer_stock(is_cancelled='Yes')
 
@@ -209,9 +208,6 @@ class PaymentReceipt(Document):
 				),
 				})
 			)
-
-		root.debug(gl_entries)
-		root.debug(self.total)
 
 		if gl_entries:
 			make_gl_entries(

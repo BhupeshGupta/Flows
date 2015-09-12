@@ -25,7 +25,7 @@ class GoodsReceipt(Document):
 		elif cint(rs[0].gr_enabled) == 0:
 			throw(
 				_("Receipt Book ({} - {}) Is Not Marked For GR. Please Contact Book Manager").
-					format(self.serial_start, self.serial_end)
+					format(rs[0].serial_start, rs[0].serial_end)
 			)
 		elif rs[0].state == "Closed/Received":
 			throw(
