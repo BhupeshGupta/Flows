@@ -111,6 +111,10 @@ class IndentInvoice(StockController):
 			self.supplier = indent.plant
 			self.company = indent.company
 
+		if not cint(self.adjusted) == 1:
+			self.discount = 0
+			self.handling = 0
+
 		return super(IndentInvoice, self).validate()
 
 	def validate_purchase_rate(self):
@@ -122,10 +126,16 @@ class IndentInvoice(StockController):
 
 		indent_item = frappe.get_doc("Indent Item", self.indent_item)
 
+		adjustment = {
+		'discount': self.discount if self.discount else 0,
+		'transportation': self.handling if self.handling else 0
+		} if self.adjusted else {}
+
 		expected = compute_base_rate_for_a_customer(
 			self.customer, self.supplier,
 			self.item, indent_item.sales_tax_type,
-			self.transaction_date, extra_precision=1
+			self.transaction_date, extra_precision=1,
+			adjustment=adjustment
 		) / float(self.item.replace('FC', '').replace('L', ''))
 
 		qty_in_kg, per_kg_rate_in_invoice = self.get_invoice_rate()
@@ -429,13 +439,13 @@ class IndentInvoice(StockController):
 		if not hasattr(self, 'transport_vars'):
 			self.transport_vars = frappe.db.sql(
 				"""
-				select *
-				from `tabCustomer Sale`
-				where customer="{customer}"
-				and with_effect_from <= "{invoice_date}"
-				and ifnull(valid_up_to, "{invoice_date}") <= "{invoice_date}"
-				and docstatus = 1
-				order by with_effect_from desc limit 1
+				SELECT *
+				FROM `tabCustomer Sale`
+				WHERE customer="{customer}"
+				AND with_effect_from <= "{invoice_date}"
+				AND ifnull(valid_up_to, "{invoice_date}") <= "{invoice_date}"
+				AND docstatus = 1
+				ORDER BY with_effect_from DESC LIMIT 1
 				""".format(invoice_date=self.transaction_date, customer=self.customer),
 				as_dict=True
 			)
@@ -472,7 +482,8 @@ class IndentInvoice(StockController):
 
 		credit_note = None
 		# If there is min credit note amount and credit notes are enabled
-		if credit_note_per_kg > 0 and credit_note_per_kg * qty_in_kg > float(indent_invoice_settings.min_amount_for_credit_note) \
+		if credit_note_per_kg > 0 and credit_note_per_kg * qty_in_kg > float(
+				indent_invoice_settings.min_amount_for_credit_note) \
 				and cint(indent_invoice_settings.auto_raise_credit_note) == 1:
 			# Raise a credit note
 			credit_note = self.raise_credit_note(
@@ -537,7 +548,8 @@ class IndentInvoice(StockController):
 
 		self.load_transport_bill_variables()
 
-		return render_template(terms_template, context) + '\n' + (self.transport_vars.terms if self.transport_vars.terms else '')
+		return render_template(terms_template, context) + '\n' + (
+		self.transport_vars.terms if self.transport_vars.terms else '')
 
 	def raise_credit_note(self, from_company, amount, indent_invoice_settings):
 		credit_note_doc = {
@@ -682,10 +694,11 @@ class IndentInvoice(StockController):
 		per_kg_rate_in_invoice = self.actual_amount / qty_in_kg
 
 		return qty_in_kg, per_kg_rate_in_invoice
+
 	#
 	# def transport_bill_variables_old_method(self, indent_invoice_settings):
 	#
-	# 	qty_in_kg, per_kg_rate_in_invoice = self.get_invoice_rate()
+	# qty_in_kg, per_kg_rate_in_invoice = self.get_invoice_rate()
 	#
 	#
 	# 	landed_rate, transportation_rate = get_landed_rate_for_customer(self.customer, self.transaction_date)
@@ -714,6 +727,7 @@ class IndentInvoice(StockController):
 	# 	return transportation_rate, discount, rate_diff
 	#
 
+
 def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
 	indent_items_sql = """
         SELECT name, customer
@@ -732,6 +746,7 @@ def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
 
 	return frappe.db.sql(indent_items_sql)
 
+
 def get_conversion_factor(item):
 	conversion_factor_query = """
         SELECT conversion_factor
@@ -744,6 +759,7 @@ def get_conversion_factor(item):
 	root.debug(val)
 
 	return float(val) if val else 0
+
 
 def get_landed_rate_for_customer(customer, date):
 	month_start = get_first_day(date).strftime('%Y-%m-%d')
@@ -759,5 +775,3 @@ def get_landed_rate_for_customer(customer, date):
 	if rs:
 		return rs[0]
 	frappe.throw('Landed Rate Not Found For Customer {} for date {}'.format(customer, date))
-
-
