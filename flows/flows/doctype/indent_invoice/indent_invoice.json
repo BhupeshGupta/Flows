@@ -484,6 +484,55 @@
    "permlevel": 0, 
    "precision": "", 
    "read_only": 1
+  }, 
+  {
+   "fieldname": "fold_59", 
+   "fieldtype": "Fold", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "adjustments", 
+   "fieldtype": "Section Break", 
+   "label": "Adjustments", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "adjusted", 
+   "fieldtype": "Check", 
+   "label": "Adjusted", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "discount", 
+   "fieldtype": "Currency", 
+   "label": "Discount", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "handling", 
+   "fieldtype": "Currency", 
+   "label": "Handling", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "column_break_64", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "allow_on_submit": 1, 
+   "fieldname": "journal_voucher", 
+   "fieldtype": "Link", 
+   "label": "Journal Voucher", 
+   "options": "Journal Voucher", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "hide_heading": 0, 
@@ -493,7 +542,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-06-01 15:20:57.632122", 
+ "modified": "2015-09-12 13:18:49.225268", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 
