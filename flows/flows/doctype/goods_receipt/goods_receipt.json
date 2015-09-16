@@ -40,12 +40,6 @@
    "reqd": 1
   }, 
   {
-   "fieldname": "section_break_4", 
-   "fieldtype": "Section Break", 
-   "permlevel": 0, 
-   "precision": ""
-  }, 
-  {
    "allow_on_submit": 0, 
    "fieldname": "customer", 
    "fieldtype": "Link", 
@@ -64,6 +58,21 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0
+  }, 
+  {
+   "fieldname": "references", 
+   "fieldtype": "Section Break", 
+   "label": "References", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "vehicle", 
+   "fieldtype": "Link", 
+   "label": "Vehicle", 
+   "options": "Transportation Vehicle", 
+   "permlevel": 0, 
+   "precision": ""
   }, 
   {
    "allow_on_submit": 0, 
@@ -222,17 +231,16 @@
    "precision": ""
   }, 
   {
-   "fieldname": "references", 
+   "fieldname": "section_break_20", 
    "fieldtype": "Section Break", 
-   "label": "References", 
+   "label": "Other Info", 
    "permlevel": 0, 
    "precision": ""
   }, 
   {
-   "fieldname": "vehicle", 
-   "fieldtype": "Link", 
-   "label": "Vehicle", 
-   "options": "Transportation Vehicle", 
+   "fieldname": "customer_document_id", 
+   "fieldtype": "Data", 
+   "label": "Customer Document Id", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -280,13 +288,6 @@
   {
    "fieldname": "column_break_21", 
    "fieldtype": "Column Break", 
-   "permlevel": 0, 
-   "precision": ""
-  }, 
-  {
-   "fieldname": "customer_document_id", 
-   "fieldtype": "Data", 
-   "label": "Customer Document Id", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -471,7 +472,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-09-05 13:13:23.270585", 
+ "modified": "2015-09-16 13:49:46.813182", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Goods Receipt", 

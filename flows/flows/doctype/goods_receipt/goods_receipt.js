@@ -13,6 +13,8 @@ erpnext.flows.GoodsReceiptController = frappe.ui.form.Controller.extend({
 		} else {
 			$(this.frm.fields_dict['map_html'].wrapper).html('');
 		}
+
+		this.cancelled(doc);
 	},
 
 	setup_queries:function () {
@@ -39,6 +41,7 @@ erpnext.flows.GoodsReceiptController = frappe.ui.form.Controller.extend({
 
 	cancelled:function (doc, dt, dn) {
 		this.frm.set_df_property("customer", "reqd", !doc.cancelled);
+		this.frm.set_df_property("vehicle", "reqd", !doc.cancelled);
 		this.set_remarks_mandatory(doc);
 	},
 
