@@ -1,0 +1,81 @@
+<style>
+	.print-format {
+		padding: 0.1in;
+	}
+
+	.print-format td, .print-format th {
+		vertical-align: top !important;
+		padding: 0px 3px 0px 3px !important;
+	}
+
+	h1, .h1, h2, .h2, h3, .h3 {
+		margin-top: 10px;
+		margin-bottom: 5px;
+	}
+</style>
+
+
+{% if letter_head and not no_letterhead %}
+	<p class="text-left">
+
+	<div class="letter-head">{{ letter_head }}</div>
+	</p>
+	<br/>
+	<br/>
+{% endif %}
+
+
+<div>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="row">
+				<div class="col-md-12">
+					Date :- {{ doc.get_formatted("posting_date") }} <br/><br/>
+					<address>
+						<strong>The Plant Manager</strong><br/>
+						Indian Oil Corp.Ltd.<br/>
+						{{ doc.plant }}<br/>
+					</address>
+				</div>
+			</div>
+			<p>
+				Subject: - Authorization for lifting of 19KG, 47.5KG LOT AND VOT cylinders
+			</p>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<p>
+				We are authorized Business Associates of Indian Oil Corp. Ltd. vide LOA No. LPG/STR/1206 dated
+				23.09.2011 for entire India are lifting ND-packed LPG from {{ doc.plant }} on the authorization of
+				respective customers. We hereby authorize <strong>{{ doc.driver | capitalize }}</strong> as a driver of
+				our Truck no. <strong>{{ doc.vehicle }}</strong> for lifting ND-Packed LPG in 19kg, 47.5kg Vot lot
+				cylinders until any further written communication to concerned plant authorities.
+			</p>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<p>
+				So, your good self is requested to release loads through the said vehicle against indents placed by us
+				and enable us to feed the Direct / EXMI customers enrolled by us with Indian Oil Corp Ltd.
+			</p>
+		</div>
+	</div>
+    <br/><br/>
+	<div class="row">
+		<div class="col-md-12">
+			<p>
+				Signature of driver attested below with copy of DL
+				no.- {{ frappe.db.get_value("Driver", doc.driver, "dl_number") or "N/A" }}
+			</p>
+            <br/><br/><br/><br/><br/><br/><br/>
+			<div>
+				Sign attested of {{ doc.driver|capitalize }}</div>
+			<div>
+				<br/><br/>
+				Regards
+			</div>
+		</div>
+	</div>
+</div>

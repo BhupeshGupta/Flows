@@ -1,0 +1,15 @@
+{
+ "creation": "2015-09-16 17:07:58.651784", 
+ "disabled": 0, 
+ "doc_type": "Indent", 
+ "docstatus": 0, 
+ "doctype": "Print Format", 
+ "html": "", 
+ "modified": "2015-09-16 17:38:47.467742", 
+ "modified_by": "Administrator", 
+ "module": "Flows", 
+ "name": "Authority Letter IOCL Packed", 
+ "owner": "Administrator", 
+ "print_format_type": "Server", 
+ "standard": "Yes"
+}
