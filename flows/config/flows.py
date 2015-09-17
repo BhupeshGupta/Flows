@@ -50,6 +50,17 @@ def get_data():
 			]
 		},
 		{
+			"label": _("Tools"),
+			"icon": "icon-wrench",
+			"items": [
+				{
+					"type": "doctype",
+					"name": "Vendor Gatepass Tool",
+					"description": _("")
+				}
+			]
+		},
+		{
 			"label": _("Equipment Docs"),
 			"icon": "icon-star",
 			"items": [
