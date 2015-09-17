@@ -75,6 +75,15 @@
    "precision": ""
   }, 
   {
+   "default": "Refill", 
+   "fieldname": "delivery_type", 
+   "fieldtype": "Select", 
+   "label": "Delivery Type", 
+   "options": "Refill\nNew Connection\nTV Out", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "allow_on_submit": 0, 
    "fieldname": "quantity", 
    "fieldtype": "Section Break", 
@@ -472,7 +481,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-09-16 13:49:46.813182", 
+ "modified": "2015-09-17 15:10:04.614716", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Goods Receipt", 
