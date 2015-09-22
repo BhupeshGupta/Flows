@@ -635,7 +635,7 @@ class IndentInvoice(StockController):
 			}
 		],
 		"against_income_account": "Service - AL",
-		"select_print_heading": "Consignment Note",
+		"select_print_heading": "Transportation Invoice / Consignment Note",
 		"company": "Arun Logistics",
 		"letter_head": "Arun Logistics",
 		"is_opening": "No",
