@@ -184,6 +184,16 @@ def get_st_vouchers(filters):
 	    as_dict=True
 	)
 
+def get_subcontracted_invoices(filters):
+	return frappe.db.sql(
+		"""
+		select posting_date, company, customer, item, quantity as qty
+		from `tabSubcontracted Invoice`
+		where docstatus = 1 and
+	    posting_date <= '{to_date}';
+		""".format(**filters),
+	    as_dict=True
+	)
 
 
 def get_data_map(filters):
@@ -211,6 +221,7 @@ def get_data_map(filters):
 	pr = get_payment_receipts(filters)
 	pv = get_patch_vouchers(filters)
 	stv = get_st_vouchers(filters)
+	subcontracted_invoices = get_subcontracted_invoices(filters)
 
 	# a/c as suggested by cross sale purchase settings, used to balance VK sale/purchase
 	balance_customer_account = filters.indent_invoice_settings.customer_account
@@ -300,6 +311,17 @@ def get_data_map(filters):
 		qty_dict.m_purchased += flt(i.qty)
 
 		qty_dict = active_map[i.from_customer][get_item(i.item, filters)]
+		qty_dict.m_sold += flt(i.qty)
+
+	for i in subcontracted_invoices:
+		active_map = opening_map if i.posting_date < filters['from_date'] else current_map
+		active_map.setdefault(i.customer, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
+
+		qty_dict = active_map[i.customer][get_item(i.item, filters)]
+		qty_dict.i_issued += flt(i.qty)
+
+		active_map.setdefault(i.company, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
+		qty_dict = active_map[i.company][get_item(i.item, filters)]
 		qty_dict.m_sold += flt(i.qty)
 
 	active_map = opening_map
