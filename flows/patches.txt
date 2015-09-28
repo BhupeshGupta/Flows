@@ -13,3 +13,4 @@ flows.patches.copy_over_posting_date_to_transaction_date_gr
 flows.patches.direct_invoice_fix
 flows.patches.direct_payment_to_payer_and_hpcl_payer_creation
 flows.patches.kjv_cash_receipts
+flows.patches.aggarwal_invoices_to_subcontracted_invoices
