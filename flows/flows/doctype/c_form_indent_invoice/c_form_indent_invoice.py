@@ -8,7 +8,7 @@ from frappe.model.document import Document
 
 class CFormIndentInvoice(Document):
 	def before_submit(self):
-		if self.c_form_number.strip() == '':
+		if not(self.c_form_number and self.c_form_number.strip() != ''):
 			frappe.throw("Please enter C Form Number")
 
 	def before_save(self):
