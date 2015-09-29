@@ -115,6 +115,9 @@ class IndentInvoice(StockController):
 			self.discount = 0
 			self.handling = 0
 
+		if 'Aggarwal' in self.supplier:
+			frappe.throw("Use of Indent Invoice for `Aggarwal Enterprises` bills is deprecated. Please use Subcontracted Invoice from the same.")
+
 		return super(IndentInvoice, self).validate()
 
 	def validate_purchase_rate(self):
@@ -755,8 +758,6 @@ def get_conversion_factor(item):
         """.format(item=item)
 
 	val = frappe.db.sql(conversion_factor_query)[0][0]
-
-	root.debug(val)
 
 	return float(val) if val else 0
 
