@@ -56,7 +56,12 @@ def get_data():
 				{
 					"type": "doctype",
 					"name": "Vendor Gatepass Tool",
-					"description": _("")
+					"description": _("Create vendor gatepassed in bulk")
+				},
+				{
+					"type": "doctype",
+					"name": "Indent Invoice Customer Change Tool",
+					"description": _("Change customer in indent as well as in invoice")
 				}
 			]
 		},
