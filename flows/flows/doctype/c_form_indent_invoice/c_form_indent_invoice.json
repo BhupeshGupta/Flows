@@ -208,6 +208,55 @@
    "precision": ""
   }, 
   {
+   "fieldname": "images", 
+   "fieldtype": "Section Break", 
+   "label": "Images", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "front_image_view", 
+   "fieldtype": "Image", 
+   "label": "Front Image View", 
+   "options": "front_image_attachment", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "front_image_attachment", 
+   "fieldtype": "Attach", 
+   "label": "Front Image", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "column_break_19", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "rear_image_view", 
+   "fieldtype": "Image", 
+   "label": "Rear image View", 
+   "options": "rear_image_attachment", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "rear_image_attachment", 
+   "fieldtype": "Attach", 
+   "label": "Rear image", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "section_break_22", 
+   "fieldtype": "Section Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "amended_from", 
    "fieldtype": "Link", 
    "label": "Amended From", 
@@ -225,7 +274,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-08-31 19:10:17.763818", 
+ "modified": "2015-09-29 13:31:11.957288", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "C Form Indent Invoice", 
