@@ -26,6 +26,14 @@ erpnext.flows.GoodsReceiptController = frappe.ui.form.Controller.extend({
 				]
 			}
 		});
+		this.frm.set_query("customer", function () {
+			return {
+				filters: [
+					["Customer", "enabled", "=", 1],
+					["Customer", "sale_enabled", "=", 1]
+				]
+			}
+		});
 	},
 
 	set_remarks_mandatory: function (doc) {

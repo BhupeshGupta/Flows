@@ -54,6 +54,15 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 			}
 		});
 
+		this.frm.set_query("customer", "indent", function () {
+			return {
+				filters:{
+					'enabled': 1,
+					'purchase_enabled': 1
+				}
+			}
+		});
+
 		this.frm.set_query("vehicle", function () {
 			return {
 				query:"flows.flows.doctype.indent.indent.get_allowed_vehicle"
