@@ -9,6 +9,13 @@
  "document_type": "", 
  "fields": [
   {
+   "fieldname": "force_name", 
+   "fieldtype": "Data", 
+   "label": "Force Name", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "allow_on_submit": 0, 
    "fieldname": "bill_type", 
    "fieldtype": "Select", 
@@ -189,7 +196,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-09-25 12:19:04.589594", 
+ "modified": "2015-10-09 11:32:36.685840", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Subcontracted Invoice", 
