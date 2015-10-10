@@ -64,7 +64,9 @@ class GoodsReceipt(Document):
 
 		if cint(validity_hash[scrub(self.item_delivered)]) == 0\
 			or cint(validity_hash[scrub(self.item_received)]) == 0:
-			frappe.throw("This item is not enabled for customer. Please verify item or contact admin.")
+			frappe.throw("""
+			Item is not enabled for customer {} GR({}). Please verify item or contact admin.
+			""".format(self.customer, self.name))
 
 	def on_submit(self):
 		self.validate_date()
