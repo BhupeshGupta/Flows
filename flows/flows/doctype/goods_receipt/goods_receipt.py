@@ -62,8 +62,8 @@ class GoodsReceipt(Document):
 		select item_fc19, item_fc35, item_fc47_5, item_fc47_5l from `tabCustomer` where name = "{}"
 		""".format(self.customer), as_dict=True)[0]
 
-		if cint(validity_hash[scrub(self.item_delivered)]) == 0\
-			or cint(validity_hash[scrub(self.item_received)]) == 0:
+		if cint(validity_hash.get(scrub(self.item_delivered), 1)) == 0\
+			or cint(validity_hash.get(scrub(self.item_received), 1)) == 0:
 			frappe.throw("""
 			Item is not enabled for customer {} GR({}). Please verify item or contact admin.
 			""".format(self.customer, self.name))
