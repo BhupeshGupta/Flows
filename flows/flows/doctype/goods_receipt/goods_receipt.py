@@ -54,8 +54,23 @@ class GoodsReceipt(Document):
 		if len(rs) > 0:
 			throw("Payment Receipt with this serial already exists {}".format(self.goods_receipt_number))
 
+	def validate_item(self):
+		def scrub(item):
+			return 'item_' + item.replace('EC', 'FC').lower().replace('.', '_')
+
+		validity_hash = frappe.db.sql("""
+		select item_fc19, item_fc35, item_fc47_5, item_fc47_5l from `tabCustomer` where name = "{}"
+		""".format(self.customer), as_dict=True)[0]
+
+		if cint(validity_hash[scrub(self.item_delivered)]) == 0\
+			or cint(validity_hash[scrub(self.item_received)]) == 0:
+			frappe.throw("""
+			Item is not enabled for customer {} GR({}). Please verify item or contact admin.
+			""".format(self.customer, self.name))
+
 	def on_submit(self):
 		self.validate_date()
+		self.validate_item()
 		if self.warehouse == '' or not self.warehouse:
 			throw(
 				_("Warehouse Not Linked With Book. Please Contact Receipt Book Manager")
