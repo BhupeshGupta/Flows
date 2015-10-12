@@ -89,6 +89,9 @@ doc_events = {
 	},
 	"Contact": {
 		"validate": "flows.flows.custom_validation.contact_validate_for_sms"
+	},
+	"GL Entry": {
+		"on_submit": "flows.flows.custom_validation.validate_imprest_account_gl_entry_date",
 	}
 }
 
