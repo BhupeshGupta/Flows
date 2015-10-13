@@ -56,6 +56,13 @@
    "options": "Account", 
    "permlevel": 0, 
    "precision": ""
+  }, 
+  {
+   "fieldname": "imprest_closing_date", 
+   "fieldtype": "Date", 
+   "label": "Imprest Closing Date", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "hide_heading": 0, 
@@ -65,7 +72,7 @@
  "is_submittable": 0, 
  "issingle": 1, 
  "istable": 0, 
- "modified": "2015-06-29 16:56:20.537664", 
+ "modified": "2015-10-12 15:43:42.509344", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Flow Settings", 
