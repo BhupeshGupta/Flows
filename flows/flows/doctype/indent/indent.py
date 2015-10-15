@@ -25,6 +25,12 @@ class Indent(Document):
 		"""Load Gatepasses `__onload`"""
 		self.load_gatepasses()
 
+	def validate(self):
+		for indent_item in self.indent:
+			validate_bill_to_ship_to(indent_item.customer, indent_item.ship_to, self.posting_date)
+			if not indent_item.ship_to:
+				indent_item.ship_to = indent_item.customer
+
 	def on_submit(self):
 		self.process_material_according_to_indent()
 
@@ -297,3 +303,38 @@ def get_allowed_vehicle(doctype, txt, searchfield, start, page_len, filters):
 	rs = list(superset_of_vehicles - bad_vehicles_set)
 
 	return [[x] for x in rs]
+
+
+def validate_bill_to_ship_to(bill_to, ship_to, date):
+	def raise_error():
+		frappe.throw("{}'s material is not allowed to be shipped to {}".format(bill_to, ship_to))
+
+	if not ship_to:
+		return True
+	if ship_to.strip() == '':
+		return True
+	if bill_to == ship_to:
+		return True
+
+	rs = frappe.db.sql("""
+	select DISTINCT ri.customer, ri.parent
+	from `tabBill To Ship To Rules Item` ri, `tabBill To Ship To Rules` r
+	where (
+		ri.customer="{bill_to}"
+		or ri.customer = "{ship_to}"
+	)
+	and ri.parent=r.name
+	and r.valid_from <= "{date}"
+	order by parent;
+	""".format(bill_to=bill_to, ship_to=ship_to, date=date), as_dict=True)
+
+	map = {}
+	for i in rs:
+		map.setdefault(i.parent, 2)
+		map[i.parent] -= 1
+
+	for i in map.values():
+		if i == 0:
+			return True
+
+	raise_error()

@@ -180,6 +180,15 @@
    "reqd": 1
   }, 
   {
+   "allow_on_submit": 1, 
+   "fieldname": "ship_to", 
+   "fieldtype": "Link", 
+   "label": "Ship To", 
+   "options": "Customer", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "column_break_14", 
    "fieldtype": "Column Break", 
    "permlevel": 0, 
@@ -533,6 +542,15 @@
    "options": "Journal Voucher", 
    "permlevel": 0, 
    "precision": ""
+  }, 
+  {
+   "default": "Do Not Adjust Rate", 
+   "fieldname": "consignment_note_adjustment", 
+   "fieldtype": "Select", 
+   "label": "Consignment Note Adjustment", 
+   "options": "Do Not Adjust Rate\nAdjust Rate", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "hide_heading": 0, 
@@ -542,7 +560,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-09-12 13:18:49.225268", 
+ "modified": "2015-10-14 15:38:50.517941", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 

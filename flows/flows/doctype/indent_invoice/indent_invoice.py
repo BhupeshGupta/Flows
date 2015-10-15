@@ -18,6 +18,7 @@ from frappe.utils import today
 from frappe.utils import cint
 from frappe.utils import get_first_day
 from flows.flows import payer
+from flows.flows.doctype.indent.indent import validate_bill_to_ship_to
 
 
 class IndentInvoice(StockController):
@@ -62,6 +63,8 @@ class IndentInvoice(StockController):
 					"This Indent Invoice is already settled in Cross Purchase {}".
 						format(", ".join([x.name for x in cp]))
 				)
+
+		validate_bill_to_ship_to(self.customer, self.ship_to, self.transaction_date)
 
 	def cancel(self):
 		super(IndentInvoice, self).cancel()
@@ -111,9 +114,19 @@ class IndentInvoice(StockController):
 			self.supplier = indent.plant
 			self.company = indent.company
 
+			# IF ship to is defined in indent and not defined in invoice, copy value over to invoice
+			if indent_item.ship_to and indent_item.ship_to.strip() != '':
+				if not (self.ship_to and self.ship_to.strip() != ''):
+					self.ship_to = indent_item.ship_to
+
+			validate_bill_to_ship_to(self.customer, self.ship_to, self.transaction_date)
+
 		if not cint(self.adjusted) == 1:
 			self.discount = 0
 			self.handling = 0
+
+		if not self.ship_to:
+			self.ship_to = self.customer
 
 		if 'Aggarwal' in self.supplier:
 			frappe.throw("Use of Indent Invoice for `Aggarwal Enterprises` bills is deprecated. Please use Subcontracted Invoice from the same.")
@@ -244,7 +257,6 @@ class IndentInvoice(StockController):
 			self.payment_type = 'Direct'
 			self.sub_contracted = 0
 			self.cross_sold = 0
-			self.indent_linked = 0
 
 	def submit_branch_out_for_special_cases(self, gl_entries):
 
