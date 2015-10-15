@@ -18,6 +18,20 @@ frappe.query_reports["Purchase Sale"] = {
 			"reqd":1
 		},
 		{
+			"fieldname":"opening_computation_method",
+			"label":__("Opening Computation Method"),
+			"fieldtype": "Select",
+			"options": 'Bill To' + NEWLINE + 'Ship To',
+			"default": "Ship To"
+		},
+		{
+			"fieldname":"current_computation_method",
+			"label":__("Current Computation Method"),
+			"fieldtype": "Select",
+			"options": 'Bill To' + NEWLINE + 'Ship To',
+			"default": "Ship To"
+		},
+		{
 			"fieldname":"lot_vot_bifurcate",
 			"label":__("LOT VOT Bifurcate"),
 			"fieldtype":"Check",
@@ -29,6 +43,5 @@ frappe.query_reports["Purchase Sale"] = {
 			"fieldtype":"Check",
 			"default":0
 		}
-
 	]
 };

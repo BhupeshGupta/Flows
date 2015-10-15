@@ -85,7 +85,7 @@ def get_invoices(filters):
 	rs = frappe.db.sql(
 		"""
 		select transaction_date as posting_date, customer, item, qty,
-		sub_contracted, supplier, cross_sold
+		sub_contracted, supplier, cross_sold, ship_to
 		from `tabIndent Invoice`
 		where docstatus = 1
 		and transaction_date <= '{to_date}'
@@ -104,7 +104,7 @@ def get_indents_which_are_not_invoiced_yet(filters):
 	return frappe.db.sql(
 		"""
 		select indent.posting_date as posting_date, indent_item.customer, indent_item.item, indent_item.qty,
-		indent_item.cross_sold
+		indent_item.cross_sold, indent_item.ship_to
 		from `tabIndent Item` indent_item,
 		`tabIndent` indent
 		where indent_item.parent = indent.name
@@ -160,19 +160,6 @@ def get_payment_receipts(filters):
 	    as_dict=True
 	)
 
-def get_patch_vouchers(filters):
-	return frappe.db.sql(
-		"""
-		select pv.posting_date as posting_date, pi.item as item, pi.qty as qty,
-		pi.to_customer as to_customer, pi.invoice_customer as invoice_customer
-		from `tabPatch Item` pi, `tabPatch Voucher` pv
-		where pv.docstatus = 1 and
-		pv.name = pi.parent and
-	    pv.posting_date <= '{to_date}';
-		""".format(**filters),
-	    as_dict=True
-	)
-
 def get_st_vouchers(filters):
 	return frappe.db.sql(
 		"""
@@ -219,7 +206,6 @@ def get_data_map(filters):
 	gr = get_goods_receipts(filters)
 	cs = get_sale_entries(filters)
 	pr = get_payment_receipts(filters)
-	pv = get_patch_vouchers(filters)
 	stv = get_st_vouchers(filters)
 	subcontracted_invoices = get_subcontracted_invoices(filters)
 
@@ -228,9 +214,11 @@ def get_data_map(filters):
 
 	for i in indents:
 		active_map = opening_map if i.posting_date < filters['from_date'] else current_map
+		customer = get_customer_from_purchase_vouchers(i, filters)
+
 		if cint(i.cross_sold) == 0:
-			active_map.setdefault(i.customer, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
-			qty_dict = active_map[i.customer][get_item(i.item, filters)]
+			active_map.setdefault(customer, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
+			qty_dict = active_map[customer][get_item(i.item, filters)]
 		else:
 			active_map.setdefault(balance_customer_account, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
 			qty_dict = active_map[balance_customer_account][get_item(i.item, filters)]
@@ -238,8 +226,10 @@ def get_data_map(filters):
 
 	for i in invoices:
 		active_map = opening_map if i.posting_date < filters['from_date'] else current_map
-		active_map.setdefault(i.customer, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
-		qty_dict = active_map[i.customer][get_item(i.item, filters)]
+		customer = get_customer_from_purchase_vouchers(i, filters)
+
+		active_map.setdefault(customer, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
+		qty_dict = active_map[customer][get_item(i.item, filters)]
 		qty_dict.i_issued += flt(i.qty)
 
 		# Subcontracted, add to supplier's sale
@@ -251,8 +241,8 @@ def get_data_map(filters):
 		# Cross Sold
 		if cint(i.cross_sold) == 1:
 			# Sold by customer
-			active_map.setdefault(i.customer, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
-			qty_dict = active_map[i.customer][get_item(i.item, filters)]
+			active_map.setdefault(customer, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
+			qty_dict = active_map[customer][get_item(i.item, filters)]
 			qty_dict.m_sold += flt(i.qty)
 
 			# Purchased by Cross Sale Purchase balance account
@@ -291,16 +281,6 @@ def get_data_map(filters):
 		qty_dict = active_map[balance_customer_account][get_item(i.item, filters)]
 		qty_dict.m_delivered += flt(i.qty)
 
-	for i in pv:
-		active_map = opening_map if i.posting_date < filters['from_date'] else current_map
-		active_map.setdefault(i.invoice_customer, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
-		active_map.setdefault(i.to_customer, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
-
-		qty_dict = active_map[i.to_customer][get_item(i.item, filters)]
-		qty_dict.i_issued += flt(i.qty)
-
-		qty_dict = active_map[i.invoice_customer][get_item(i.item, filters)]
-		qty_dict.i_issued -= flt(i.qty)
 
 	for i in stv:
 		active_map = opening_map if i.posting_date < filters['from_date'] else current_map
@@ -378,3 +358,9 @@ def get_item(item, filters):
 	if cint(filters.lot_vot_bifurcate) == 0:
 		return item.replace('L','')
 	return item
+
+op_algo = 'opening_computation_method'
+cr_algo = 'current_computation_method'
+def get_customer_from_purchase_vouchers(voucher, filters):
+	algo = op_algo if voucher.posting_date < filters['from_date'] else cr_algo
+	return voucher.customer if filters[algo] == 'Bill To' else voucher.ship_to
