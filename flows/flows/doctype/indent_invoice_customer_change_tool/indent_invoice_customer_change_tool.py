@@ -6,13 +6,20 @@ import frappe
 from frappe.model.document import Document
 
 
+validation_map = {
+	'AARTI STEEL': 'AARTI STEEL',
+	'Christian Medical': 'Christian Medical'
+}
+
 class IndentInvoiceCustomerChangeTool(Document):
 	def validate_change(self, invoice, src_customer, target_customer):
 		if invoice.docstatus != 1:
 			frappe.throw("Invoice needs to be submitted before applying change")
 
-		if 'AARTI STEEL' in src_customer and 'AARTI STEEL' in target_customer:
-			return
+		for src, target in validation_map.items():
+			if src in src_customer and target in target_customer:
+				return
+
 		frappe.throw("Change prohibited by rules. Please contact admin")
 
 	def apply_change(self):
