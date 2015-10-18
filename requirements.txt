@@ -1,1 +1,3 @@
 frappe
+beautifulsoup4
+lxml
