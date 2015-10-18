@@ -2,17 +2,16 @@
 # For license information, please see license.txt
 from __future__ import unicode_literals
 
+import requests
+
 from flows import utils as flows_utils
 from erpnext.stock.stock_ledger import make_sl_entries
-
 from frappe.model.document import Document
-
 import frappe
 import frappe.defaults
 from flows import utils as flow_utils
 from frappe.utils import comma_and
 from erpnext.accounts import utils as account_utils
-
 from frappe.utils import today, now
 
 
@@ -178,20 +177,20 @@ class Indent(Document):
 
 		conversion_sl_entries.append(
 			self.get_sl_entry({
-				"item_code": item,
-				"actual_qty": -1 * item_quantity,
-				"warehouse": from_warehouse.name,
-				"company": from_warehouse.company,
-				"process": process
+			"item_code": item,
+			"actual_qty": -1 * item_quantity,
+			"warehouse": from_warehouse.name,
+			"company": from_warehouse.company,
+			"process": process
 			})
 		)
 		conversion_sl_entries.append(
 			self.get_sl_entry({
-				"item_code": item,
-				"actual_qty": 1 * item_quantity,
-				"warehouse": to_warehouse.name,
-				"company": to_warehouse.company,
-				"process": process
+			"item_code": item,
+			"actual_qty": 1 * item_quantity,
+			"warehouse": to_warehouse.name,
+			"company": to_warehouse.company,
+			"process": process
 			})
 		)
 
@@ -200,15 +199,15 @@ class Indent(Document):
 	def get_sl_entry(self, args):
 		sl_dict = frappe._dict(
 			{
-				"posting_date": self.posting_date,
-				"posting_time": self.posting_time,
-				"voucher_type": self.doctype,
-				"voucher_no": self.name,
-				"actual_qty": 0,
-				"incoming_rate": 0,
-				"company": self.company,
-				"fiscal_year": self.fiscal_year,
-				"is_cancelled": self.docstatus == 2 and "Yes" or "No"
+			"posting_date": self.posting_date,
+			"posting_time": self.posting_time,
+			"voucher_type": self.doctype,
+			"voucher_no": self.name,
+			"actual_qty": 0,
+			"incoming_rate": 0,
+			"company": self.company,
+			"fiscal_year": self.fiscal_year,
+			"is_cancelled": self.docstatus == 2 and "Yes" or "No"
 			})
 
 		sl_dict.update(args)
@@ -224,7 +223,7 @@ class Indent(Document):
 
 	def load_gatepasses(self):
 		self.get("__onload").gp_list = frappe.get_all("Gatepass",
-			fields="*", filters={'indent': self.name, 'docstatus': 1})
+													  fields="*", filters={'indent': self.name, 'docstatus': 1})
 
 
 @frappe.whitelist()
@@ -245,6 +244,7 @@ def make_gatepass(source_name, target_doc=None):
 	doc.dispatch_destination = 'Plant'
 
 	return doc.as_dict()
+
 
 def get_indent_list(doctype, txt, searchfield, start, page_len, filters):
 	# posting_date >= '2015-05-01' // feature start date
@@ -283,11 +283,13 @@ def get_indent_list(doctype, txt, searchfield, start, page_len, filters):
 
 	return result
 
+
 @frappe.whitelist()
 def link_with_gatepass(gatepass, indent):
-	frappe.db.sql("""update `tabGatepass` set indent = '{indent}' where name = '{name}'""".
+	frappe.db.sql("""UPDATE `tabGatepass` SET indent = '{indent}' WHERE name = '{name}'""".
 					  format(indent=indent, name=gatepass))
 	frappe.msgprint("Linked Gatepass")
+
 
 @frappe.whitelist()
 def get_allowed_vehicle(doctype, txt, searchfield, start, page_len, filters):
@@ -297,8 +299,9 @@ def get_allowed_vehicle(doctype, txt, searchfield, start, page_len, filters):
 		""".format(searchfield, txt))])
 
 	from flows.flows.report.purchase_cycle_report.purchase_cycle_report import get_data
+
 	vehicles_with_state = get_data(frappe._dict())
-	bad_vehicles_set = set([x.indent.vehicle for x in vehicles_with_state if x.bill_state =='Pending'] + ['Self'])
+	bad_vehicles_set = set([x.indent.vehicle for x in vehicles_with_state if x.bill_state == 'Pending'] + ['Self'])
 
 	rs = list(superset_of_vehicles - bad_vehicles_set)
 
@@ -317,15 +320,15 @@ def validate_bill_to_ship_to(bill_to, ship_to, date):
 		return True
 
 	rs = frappe.db.sql("""
-	select DISTINCT ri.customer, ri.parent
-	from `tabBill To Ship To Rules Item` ri, `tabBill To Ship To Rules` r
-	where (
+	SELECT DISTINCT ri.customer, ri.parent
+	FROM `tabBill To Ship To Rules Item` ri, `tabBill To Ship To Rules` r
+	WHERE (
 		ri.customer="{bill_to}"
-		or ri.customer = "{ship_to}"
+		OR ri.customer = "{ship_to}"
 	)
-	and ri.parent=r.name
-	and r.valid_from <= "{date}"
-	order by parent;
+	AND ri.parent=r.name
+	AND r.valid_from <= "{date}"
+	ORDER BY parent;
 	""".format(bill_to=bill_to, ship_to=ship_to, date=date), as_dict=True)
 
 	map = {}
@@ -338,3 +341,20 @@ def validate_bill_to_ship_to(bill_to, ship_to, date):
 			return True
 
 	raise_error()
+
+
+@frappe.whitelist()
+def fetch_account_balance_with_omc(plant, customer):
+	from bs4 import BeautifulSoup
+
+	if 'hpcl' in plant.lower():
+		erpcode = frappe.db.sql('SELECT hpcl_erp_number FROM `tabCustomer` WHERE name = "{}"'.format(customer))
+		s = requests.Session()
+		data = s.post(
+			'https://sales.hpcl.co.in/Cust_Credit_Client/CreditCheckResponseBP_Live.jsp',
+			data={'custcode': erpcode[0]}
+		)
+		soup = BeautifulSoup(data.content)
+		return {'status': 'OK', 'balance': float(soup.findAll('tr')[3].findAll('td')[1].text.replace("&nbsp", ""))}
+
+	return {'status': 'Not Implemented', 'balance': 0}

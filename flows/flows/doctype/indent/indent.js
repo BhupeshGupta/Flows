@@ -11,6 +11,7 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 		this.setup_queries();
 		// Set company according to naming series
 		this.naming_series(this.frm.doc, null, null);
+		this.setup_balance_formatter();
 	},
 
 	refresh:function (doc, dt, dn) {
@@ -57,8 +58,8 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 		this.frm.set_query("customer", "indent", function () {
 			return {
 				filters:{
-					'enabled': 1,
-					'purchase_enabled': 1
+					'enabled':1,
+					'purchase_enabled':1
 				}
 			}
 		});
@@ -95,6 +96,7 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 	customer:function (doc, cdt, cdn) {
 		this.populate_payment_type_info(doc, cdt, cdn);
 		this.compute_base_rate(doc, cdt, cdn);
+		this.fetch_balance(doc, cdt, cdn);
 	},
 
 	item:function (doc, cdt, cdn) {
@@ -325,6 +327,39 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 			if (eiv_map[key] > 1) {
 				frappe.throw('Same EIV cant be used across multiple loads');
 			}
+		}
+	},
+
+	fetch_balance:function (doc, cdt, cdn) {
+		if (doc.plant.toLowerCase().indexOf("hpcl") > -1) {
+			var indent_item = frappe.get_doc(cdt, cdn);
+			frappe.call({
+				method:"flows.flows.doctype.indent.indent.fetch_account_balance_with_omc",
+				args:{
+					plant:doc.plant,
+					customer:indent_item.customer
+				},
+				callback:function (r) {
+					console.log(r.message);
+					if (!r.exc && r.message.status == 'OK') {
+						indent_item.omc_account_balance = r.message.balance;
+						refresh_field("omc_account_balance", indent_item.name, indent_item.parentfield);
+					}
+				}
+			});
+		}
+
+	},
+
+	setup_balance_formatter: function() {
+		var df = frappe.meta.get_docfield("Indent Item", "omc_account_balance", this.frm.doc.name);
+		df.formatter = function(value, df, options, doc) {
+			var currency = frappe.meta.get_field_currency(df, doc);
+			var dr_or_cr = value ? ('<label>' + (value > 0.0 ? __("Dr") : __("Cr")) + '</label>') : "";
+			return "<div style='text-align: right'>"
+				+ ((value==null || value==="") ? "" : format_currency(Math.abs(value), currency))
+				+ " " + dr_or_cr
+				+ "</div>";
 		}
 	}
 
