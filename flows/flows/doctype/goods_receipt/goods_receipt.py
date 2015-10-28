@@ -58,6 +58,9 @@ class GoodsReceipt(Document):
 		def scrub(item):
 			return 'item_' + item.replace('EC', 'FC').lower().replace('.', '_') if item else ''
 
+		if not self.customer:
+			return
+
 		validity_hash = frappe.db.sql("""
 		select item_fc19, item_fc35, item_fc47_5, item_fc47_5l from `tabCustomer` where name = "{}"
 		""".format(self.customer), as_dict=True)[0]
