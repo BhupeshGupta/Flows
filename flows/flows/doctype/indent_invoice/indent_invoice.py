@@ -138,6 +138,9 @@ class IndentInvoice(StockController):
 		if cint(self.indent_linked) != 1:
 			return
 
+		if self.customer == 'VK Logistics':
+			return
+
 		from flows.flows.pricing_controller import compute_base_rate_for_a_customer
 
 		indent_item = frappe.get_doc("Indent Item", self.indent_item)
