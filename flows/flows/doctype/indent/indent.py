@@ -2,8 +2,6 @@
 # For license information, please see license.txt
 from __future__ import unicode_literals
 
-import requests
-
 from flows import utils as flows_utils
 from erpnext.stock.stock_ledger import make_sl_entries
 from frappe.model.document import Document
@@ -12,7 +10,8 @@ import frappe.defaults
 from flows import utils as flow_utils
 from frappe.utils import comma_and
 from erpnext.accounts import utils as account_utils
-from frappe.utils import today, now
+from frappe.utils import today, now, add_days
+from flows.flows.hpcl_interface import HPCLCustomerPortal
 
 
 class Indent(Document):
@@ -347,43 +346,37 @@ def validate_bill_to_ship_to(bill_to, ship_to, date):
 def fetch_account_balance_with_omc(plant, customer):
 	if 'hpcl' in plant.lower():
 		erpcode = frappe.db.sql('SELECT hpcl_erp_number FROM `tabCustomer` WHERE name = "{}"'.format(customer))
-		return {'status': 'OK', 'balance': get_hpcl_ac_balance(erpcode[0])}
+		return {'status': 'OK', 'balance': HPCLCustomerPortal(erpcode[0], '').get_current_balance_as_on_date()}
 	return {'status': 'Not Implemented', 'balance': 0}
 
 
-def fetch_and_record_hpcl_balance():
+def fetch_and_record_hpcl_balance(for_date=None):
+	for_date = for_date if for_date else add_days(today(), -1)
+
 	exception_list = []
 	from frappe.utils import now_datetime
+
 	for customer in frappe.db.sql("""
-	SELECT name, hpcl_erp_number FROM `tabCustomer` where ifnull(hpcl_erp_number, '') != '' and enabled=1 and sale_enabled=1
+	SELECT name, hpcl_erp_number FROM `tabCustomer` WHERE ifnull(hpcl_erp_number, '') != '' AND enabled=1 AND
+	sale_enabled=1
 	""", as_dict=True):
+		portal = HPCLCustomerPortal(customer.hpcl_erp_number, '')
+		total_debit = total_credit = 0
 		try:
-			doc = frappe.get_doc({
-				'customer': customer.name,
-				'datetime': now_datetime(),
-				'balance': get_hpcl_ac_balance(customer.hpcl_erp_number),
-				'doctype': 'HPCL Customer Balance'
-				}
-			)
-			doc.ignore_permissions = True
-			doc.save()
-			frappe.db.commit()
+			portal.login()
+			total_debit, total_credit = portal.get_debit_credit_total(for_date, for_date)
 		except Exception as e:
 			exception_list.append((customer.name, customer.hpcl_erp_number, e))
 
-
-def get_hpcl_ac_balance(erp_code):
-	from bs4 import BeautifulSoup
-	s = requests.Session()
-	data = s.post(
-		'https://sales.hpcl.co.in/Cust_Credit_Client/CreditCheckResponseBP_Live.jsp',
-		data={'custcode': erp_code},
-		headers = {'User-agent': 'ALPINE ENERGY LIMITED ND Distributor/9914526902/alpineenergyhpcl@gmail.com'}
-	)
-	content = data.content
-	soup = BeautifulSoup(content)
-
-	from flows.stdlogger import root
-	root.debug(content)
-
-	return float(soup.findAll('tr')[3].findAll('td')[1].text.replace("&nbsp", ""))
+		doc = frappe.get_doc({
+		'customer': customer.name,
+		'datetime': now_datetime(),
+		'balance': portal.get_current_balance_as_on_date(),
+		'doctype': 'HPCL Customer Balance',
+		'total_debit': total_debit,
+		'total_credit': total_credit
+		}
+		)
+		doc.ignore_permissions = True
+		doc.save()
+		frappe.db.commit()
