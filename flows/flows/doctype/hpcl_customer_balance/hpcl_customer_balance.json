@@ -65,6 +65,20 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0
+  }, 
+  {
+   "fieldname": "total_debit", 
+   "fieldtype": "Currency", 
+   "label": "total_debit", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "total_credit", 
+   "fieldtype": "Currency", 
+   "label": "total_credit", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "hide_heading": 0, 
@@ -74,7 +88,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-11-09 09:30:14.040155", 
+ "modified": "2015-11-09 16:25:00.365762", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "HPCL Customer Balance", 
