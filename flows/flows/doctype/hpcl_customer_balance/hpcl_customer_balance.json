@@ -79,6 +79,13 @@
    "label": "total_credit", 
    "permlevel": 0, 
    "precision": ""
+  },
+  {
+   "fieldname": "msg", 
+   "fieldtype": "Small Text", 
+   "label": "msg", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "hide_heading": 0, 
@@ -88,8 +95,8 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-11-09 16:25:00.365762", 
- "modified_by": "Administrator", 
+ "modified": "2015-11-09 21:27:47.570749",
+ "modified_by": "Administrator",
  "module": "Flows", 
  "name": "HPCL Customer Balance", 
  "name_case": "", 

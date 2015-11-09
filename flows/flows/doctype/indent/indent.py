@@ -354,29 +354,35 @@ def fetch_and_record_hpcl_balance(for_date=None):
 	for_date = for_date if for_date else add_days(today(), -1)
 
 	exception_list = []
-	from frappe.utils import now_datetime
+	# from frappe.utils import now_datetime
 
 	for customer in frappe.db.sql("""
-	SELECT name, hpcl_erp_number FROM `tabCustomer` WHERE ifnull(hpcl_erp_number, '') != '' AND enabled=1 AND
-	sale_enabled=1
+	SELECT name, hpcl_erp_number, hpcl_payer_password
+	FROM `tabCustomer`
+	WHERE ifnull(hpcl_erp_number, '') != ''
+	AND enabled=1
+	AND sale_enabled=1
 	""", as_dict=True):
-		portal = HPCLCustomerPortal(customer.hpcl_erp_number, '')
+		portal = HPCLCustomerPortal(customer.hpcl_erp_number, customer.hpcl_payer_password)
 		total_debit = total_credit = 0
+		msg = ''
 		try:
 			portal.login()
 			total_debit, total_credit = portal.get_debit_credit_total(for_date, for_date)
 		except Exception as e:
 			exception_list.append((customer.name, customer.hpcl_erp_number, e))
+			msg = e
 
 		doc = frappe.get_doc({
 		'customer': customer.name,
-		'datetime': now_datetime(),
+		'datetime': for_date,
 		'balance': portal.get_current_balance_as_on_date(),
 		'doctype': 'HPCL Customer Balance',
 		'total_debit': total_debit,
-		'total_credit': total_credit
-		}
-		)
+		'total_credit': total_credit,
+		'msg': msg
+		})
+
 		doc.ignore_permissions = True
 		doc.save()
 		frappe.db.commit()
