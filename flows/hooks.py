@@ -99,23 +99,19 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"flows.tasks.all"
-# 	],
-# 	"daily": [
-# 		"flows.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"flows.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"flows.tasks.weekly"
-# 	]
-# 	"monthly": [
-# 		"flows.tasks.monthly"
-# 	]
-# }
+scheduler_events = {
+	"all": [
+	],
+	"daily": [
+		"flows.flows.doctype.indent.indent.fetch_and_record_hpcl_balance"
+	],
+	"hourly": [
+	],
+	"weekly": [
+	],
+	"monthly": [
+	]
+}
 
 # Testing
 # -------
