@@ -345,16 +345,45 @@ def validate_bill_to_ship_to(bill_to, ship_to, date):
 
 @frappe.whitelist()
 def fetch_account_balance_with_omc(plant, customer):
-	from bs4 import BeautifulSoup
-
 	if 'hpcl' in plant.lower():
 		erpcode = frappe.db.sql('SELECT hpcl_erp_number FROM `tabCustomer` WHERE name = "{}"'.format(customer))
-		s = requests.Session()
-		data = s.post(
-			'https://sales.hpcl.co.in/Cust_Credit_Client/CreditCheckResponseBP_Live.jsp',
-			data={'custcode': erpcode[0]}
-		)
-		soup = BeautifulSoup(data.content)
-		return {'status': 'OK', 'balance': float(soup.findAll('tr')[3].findAll('td')[1].text.replace("&nbsp", ""))}
-
+		return {'status': 'OK', 'balance': get_hpcl_ac_balance(erpcode[0])}
 	return {'status': 'Not Implemented', 'balance': 0}
+
+
+def fetch_and_record_hpcl_balance():
+	exception_list = []
+	from frappe.utils import now_datetime
+	for customer in frappe.db.sql("""
+	SELECT name, hpcl_erp_number FROM `tabCustomer` where ifnull(hpcl_erp_number, '') != '' and enabled=1 and sale_enabled=1
+	""", as_dict=True):
+		try:
+			doc = frappe.get_doc({
+				'customer': customer.name,
+				'datetime': now_datetime(),
+				'balance': get_hpcl_ac_balance(customer.hpcl_erp_number),
+				'doctype': 'HPCL Customer Balance'
+				}
+			)
+			doc.ignore_permissions = True
+			doc.save()
+			frappe.db.commit()
+		except Exception as e:
+			exception_list.append((customer.name, customer.hpcl_erp_number, e))
+
+
+def get_hpcl_ac_balance(erp_code):
+	from bs4 import BeautifulSoup
+	s = requests.Session()
+	data = s.post(
+		'https://sales.hpcl.co.in/Cust_Credit_Client/CreditCheckResponseBP_Live.jsp',
+		data={'custcode': erp_code},
+		headers = {'User-agent': 'ALPINE ENERGY LIMITED ND Distributor/9914526902/alpineenergyhpcl@gmail.com'}
+	)
+	content = data.content
+	soup = BeautifulSoup(content)
+
+	from flows.stdlogger import root
+	root.debug(content)
+
+	return float(soup.findAll('tr')[3].findAll('td')[1].text.replace("&nbsp", ""))

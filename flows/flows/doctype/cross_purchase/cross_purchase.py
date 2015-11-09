@@ -165,7 +165,7 @@ def get_pending_invoices(doctype, txt, searchfield, start, page_len, filters, as
 		docstatus = 1 AND
 		customer IN ({customer}) AND
 		transaction_date <= "{date}" AND
-		name NOT IN (SELECT invoice FROM `tabCross Purchase Item` WHERE docstatus = 1)
+		name NOT IN (SELECT invoice FROM `tabCross Purchase Item` WHERE docstatus != 2)
 		ORDER BY transaction_date ASC;
 		""".format(
 		customer='"{}"'.format('","'.join(filters['customer'])),
