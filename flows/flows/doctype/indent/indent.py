@@ -389,7 +389,7 @@ def fetch_and_record_hpcl_balance(for_date=None):
 
 			doc = frappe.get_doc({
 			'customer': customer.name,
-			'datetime': for_date,
+			'date': for_date,
 			'balance': portal.get_current_balance_as_on_date(),
 			'doctype': 'HPCL Customer Balance',
 			'total_debit': total_debit,
