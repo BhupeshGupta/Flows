@@ -10,13 +10,13 @@
  "fields": [
   {
    "allow_on_submit": 0, 
-   "fieldname": "datetime", 
-   "fieldtype": "Datetime", 
+   "fieldname": "date", 
+   "fieldtype": "Data", 
    "hidden": 0, 
    "ignore_user_permissions": 0, 
    "in_filter": 0, 
    "in_list_view": 1, 
-   "label": "DateTime", 
+   "label": "Date", 
    "no_copy": 0, 
    "permlevel": 0, 
    "precision": "", 
@@ -69,21 +69,30 @@
   {
    "fieldname": "total_debit", 
    "fieldtype": "Currency", 
-   "label": "total_debit", 
+   "label": "Total Debit", 
    "permlevel": 0, 
    "precision": ""
   }, 
   {
    "fieldname": "total_credit", 
    "fieldtype": "Currency", 
-   "label": "total_credit", 
+   "label": "Total Credit", 
    "permlevel": 0, 
    "precision": ""
-  },
+  }, 
+  {
+   "default": "None", 
+   "fieldname": "error_type", 
+   "fieldtype": "Select", 
+   "label": "Error Type", 
+   "options": "None\nLoginError", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
   {
    "fieldname": "msg", 
    "fieldtype": "Small Text", 
-   "label": "msg", 
+   "label": "Message", 
    "permlevel": 0, 
    "precision": ""
   }
@@ -95,8 +104,8 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-11-09 21:27:47.570749",
- "modified_by": "Administrator",
+ "modified": "2015-11-10 13:50:45.475691", 
+ "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "HPCL Customer Balance", 
  "name_case": "", 
