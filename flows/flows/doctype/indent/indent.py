@@ -11,7 +11,7 @@ from flows import utils as flow_utils
 from frappe.utils import comma_and
 from erpnext.accounts import utils as account_utils
 from frappe.utils import today, now, add_days
-from flows.flows.hpcl_interface import HPCLCustomerPortal
+from flows.flows.hpcl_interface import HPCLCustomerPortal, LoginError, ServerBusy
 
 
 class Indent(Document):
@@ -352,37 +352,60 @@ def fetch_account_balance_with_omc(plant, customer):
 
 def fetch_and_record_hpcl_balance(for_date=None):
 	for_date = for_date if for_date else add_days(today(), -1)
+	run = True
 
 	exception_list = []
 	# from frappe.utils import now_datetime
 
-	for customer in frappe.db.sql("""
+	customer_list = frappe.db.sql("""
 	SELECT name, hpcl_erp_number, hpcl_payer_password
 	FROM `tabCustomer`
 	WHERE ifnull(hpcl_erp_number, '') != ''
 	AND enabled=1
 	AND sale_enabled=1
-	""", as_dict=True):
-		portal = HPCLCustomerPortal(customer.hpcl_erp_number, customer.hpcl_payer_password)
-		total_debit = total_credit = 0
-		msg = ''
-		try:
-			portal.login()
-			total_debit, total_credit = portal.get_debit_credit_total(for_date, for_date)
-		except Exception as e:
-			exception_list.append((customer.name, customer.hpcl_erp_number, e))
-			msg = e
+	""", as_dict=True)
 
-		doc = frappe.get_doc({
-		'customer': customer.name,
-		'datetime': for_date,
-		'balance': portal.get_current_balance_as_on_date(),
-		'doctype': 'HPCL Customer Balance',
-		'total_debit': total_debit,
-		'total_credit': total_credit,
-		'msg': msg
-		})
+	customer_defer_list = []
 
-		doc.ignore_permissions = True
-		doc.save()
-		frappe.db.commit()
+	while run:
+		for customer in customer_list:
+			portal = HPCLCustomerPortal(customer.hpcl_erp_number, customer.hpcl_payer_password)
+			total_debit = total_credit = 0
+			msg = ''
+			error = ''
+			try:
+				portal.login()
+				total_debit, total_credit = portal.get_debit_credit_total(for_date, for_date)
+			except LoginError as e:
+				error = 'LoginError'
+				exception_list.append((customer.name, customer.hpcl_erp_number, e))
+				msg = e
+			except ServerBusy as e:
+				customer_defer_list.append(customer)
+				continue
+			except Exception as e:
+				exception_list.append((customer.name, customer.hpcl_erp_number, e))
+				msg = e
+
+			doc = frappe.get_doc({
+			'customer': customer.name,
+			'datetime': for_date,
+			'balance': portal.get_current_balance_as_on_date(),
+			'doctype': 'HPCL Customer Balance',
+			'total_debit': total_debit,
+			'total_credit': total_credit,
+			'msg': msg,
+			})
+
+			if error:
+				doc.error_type = error
+
+			doc.ignore_permissions = True
+			doc.save()
+			frappe.db.commit()
+
+		if customer_defer_list:
+			customer_list = customer_defer_list
+			customer_defer_list = []
+		else:
+			run = False

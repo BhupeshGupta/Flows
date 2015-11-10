@@ -1,6 +1,7 @@
 import requests
 
 from bs4 import BeautifulSoup
+from flows.stdlogger import root
 
 headers = {'User-agent': 'ALPINE ENERGY LIMITED ND Distributor/9914526902/alpineenergyhpcl@gmail.com'}
 
@@ -11,10 +12,11 @@ class HPCLCustomerPortal():
 			self.session = requests.Session()
 		return self.session
 
-	def __init__(self, user, password, verison=2):
+	def __init__(self, user, password, debug=False):
 		self.user = user
 		self.password = password
 		self.session = None
+		self.debug = debug
 
 	def login(self):
 		s = self.get_session()
@@ -32,6 +34,20 @@ class HPCLCustomerPortal():
 		}
 
 		r = s.post("https://sales.hpcl.co.in/bportal/login/cust_login.jsp", data=login_key, headers=headers)
+		content = r.content
+
+		if self.debug:
+			root.debug(content)
+
+		if 'invalid' in content:
+			raise LoginError('Invalid User')
+
+		if 'lpg_select' in content:
+			root.info('Login Success')
+
+		if 'SERVER IS BUSY' in content:
+			root.debug("Server busy. Will retry")
+			raise ServerBusy()
 
 	def get_account_data(self, from_date, to_date, mode='raw'):
 		s = self.get_session()
@@ -46,9 +62,13 @@ class HPCLCustomerPortal():
 		}
 		account_data = s.post('https://sales.hpcl.co.in/bportal/lpg/accountdisp.jsp', data=account_data,
 							  headers=headers, stream=True)
+		content = account_data.content
+
+		if self.debug:
+			root.debug(content)
 
 		if mode == 'raw':
-			return account_data.content
+			return content
 
 	def get_debit_credit_total(self, from_date, to_date):
 		soup = BeautifulSoup(self.get_account_data(from_date, to_date, mode='raw'))
@@ -68,3 +88,11 @@ class HPCLCustomerPortal():
 		soup = BeautifulSoup(content)
 
 		return float(soup.findAll('tr')[3].findAll('td')[1].text.replace("&nbsp", ""))
+
+
+class LoginError(Exception):
+	def __init__(self, msg):
+		self.msg = msg
+
+class ServerBusy(Exception):
+	pass
