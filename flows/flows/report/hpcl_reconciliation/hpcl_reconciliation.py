@@ -3,11 +3,18 @@
 
 from __future__ import unicode_literals
 import frappe
-from flows.stdlogger import root
+from frappe.utils import flt
 
 def execute(filters=None):
 	def row_mapper(row):
-		root.debug(row)
+		def row_status(row):
+			match = (flt(row.hpcl_debit_balance) + flt(row.balance) +
+			2*(flt(row.hpcl_debit) - flt(row.total_credit)) +
+			3*(flt(row.hpcl_credit) - flt(row.total_debit))) == 0
+			if match: return 'Ok'
+			if row.error_type != 'None': return 'Suspicion'
+			return 'Mismatch'
+
 		return [
 			row.customer,
 			row.hpcl_debit_balance,
@@ -15,7 +22,8 @@ def execute(filters=None):
 			row.hpcl_credit,
 			row.balance,
 			row.total_debit,
-			row.total_credit
+			row.total_credit,
+			row_status(row)
 		]
 	data_map = get_data(filters)
 
@@ -48,7 +56,8 @@ def get_data(filters):
 	SELECT customer AS `customer`,
 	balance AS `hpcl_debit_balance`,
 	total_debit AS `hpcl_debit`,
-	total_credit AS `hpcl_credit`
+	total_credit AS `hpcl_credit`,
+	error_type
 	FROM `tabHPCL Customer Balance`
 	""".format(**filters), as_dict=True)
 
@@ -72,4 +81,5 @@ def get_columns():
 		"Our Dr balance:Currency:",
 		"Our Debit:Currency:",
 		"Our Credit:Currency:",
+		"Status:Data:"
 	]
