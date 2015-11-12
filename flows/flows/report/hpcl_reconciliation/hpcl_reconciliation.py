@@ -75,11 +75,11 @@ def get_data(filters):
 def get_columns():
 	return [
 		"Customer:Link/Customer:250",
-		"HPCL Dr Balance:Currency:",
-		"HPCL Debit:Currency:",
-		"HPCL Credit:Currency:",
-		"Our Dr balance:Currency:",
-		"Our Debit:Currency:",
-		"Our Credit:Currency:",
+		"HPCL Dr Bal:Currency:100",
+		"HPCL Dr:Currency:100",
+		"HPCL Cr:Currency:100",
+		"Our Dr Bal:Currency:100",
+		"Our Dr:Currency:100",
+		"Our Cr:Currency:100",
 		"Status:Data:"
 	]

@@ -85,7 +85,7 @@
    "fieldname": "error_type", 
    "fieldtype": "Select", 
    "label": "Error Type", 
-   "options": "None\nLoginError", 
+   "options": "None\nLoginError\nTimeOut", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -104,7 +104,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-11-10 13:50:45.475691", 
+ "modified": "2015-11-11 23:16:55.046655", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "HPCL Customer Balance", 
