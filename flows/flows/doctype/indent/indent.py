@@ -351,8 +351,10 @@ def fetch_account_balance_with_omc(plant, customer):
 
 
 def fetch_and_record_hpcl_balance(for_date=None):
+	from flows.stdlogger import root
 	for_date = for_date if for_date else add_days(today(), -1)
-	run = True
+	run = 0
+	max_run = 2
 
 	exception_list = []
 	# from frappe.utils import now_datetime
@@ -361,13 +363,13 @@ def fetch_and_record_hpcl_balance(for_date=None):
 	SELECT name, hpcl_erp_number, hpcl_payer_password
 	FROM `tabCustomer`
 	WHERE ifnull(hpcl_erp_number, '') != ''
-	AND enabled=1
-	AND sale_enabled=1
+	and enabled = 1
 	""", as_dict=True)
 
 	customer_defer_list = []
 
-	while run:
+	while run < max_run:
+		root.debug("Run Level {}".format(run))
 		for customer in customer_list:
 			portal = HPCLCustomerPortal(customer.hpcl_erp_number, customer.hpcl_payer_password)
 			total_debit = total_credit = 0
@@ -382,7 +384,9 @@ def fetch_and_record_hpcl_balance(for_date=None):
 				msg = e
 			except ServerBusy as e:
 				customer_defer_list.append(customer)
-				continue
+				error = 'TimeOut'
+				if run < max_run-1:
+					continue
 			except Exception as e:
 				exception_list.append((customer.name, customer.hpcl_erp_number, e))
 				msg = e
@@ -407,5 +411,6 @@ def fetch_and_record_hpcl_balance(for_date=None):
 		if customer_defer_list:
 			customer_list = customer_defer_list
 			customer_defer_list = []
+			run += 1
 		else:
-			run = False
+			run = max_run
