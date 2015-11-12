@@ -59,6 +59,7 @@ def get_data(filters):
 	total_credit AS `hpcl_credit`,
 	error_type
 	FROM `tabHPCL Customer Balance`
+	WHERE date between '{date}' and '{date}'
 	""".format(**filters), as_dict=True)
 
 	rs_map = {hpcl_rs_i.customer: hpcl_rs_i for hpcl_rs_i in hpcl_rs}
