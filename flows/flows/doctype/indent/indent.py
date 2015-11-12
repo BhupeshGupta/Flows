@@ -376,6 +376,9 @@ def fetch_and_record_hpcl_balance(for_date=None):
 			msg = ''
 			error = ''
 			try:
+				if customer.hpcl_payer_password.strip() == '':
+					raise  LoginError('Missing Password')
+
 				portal.login()
 				total_debit, total_credit = portal.get_debit_credit_total(for_date, for_date)
 			except LoginError as e:
