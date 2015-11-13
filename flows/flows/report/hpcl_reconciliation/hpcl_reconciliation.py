@@ -44,7 +44,7 @@ def get_data(filters):
 
 	total_balance_rs = frappe.db.sql("""
 	select DISTINCT a.master_name as customer,
-	sum(gl.debit) - sum(gl.credit) as balance
+	ROUND(sum(gl.debit) - sum(gl.credit), 2) as balance
 	from `tabAccount` a, `tabGL Entry` gl
 	where a.account_type='Payer' and a.name like 'hpcl%'
 	and TRIM(SUBSTRING_INDEX(a.name, ' - ', 1)) = TRIM(SUBSTRING_INDEX(gl.account, ' - ', 1))
