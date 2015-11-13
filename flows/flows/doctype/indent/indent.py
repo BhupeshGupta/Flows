@@ -376,7 +376,8 @@ def fetch_and_record_hpcl_balance(for_date=None):
 			msg = ''
 			error = ''
 			try:
-				if customer.hpcl_payer_password.strip() == '':
+				if not customer.hpcl_payer_password or\
+						(customer.hpcl_payer_password and customer.hpcl_payer_password.strip() == ''):
 					raise  LoginError('Missing Password')
 
 				portal.login()
