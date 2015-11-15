@@ -76,7 +76,7 @@
    "ignore_user_permissions": 0, 
    "in_filter": 0, 
    "in_list_view": 0, 
-   "label": "Discount", 
+   "label": "Discount In Invoice", 
    "no_copy": 0, 
    "permlevel": 0, 
    "precision": "5", 
@@ -86,6 +86,24 @@
    "reqd": 1, 
    "search_index": 0, 
    "set_only_once": 0
+  }, 
+  {
+   "default": "0", 
+   "fieldname": "discount_via_credit_note", 
+   "fieldtype": "Currency", 
+   "label": "Discount via Credit Note", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
+   "default": "0", 
+   "fieldname": "incentive", 
+   "fieldtype": "Currency", 
+   "label": "Incentive", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
   }, 
   {
    "allow_on_submit": 0, 
@@ -169,7 +187,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-10-31 17:58:56.777298", 
+ "modified": "2015-11-15 16:48:10.531785", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Customer Plant Variables", 
