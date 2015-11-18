@@ -21,7 +21,7 @@ class HPCLCustomerPortal():
 	def login(self):
 		s = self.get_session()
 
-		r = s.get("https://sales.hpcl.co.in/bportal/index_sales.jsp")
+		# r = s.get("https://sales.hpcl.co.in/bportal/index_sales.jsp")
 		login_key = {
 		"cust_id": self.user,
 		"pwd": self.password,
@@ -69,6 +69,16 @@ class HPCLCustomerPortal():
 
 		if mode == 'raw':
 			return content
+
+		soup = BeautifulSoup(content)
+
+		headings_list = [td.text.strip() for td in soup.body.findAll(id='Headings')[0].findAll('tr')[0].findAll('td')]
+		content_rows = soup.body.findAll(id='content')[0].findAll('tr')[:-4]
+		rs_list = []
+		for row in content_rows:
+			rs_list.append({headings_list[index]: value.text.strip() for index, value in enumerate(row.findAll('td'))})
+
+		return rs_list
 
 	def get_debit_credit_total(self, from_date, to_date):
 		soup = BeautifulSoup(self.get_account_data(from_date, to_date, mode='raw'))
