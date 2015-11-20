@@ -32,24 +32,26 @@ def execute(filters=None):
 
 def get_data(filters):
 	total_debit_credit_rs = frappe.db.sql("""
-	select DISTINCT a.master_name as customer,
-	sum(gl.debit) as total_debit,
-	sum(gl.credit) as total_credit
-	from `tabAccount` a, `tabGL Entry` gl
-	where a.account_type='Payer' and a.name like 'hpcl%'
-	and TRIM(SUBSTRING_INDEX(a.name, ' - ', 1)) = TRIM(SUBSTRING_INDEX(gl.account, ' - ', 1))
-	and posting_date between "{date}" and "{date}"
-	group by customer
+	select a.master_name as customer,
+    sum(gl.debit) as total_debit,
+    sum(gl.credit) as total_credit
+    from `tabGL Entry` gl
+    join `tabAccount` a
+    on gl.account=a.name
+    where gl.posting_date between "{date}" and "{date}"
+    and gl.account like 'hpcl a/c %' and a.account_type='Payer'
+    group by customer
 	""".format(**filters), as_dict=True)
 
 	total_balance_rs = frappe.db.sql("""
-	select DISTINCT a.master_name as customer,
-	ROUND(sum(gl.debit) - sum(gl.credit), 2) as balance
-	from `tabAccount` a, `tabGL Entry` gl
-	where a.account_type='Payer' and a.name like 'hpcl%'
-	and TRIM(SUBSTRING_INDEX(a.name, ' - ', 1)) = TRIM(SUBSTRING_INDEX(gl.account, ' - ', 1))
-	and posting_date <= "{date}"
-	group by customer
+	select a.master_name as customer,
+    sum(gl.debit) - sum(gl.credit) as balance
+    from `tabGL Entry` gl
+    join `tabAccount` a
+    on gl.account=a.name
+    where gl.posting_date <= "{date}"
+    and gl.account like 'hpcl a/c %' and a.account_type='Payer'
+    group by customer
 	""".format(**filters), as_dict=True)
 
 	hpcl_rs = frappe.db.sql("""

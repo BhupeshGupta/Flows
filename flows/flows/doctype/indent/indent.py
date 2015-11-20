@@ -363,7 +363,6 @@ def fetch_and_record_hpcl_balance(for_date=None):
 	SELECT name, hpcl_erp_number, hpcl_payer_password
 	FROM `tabCustomer`
 	WHERE ifnull(hpcl_erp_number, '') != ''
-	and enabled = 1
 	""", as_dict=True)
 
 	customer_defer_list = []
