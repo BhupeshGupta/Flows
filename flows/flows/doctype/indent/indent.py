@@ -394,15 +394,20 @@ def fetch_and_record_hpcl_balance(for_date=None):
 				exception_list.append((customer.name, customer.hpcl_erp_number, e))
 				msg = e
 
-			doc = frappe.get_doc({
-			'customer': customer.name,
-			'date': for_date,
-			'balance': portal.get_current_balance_as_on_date(),
-			'doctype': 'HPCL Customer Balance',
-			'total_debit': total_debit,
-			'total_credit': total_credit,
-			'msg': msg,
-			})
+			try:
+				doc = frappe.get_doc({
+				'customer': customer.name,
+				'date': for_date,
+				'balance': portal.get_current_balance_as_on_date(),
+				'doctype': 'HPCL Customer Balance',
+				'total_debit': total_debit,
+				'total_credit': total_credit,
+				'msg': msg,
+				})
+			except Exception as e:
+				print (customer.name, customer.hpcl_erp_number, e)
+				exception_list.append((customer.name, customer.hpcl_erp_number, e))
+				msg = e
 
 			if error:
 				doc.error_type = error
