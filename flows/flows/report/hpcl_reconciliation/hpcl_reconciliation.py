@@ -33,8 +33,8 @@ def execute(filters=None):
 def get_data(filters):
 	total_debit_credit_rs = frappe.db.sql("""
 	select a.master_name as customer,
-    sum(gl.debit) as total_debit,
-    sum(gl.credit) as total_credit
+    round(sum(gl.debit), 2) as total_debit,
+    round(sum(gl.credit), 2) as total_credit
     from `tabGL Entry` gl
     join `tabAccount` a
     on gl.account=a.name
@@ -45,7 +45,7 @@ def get_data(filters):
 
 	total_balance_rs = frappe.db.sql("""
 	select a.master_name as customer,
-    sum(gl.debit) - sum(gl.credit) as balance
+    round(sum(gl.debit) - sum(gl.credit), 2) as balance
     from `tabGL Entry` gl
     join `tabAccount` a
     on gl.account=a.name
