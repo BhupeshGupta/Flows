@@ -381,7 +381,7 @@ def fetch_and_record_hpcl_balance(for_date=None):
 
 				portal.login()
 				total_debit, total_credit = portal.get_debit_credit_total(for_date, for_date)
-				invoices_map = portal.get_account_data(for_date, for_date)
+				invoices_map = portal.get_invoice_data(for_date, for_date)
 				total_debit = invoices_map['total_price']
 			except LoginError as e:
 				error = 'LoginError'
