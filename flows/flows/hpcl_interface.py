@@ -50,6 +50,36 @@ class HPCLCustomerPortal():
 			raise ServerBusy()
 
 	def get_account_data(self, from_date, to_date, mode='raw'):
+		"""
+		:param from_date: '2015-09-01'
+		:param to_date: '2015-09-20'
+		:param mode: 'raw' for HTML output, other for list
+		:return:
+		[
+		  {
+			"Cheque No./DD No.": "15178219",
+			"Sales Order Reference": "15178886/RU/32002",
+			"C.R/InvoiceDate": "05/06/15",
+			"C.R / InvoiceReference": "15178219                 /32002/",
+			"Cr Amount": "-157,000.00",
+			"Bank Name": "HDFC  e RECEIPT",
+			"Dr Amount ": "0.00",
+			"Supply Location": "E Collection - LPG SBU- HDFC",
+			"Sl.No": "1"
+		  },
+		  {
+			"Cheque No./DD No.": "-",
+			"Sales Order Reference": "15000978/S3/12103",
+			"C.R/InvoiceDate": "05/06/15",
+			"C.R / InvoiceReference": "15003383                 /RI/12121/001",
+			"Cr Amount": "0.00",
+			"Bank Name": "",
+			"Dr Amount ": "154,599.52",
+			"Supply Location": "BAHADURGARH LPG PLANT",
+			"Sl.No": "2"
+		  }
+		]
+		"""
 		s = self.get_session()
 		account_data = {
 		"txtfrmday": from_date.split('-')[2],
@@ -97,12 +127,108 @@ class HPCLCustomerPortal():
 		content = data.content
 		soup = BeautifulSoup(content)
 
-		return float(soup.findAll('tr')[3].findAll('td')[1].text.replace("&nbsp", ""))
+		return float(soup.findAll('tr')[3].findAll('td')[1].text.replace("&nbsp", "").replace(',', ''))
+
+	def get_invoice_data(self, from_date, to_date, mode='dict', ignore_empty_return=True):
+		"""
+		:param from_date:
+		:param to_date:
+		:param mode:
+		:param ignore_empty_return:
+		:return:
+		{
+			'total_price': 154599.52,
+			'txns': [
+				{
+					"Total Pricein INR": "154,599.52",
+					"Item Desc": "19 KG FILLED LPG CYLINDER",
+					"Invoice Reference": "15003383  /RI/12121",
+					"Item No.": "0948064",
+					"Unit Pricein INR": "840.2148",
+					"Ship To": "17259730 - UNITECH TEXTILES",
+					"Shipping Location": "BAHADURGARH LPG PLANT",
+					"Sales Order Reference": "15000978  /S3/12103/1.0",
+					"Invoice Date": "05/06/15",
+					"Original Order Reference": "15000183/DO/12103/1.0",
+					"Sold To.": "17259730 - UNITECH TEXTILES",
+					"Vehicle No.": "PB11H9297",
+					"Product Type": "-",
+					"ShippedQuantity": "184.000",
+					"Unit": "EA",
+					"Sr. No.": "1"
+				},
+				{
+					"Total Pricein INR": "0.00",
+					"Item Desc": "19 KG EMPTY LPG CYLINDER",
+					"Invoice Reference": "15005845  /R3/12121",
+					"Item No.": "0934064"
+					"Unit Pricein INR": "0.0000",
+					"Ship To": "17259730 - UNITECH TEXTILES",
+					"Shipping Location": "BAHADURGARH LPG PLANT",
+					"Sales Order Reference": "15000978  /S3/12103/2.0",
+					"Invoice Date": "05/06/15",
+					"Original Order Reference": "-",
+					"Sold To.": "17259730 - UNITECH TEXTILES",
+					"Vehicle No.": "",
+					"Product Type": "-",
+					"ShippedQuantity": "-184.000",
+					"Unit": "EA",
+					"Sr. No.": "2"
+				}
+			]
+		}
+
+		"""
+		s = self.get_session()
+
+		invoice_req_dict = {
+		'cmbcat': 'ALL',
+		'cmbitem': 'ALL',
+		'cmbbranch': 'ALL',
+		'cmbship': '{},ALL'.format(self.user),
+		'r1': '0',
+		'txtcusttype': '',
+		'txtfrmday': from_date.split('-')[2],
+		'txtfrmmonth': from_date.split('-')[1],
+		'txtfrmyear': from_date.split('-')[0],
+		'txttoday': to_date.split('-')[2],
+		'txttomonth': to_date.split('-')[1],
+		'txttoyear': to_date.split('-')[0],
+		'r2': 'EXCEL'
+		}
+
+		invoices_data_response = s.post(
+			'https://sales.hpcl.co.in/bportal/lpg/lpginvoicenew.jsp',
+			data=invoice_req_dict
+		).text
+
+		if mode == 'raw':
+			return invoices_data_response
+
+		soup = BeautifulSoup(invoices_data_response)
+		headings = [i.text.strip() for i in soup.findAll(id='Headings')[0].findAll('tr')[0].findAll('td')]
+
+		invoices_data_map = []
+
+		for row in soup.findAll(id='Headings')[1].findAll('tr')[:-1]:
+			data_row_dict = {headings[index]: td.text.strip() for index, td in enumerate(row.findAll('td'))}
+
+			# if empty return is ignored
+			if ignore_empty_return and float(data_row_dict['ShippedQuantity']) <= 0:
+				continue
+
+			invoices_data_map.append(data_row_dict)
+
+		return {
+		'txns': invoices_data_map,
+		'total_price': float(soup.findAll(id='Headings')[1].findAll('tr')[-1].findAll('td')[12].text.replace(',',''))
+		}
 
 
 class LoginError(Exception):
 	def __init__(self, msg):
 		self.msg = msg
+
 
 class ServerBusy(Exception):
 	pass
