@@ -55,7 +55,7 @@ class CFormTool(Document):
 					if self.message_box:
 						email_content = '<strong>{}</strong><br/><br/>'.format(self.message_box) + email_content
 
-					email = transform(email_content, base_url='http://localhost:8080/')
+					email = transform(email_content, base_url=frappe.conf.host_name + '/')
 					frappe.msgprint(email)
 
 					send(
