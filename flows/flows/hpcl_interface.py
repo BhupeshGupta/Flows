@@ -21,7 +21,7 @@ class HPCLCustomerPortal():
 	def login(self):
 		s = self.get_session()
 
-		r = s.get("https://sales.hpcl.co.in/bportal/index_sales.jsp")
+		# r = s.get("https://sales.hpcl.co.in/bportal/index_sales.jsp")
 		login_key = {
 		"cust_id": self.user,
 		"pwd": self.password,
