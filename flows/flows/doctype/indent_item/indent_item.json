@@ -277,6 +277,14 @@
    "permlevel": 0, 
    "precision": "", 
    "read_only": 1
+  }, 
+  {
+   "fieldname": "invoice_reference", 
+   "fieldtype": "Data", 
+   "label": "Invoice Reference", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
   }
  ], 
  "hide_heading": 0, 
@@ -286,7 +294,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 1, 
- "modified": "2015-10-17 15:48:22.331761", 
+ "modified": "2015-12-08 14:58:30.099277", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Item", 

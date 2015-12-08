@@ -102,10 +102,13 @@ doc_events = {
 scheduler_events = {
 	"all": [
 	],
-	"daily": [
+	"daily_long": [
 		"flows.flows.doctype.indent.indent.fetch_and_record_hpcl_balance"
 	],
 	"hourly": [
+	],
+	"hourly_long": [
+		"flows.flows.controller.hpcl_controller.update_invoice_status_for_pending_indents"
 	],
 	"weekly": [
 	],

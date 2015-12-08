@@ -2,6 +2,8 @@
 # For license information, please see license.txt
 from __future__ import unicode_literals
 
+import json
+
 from flows import utils as flows_utils
 from erpnext.stock.stock_ledger import make_sl_entries
 from frappe.model.document import Document
@@ -12,6 +14,7 @@ from frappe.utils import comma_and
 from erpnext.accounts import utils as account_utils
 from frappe.utils import today, now, add_days
 from flows.flows.hpcl_interface import HPCLCustomerPortal, LoginError, ServerBusy
+from flows.flows.iocl_interface import IOCLPortal
 
 
 class Indent(Document):
@@ -424,3 +427,60 @@ def fetch_and_record_hpcl_balance(for_date=None):
 			run += 1
 		else:
 			run = max_run
+
+
+def fetch_and_record_iocl_balance(for_date=None):
+	def get_item(item_code):
+		if item_code == 'M00002':
+			return 'FC19'
+		return item_code
+
+
+	for_date = for_date if for_date else today()
+
+	customer_list = [frappe._dict({
+	"customer": "Mosaic",
+	"id": "605251",
+	"passwd": "605251",
+	})]
+
+	for customer in customer_list:
+		portal = IOCLPortal(customer.id, customer.passwd)
+		portal.login()
+		txns = portal.transactions_since_yesterday(for_date, for_date, mode=dict)
+
+		for txn in txns['txns']:
+
+			if frappe.db.sql(
+					'SELECT name FROM `tabOMC Transactions` WHERE document_no="{}"'.format(int(txn['Doc. No']))):
+				continue
+
+			customer_obj = None
+			if txn['Ship to Party'].strip():
+				customer_obj = frappe.db.get_value(
+					"Customer",
+					{'iocl_sap_code': int(txn['Ship to Party'].strip())}, ["name"],
+					as_dict=True
+				)
+
+			doc = frappe.get_doc({
+			'customer': customer_obj.name if customer_obj else '',
+			'date': for_date,
+			'doctype': 'OMC Transactions',
+			'document_no': int(txn['Doc. No']),
+			'debit': txn['Bill Amt'] if txn['Db/Cr'] == 'D' else 0,
+			'credit': txn['Bill Amt'] if txn['Db/Cr'] == 'C' else 0,
+			'item': get_item(txn['Material']),
+			'quantity': txn['Bill Qty'],
+			'vehicle_no': txn['TTNO'],
+			'plant': txn['Plant'],
+			'supplier': 'IOCL',
+			'dump': json.dumps(txn),
+			'account_number': customer.id
+			})
+
+			doc.ignore_permissions = True
+			doc.save()
+			frappe.db.commit()
+
+
