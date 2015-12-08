@@ -17,9 +17,9 @@ def skip_run():
 	return 22 <= t.hour <= 8
 
 
-def update_invoice_status_for_pending_indents():
+def update_invoice_status_for_pending_indents(date=None, force_run=False):
 
-	if skip_run():
+	if (not force_run) and skip_run():
 		return
 
 	customer_list = [c[0] for c in frappe.db.sql("""
@@ -33,7 +33,7 @@ def update_invoice_status_for_pending_indents():
 	) and ifnull(iitm.invoice_reference, '') = '';
 	""")]
 
-	date = today()
+	date = date if date else today()
 
 	fetch_and_record_hpcl_transactions(customer_list, date)
 
