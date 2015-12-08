@@ -61,7 +61,7 @@ def update_invoice_status_for_pending_indents():
 			where docstatus != 2
 			and ifnull(indent_item, '')!=''
 		) and ifnull(iitm.invoice_reference, '') = ''
-		and iitm.customer="{customer}" and iitm.item="{item}"
+		and iitm.customer="{customer}" and replace(iitm.item, 'L', '')="{item}"
 		and iitm.qty="{quantity}" and ind.vehicle = "{vehicle_no}";
 		""".format(**txn), as_dict=True)
 
@@ -79,6 +79,10 @@ def fetch_and_record_hpcl_transactions(customer_list, for_date):
 	def get_item(item):
 		if item == '0948064':
 			return 'FC19'
+		if item == '0948122':
+			return 'FC35'
+		if item == '0948042':
+			return 'FC47.5'
 
 	customer_list_db = frappe.db.sql("""
 	SELECT name, hpcl_erp_number, hpcl_payer_password
