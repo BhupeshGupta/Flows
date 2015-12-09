@@ -10,7 +10,7 @@ from flows.flows.hpcl_interface import HPCLCustomerPortal, LoginError, ServerBus
 from frappe.utils import today, add_days
 import random
 import time
-
+import logging as logbook
 
 
 def skip_run():
@@ -77,8 +77,13 @@ def update_invoice_status_for_pending_indents(date=None, force_run=False):
 			frappe.db.commit()
 
 
-
 def fetch_and_record_hpcl_transactions(customer_list, for_date):
+	logbook.basicConfig(
+		filename="/tmp/logreport.out",
+		level=logbook.DEBUG,
+		format='%(asctime)s %(levelname)s  %(message)s'
+	)
+
 	customer_list_db = frappe.db.sql("""
 	SELECT name, hpcl_erp_number, hpcl_payer_password
 	FROM `tabCustomer`
@@ -99,14 +104,21 @@ def fetch_and_record_hpcl_transactions(customer_list, for_date):
 				txn for txn in account_data if abs(float(txn['Cr Amount'].replace(',', ''))) > 0
 			], customer)
 
-
 			sleep_time = random.choice([0.4, 0.2, 0.8, 1])
 			print "Sleeping for {} sec".format(sleep_time)
 			time.sleep(sleep_time)
 
-
 		except Exception as e:
+			logbook.debug((customer, e))
 			print e
+
+	frappe.sendmail(
+		['bhupesh00gupta@gmail.com', 'deol.engg@gmail.com'],
+		sender='erpnext.root@arungas.com',
+		subject='Scheduler Report',
+		message='PFA',
+		attachments={'fname': 'runlog.txt', 'fcontent': open('/tmp/logreport.out').read()}
+	)
 
 
 def fetch_and_record_hpcl_balance(for_date=None):
@@ -256,3 +268,7 @@ def deduplicate_and_save_accounts_txns(txns, customer_obj_db):
 		doc.ignore_permissions = True
 		doc.save()
 		frappe.db.commit()
+
+
+
+
