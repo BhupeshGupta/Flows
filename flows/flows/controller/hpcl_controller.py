@@ -22,18 +22,21 @@ def skip_run():
 
 def update_invoice_status_for_pending_indents(date=None, force_run=False):
 
-	if (not force_run) and skip_run():
-		return
+	if not force_run:
+		if skip_run():
+			return
 
 	customer_list = [c[0] for c in frappe.db.sql("""
-	select distinct iitm.customer
-	from `tabIndent Item` iitm left join `tabIndent` ind on iitm.parent = ind.name
-	where plant like 'hpcl%' and iitm.name not in (
-		select indent_item
-		from `tabIndent Invoice`
-		where docstatus != 2
-		and ifnull(indent_item, '')!=''
-	) and ifnull(iitm.invoice_reference, '') = '';
+	select name from `tabCustomer` where name in (
+		select distinct iitm.customer
+		from `tabIndent Item` iitm left join `tabIndent` ind on iitm.parent = ind.name
+		where plant like 'hpcl%' and iitm.name not in (
+			select indent_item
+			from `tabIndent Invoice`
+			where docstatus != 2
+			and ifnull(indent_item, '')!=''
+		) and ifnull(iitm.invoice_reference, '') = ''
+	) and ifnull(hpcl_payer_password, '') != '';
 	""")]
 
 	date = date if date else today()
@@ -112,13 +115,13 @@ def fetch_and_record_hpcl_transactions(customer_list, for_date):
 			logbook.debug((customer, e))
 			print e
 
-	frappe.sendmail(
-		['bhupesh00gupta@gmail.com', 'deol.engg@gmail.com'],
-		sender='erpnext.root@arungas.com',
-		subject='Scheduler Report',
-		message='PFA',
-		attachments={'fname': 'runlog.txt', 'fcontent': open('/tmp/logreport.out').read()}
-	)
+	# frappe.sendmail(
+	# 	['bhupesh00gupta@gmail.com', 'deol.engg@gmail.com'],
+	# 	sender='erpnext.root@arungas.com',
+	# 	subject='Scheduler Report',
+	# 	message='PFA',
+	# 	attachments={'fname': 'runlog.txt', 'fcontent': open('/tmp/logreport.out').read()}
+	# )
 
 
 def fetch_and_record_hpcl_balance(for_date=None):
