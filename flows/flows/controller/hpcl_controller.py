@@ -16,8 +16,8 @@ import logging as logbook
 def skip_run():
 	import datetime
 	t = datetime.datetime.now()
-	# if time between 10 pm and 8 am skip runs = True
-	return 22 <= t.hour <= 8
+	# if time between 11 pm and 8 am skip runs = True
+	return 23 <= t.hour <= 24 or 0 <= t.hour <= 8
 
 
 def update_invoice_status_for_pending_indents(date=None, force_run=False):
