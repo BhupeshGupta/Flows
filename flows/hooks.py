@@ -103,7 +103,7 @@ scheduler_events = {
 	"all": [
 	],
 	"daily_long": [
-		"flows.flows.doctype.indent.indent.fetch_and_record_hpcl_balance"
+		"flows.flows.controller.hpcl_controller.fetch_and_record_hpcl_balance"
 	],
 	"hourly": [
 	],

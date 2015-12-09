@@ -21,7 +21,9 @@ class HPCLCustomerPortal():
 	def login(self):
 		s = self.get_session()
 
-		# r = s.get("https://sales.hpcl.co.in/bportal/index_sales.jsp")
+		if not self.password or (self.password and self.password.strip() == ''):
+			raise LoginError('Missing Password')
+
 		login_key = {
 		"cust_id": self.user,
 		"pwd": self.password,
@@ -55,30 +57,34 @@ class HPCLCustomerPortal():
 		:param to_date: '2015-09-20'
 		:param mode: 'raw' for HTML output, other for list
 		:return:
-		[
-		  {
-			"Cheque No./DD No.": "15178219",
-			"Sales Order Reference": "15178886/RU/32002",
-			"C.R/InvoiceDate": "05/06/15",
-			"C.R / InvoiceReference": "15178219                 /32002/",
-			"Cr Amount": "-157,000.00",
-			"Bank Name": "HDFC  e RECEIPT",
-			"Dr Amount ": "0.00",
-			"Supply Location": "E Collection - LPG SBU- HDFC",
-			"Sl.No": "1"
-		  },
-		  {
-			"Cheque No./DD No.": "-",
-			"Sales Order Reference": "15000978/S3/12103",
-			"C.R/InvoiceDate": "05/06/15",
-			"C.R / InvoiceReference": "15003383                 /RI/12121/001",
-			"Cr Amount": "0.00",
-			"Bank Name": "",
-			"Dr Amount ": "154,599.52",
-			"Supply Location": "BAHADURGARH LPG PLANT",
-			"Sl.No": "2"
-		  }
-		]
+		{
+			'txns': [
+						{
+							"Cheque No./DD No.": "15178219",
+							"Sales Order Reference": "15178886/RU/32002",
+							"C.R/InvoiceDate": "05/06/15",
+							"C.R / InvoiceReference": "15178219                 /32002/",
+							"Cr Amount": "-157,000.00",
+							"Bank Name": "HDFC  e RECEIPT",
+							"Dr Amount ": "0.00",
+							"Supply Location": "E Collection - LPG SBU- HDFC",
+							"Sl.No": "1"
+						},
+						{
+							"Cheque No./DD No.": "-",
+							"Sales Order Reference": "15000978/S3/12103",
+							"C.R/InvoiceDate": "05/06/15",
+							"C.R / InvoiceReference": "15003383                 /RI/12121/001",
+							"Cr Amount": "0.00",
+							"Bank Name": "",
+							"Dr Amount ": "154,599.52",
+							"Supply Location": "BAHADURGARH LPG PLANT",
+							"Sl.No": "2"
+						}
+			],
+			'total_debit': 154599.52,
+			'total_credit': 157000.00
+		}
 		"""
 		s = self.get_session()
 		account_data = {
@@ -108,13 +114,14 @@ class HPCLCustomerPortal():
 		for row in content_rows:
 			rs_list.append({headings_list[index]: value.text.strip() for index, value in enumerate(row.findAll('td'))})
 
-		return rs_list
-
-	def get_debit_credit_total(self, from_date, to_date):
-		soup = BeautifulSoup(self.get_account_data(from_date, to_date, mode='raw'))
 		dr_cr = soup.findAll('tr')[-4].findAll('td')[4:6]
 		dr_cr = (float(dr_cr[0].text.replace(',', '')), -1 * float(dr_cr[1].text.replace(',', '')))
-		return dr_cr[0], dr_cr[1]
+
+		return {
+		'total_debit': dr_cr[0],
+		'total_credit': dr_cr[1],
+		'txns': rs_list
+		}
 
 	def get_current_balance_as_on_date(self):
 		s = self.get_session()
@@ -221,7 +228,7 @@ class HPCLCustomerPortal():
 
 		return {
 		'txns': invoices_data_map,
-		'total_price': float(soup.findAll(id='Headings')[1].findAll('tr')[-1].findAll('td')[12].text.replace(',',''))
+		'total_price': float(soup.findAll(id='Headings')[1].findAll('tr')[-1].findAll('td')[12].text.replace(',', ''))
 		}
 
 
