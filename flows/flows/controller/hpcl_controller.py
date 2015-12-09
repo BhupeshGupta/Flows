@@ -170,17 +170,16 @@ def fetch_and_record_hpcl_balance(for_date=None):
 				'total_credit': total_credit,
 				'msg': msg,
 				})
+
+				if error:
+					doc.error_type = error
+
+				doc.ignore_permissions = True
+				doc.save()
+				frappe.db.commit()
+
 			except Exception as e:
 				print (customer.name, customer.hpcl_erp_number, e)
-				exception_list.append((customer.name, customer.hpcl_erp_number, e))
-				msg = e
-
-			if error:
-				doc.error_type = error
-
-			doc.ignore_permissions = True
-			doc.save()
-			frappe.db.commit()
 
 			sleep_time = random.choice([0.4, 0.2, 0.8, 1])
 			print "Sleeping for {} sec".format(sleep_time)

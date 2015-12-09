@@ -3,13 +3,20 @@ import requests
 from bs4 import BeautifulSoup
 from flows.stdlogger import root
 
+from requests.adapters import HTTPAdapter
+
 headers = {'User-agent': 'ALPINE ENERGY LIMITED ND Distributor/9914526902/alpineenergyhpcl@gmail.com'}
 
 
 class HPCLCustomerPortal():
 	def get_session(self):
 		if not self.session:
+			import logging
+
+			logging.basicConfig(level=logging.DEBUG)
 			self.session = requests.Session()
+			self.session.mount('https://', HPCLAdapter(max_retries=5))
+			self.session.mount('http://', HPCLAdapter(max_retries=5))
 		return self.session
 
 	def __init__(self, user, password, debug=False):
@@ -239,3 +246,8 @@ class LoginError(Exception):
 
 class ServerBusy(Exception):
 	pass
+
+
+class HPCLAdapter(HTTPAdapter):
+	def send(self, request, timeout=None, **kwargs):
+		return super(HPCLAdapter, self).send(request, timeout=3.05, **kwargs)
