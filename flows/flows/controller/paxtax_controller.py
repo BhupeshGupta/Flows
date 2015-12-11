@@ -1,23 +1,14 @@
-from requests import Session
-import shutil
-from subprocess import call
+import requests
 
 def login(c):
 	request = c.get("https://www.pextax.com/PEXWAR/appmanager/pexportal/PunjabExcise?_nfpb=true&_nfls=false&_pageLabel=login")
-
-	response = c.get("https://www.pextax.com/PEXWAR/stickyImg", stream=True)
-	with open('/tmp/pexcap.png', 'wb') as out_file:
-		shutil.copyfileobj(response.raw, out_file)
-	del response
-
-	call(['/usr/bin/tesseract', '/tmp/pexcap.png', '/tmp/pexcap'])
-
-	ocr_file = open('/tmp/pexcap.txt', mode='r')
-	ocr_value = ocr_file.read()
-	ocr_file.close()
+	captcha_img = c.get("https://www.pextax.com/PEXWAR/stickyImg")
+	# Push image to decaptcha service
+	response = requests.post('http://128.199.122.18:9000/', files={'image': captcha_img.content})
+	# Extract captcha value
+	ocr_value = response.json()['value'].strip()
 
 	if ocr_value:
-
 		payload = {
 			'username': 'ICC00022873',
 			'password': '6pN@COk7m',
@@ -26,13 +17,15 @@ def login(c):
 
 		response = c.post(
 			"https://www.pextax.com/PEXWAR/appmanager/pexportal/PunjabExcise?_nfpb=true&_windowLabel=HeaderController_2",
-			data=payload
+			data=payload,
+			allow_redirects=False
 		)
 
-		return 'userdetail' in response.text
+		print response.text
 
+		return 'Set-Cookie' in response.headers
 
+	return False
 
-
-session = Session()
+session = requests.Session()
 print login(session)
