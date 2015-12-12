@@ -250,4 +250,4 @@ class ServerBusy(Exception):
 
 class HPCLAdapter(HTTPAdapter):
 	def send(self, request, timeout=None, **kwargs):
-		return super(HPCLAdapter, self).send(request, timeout=3.05, **kwargs)
+		return super(HPCLAdapter, self).send(request, timeout=4, **kwargs)
