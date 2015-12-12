@@ -1,10 +1,13 @@
 import requests
+
 from bs4 import BeautifulSoup
-import json
+
 
 def login(c):
 	request = c.get(
-		"https://www.pextax.com/PEXWAR/appmanager/pexportal/PunjabExcise?_nfpb=true&_nfls=false&_pageLabel=login")
+		"https://www.pextax.com/PEXWAR/appmanager/pexportal/PunjabExcise",
+		params={'_nfpb': 'true', '_nfls': 'false', '_pageLabel': 'login'}
+	)
 	captcha_img = c.get("https://www.pextax.com/PEXWAR/stickyImg")
 	# Push image to decaptcha service
 	response = requests.post('http://128.199.122.18:9000/', files={'image': ('pex.png', captcha_img.content)})
@@ -13,14 +16,14 @@ def login(c):
 
 	if ocr_value:
 		payload = {
-			'username': 'ICC00022873',
-			'password': '6pN@COk7m',
-			'answer': ocr_value
+		'username': 'ICC00022873',
+		'password': '6pN@COk7m',
+		'answer': ocr_value
 		}
 
 		response = c.post(
-			"https://www.pextax.com/PEXWAR/appmanager/pexportal/PunjabExcise?_nfpb=true&_windowLabel"
-			"=HeaderController_2",
+			"https://www.pextax.com/PEXWAR/appmanager/pexportal/PunjabExcise",
+			params={'_nfpb': 'true', '_windowLabel': 'HeaderController_2'},
 			data=payload,
 			allow_redirects=False
 		)
@@ -28,6 +31,7 @@ def login(c):
 		return 'Set-Cookie' in response.headers
 
 	return False
+
 
 def get_search_html(session, from_date, to_date, data={}):
 	data_load = {
@@ -43,11 +47,14 @@ def get_search_html(session, from_date, to_date, data={}):
 
 	data_load.update(data)
 
-	print data_load
-
 	preview = session.post(
-		"https://www.pextax.com/PEXWAR/appmanager/pexportal/PunjabExcise?_nfpb=true&_windowLabel=IccStatusSearchController_2&IccStatusSearchController_2_actionOverride=%2Fcom%2Fpex%2Fportal%2FsearchFormStatus%2Fcontroller%2Fsubmit",
-		data=data_load,
+		"https://www.pextax.com/PEXWAR/appmanager/pexportal/PunjabExcise",
+		params={
+		'_nfpb': 'true',
+		'_windowLabel': 'IccStatusSearchController_2',
+		'IccStatusSearchController_2_actionOverride': '/com/pex/portal/searchFormStatus/controller/submit'
+		},
+		data=data_load
 	)
 
 	soup = BeautifulSoup(preview.text, 'lxml')
@@ -67,9 +74,9 @@ def get_search_html(session, from_date, to_date, data={}):
 	page_ref = soup.find('table', {'datagrid'}).findAll('tr')[-1]('td')[0].text.split('First')[0].strip().split(' ')
 
 	return {
-		'date_list': data_map,
-		'current_page': int(page_ref[1]),
-		'total_pages': int(page_ref[3])
+	'date_list': data_map,
+	'current_page': int(page_ref[1]),
+	'total_pages': int(page_ref[3])
 	}
 
 
@@ -79,7 +86,7 @@ if login(session):
 
 	rs = get_search_html(session, '2015-12-10', '2015-12-10')
 
-	for i in [(i-1)*5 for i in xrange(rs['current_page'], rs['total_pages'])]:
+	for i in [(i - 1) * 5 for i in xrange(rs['current_page'], rs['total_pages'])]:
 		data = {'IccStatusSearchController_2netui_row': 'Table;{}'.format(i)} if i > 0 else {}
 		rs = get_search_html(session, '2015-12-10', '2015-12-10', data)
 		total_forms.extend(rs['date_list'])
@@ -91,18 +98,19 @@ else:
 
 # search_html = open('/tmp/pex_search', mode='r').read()
 
-#https://www.pextax.com/PEXWAR/appmanager/pexportal/PunjabExcise?_nfpb=true&_windowLabel=IccStatusSearchController_2&IccStatusSearchController_2_actionOverride=%2Fcom%2Fpex%2Fportal%2FsearchFormStatus%2Fcontroller%2Fanchor&IccStatusSearchController_2refNo=18210301497748
+# https://www.pextax.com/PEXWAR/appmanager/pexportal/PunjabExcise?_nfpb=true&_windowLabel=IccStatusSearchController_2
+# &IccStatusSearchController_2_actionOverride=%2Fcom%2Fpex%2Fportal%2FsearchFormStatus%2Fcontroller%2Fanchor
+# &IccStatusSearchController_2refNo=18210301497748
 
 
-from lxml import etree
 #
 # detail_html = open('/tmp/pex_detail', mode='r').read()
 #
 #
 # def scrape_acknowledgement_page(page):
-# 	soup = BeautifulSoup(page, 'lxml')
+# soup = BeautifulSoup(page, 'lxml')
 #
-# 	base_table = soup.find("table", {"frmtable"})
+# base_table = soup.find("table", {"frmtable"})
 # 	goods_table = soup.find("table", {'id': 'tableId'})
 # 	vehicle_table = soup.findAll("table", {"frmtable"})[4]
 #
