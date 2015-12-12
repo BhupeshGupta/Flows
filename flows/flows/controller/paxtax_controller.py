@@ -6,6 +6,8 @@ import requests
 import requests.utils
 from bs4 import BeautifulSoup
 
+import frappe
+
 
 def scrape_detail_page(session, ack_no):
 	detail_html = session.get(
@@ -20,6 +22,9 @@ def scrape_detail_page(session, ack_no):
 
 
 def scrape_acknowledgement_page(page):
+	def map_date(date):
+		return '-'.join(reversed(date.split('/')))
+
 	soup = BeautifulSoup(page, 'lxml')
 
 	base_table = soup.find("table", {"frmtable"})
@@ -30,7 +35,7 @@ def scrape_acknowledgement_page(page):
 		'acknowledgement_no': base_table('tr')[0]('td')[1].text.strip(),
 		'icc_name': base_table('tr')[0]('td')[3].text.strip(),
 		'import_export': base_table('tr')[1]('td')[1].text.strip(),
-		'date_of_issue': base_table('tr')[1]('td')[3].text.strip(),
+		'date_of_issue': map_date(base_table('tr')[1]('td')[3].text.strip()),
 		'consigner_tin_no': base_table('tr')[2]('td')[1].text.strip(),
 		'consigner_name': base_table('tr')[2]('td')[3].text.strip(),
 		'consigner_addr': base_table('tr')[3]('td')[1].text.strip(),
@@ -40,14 +45,14 @@ def scrape_acknowledgement_page(page):
 		'item_code': goods_table('tr')[0]('td')[1].text.strip(),
 		'item_name': goods_table('tr')[0]('td')[2].text.strip(),
 		'invoice_no': goods_table('tr')[0]('td')[4].text.strip(),
-		'invoice_date': goods_table('tr')[0]('td')[6].text.strip(),
+		'invoice_date': map_date(goods_table('tr')[0]('td')[6].text.strip()),
 		'invoice_qty': goods_table('tr')[0]('td')[8].text.strip(),
 		'invoice_amt': goods_table('tr')[0]('td')[10].text.strip(),
 		'freight_amt': goods_table('tr')[0]('td')[12].text.strip(),
 		'total_amt': goods_table('tr')[0]('td')[14].text.strip(),
 		'total_amt_in_words': goods_table('tr')[0]('td')[16].text.strip(),
 		'vehicle_number': vehicle_table('tr')[1]('td')[1].text.strip(),
-		'gr_date': vehicle_table('tr')[4]('td')[3].text.strip()
+		'gr_date': map_date(vehicle_table('tr')[4]('td')[3].text.strip())
 	}
 
 
@@ -67,11 +72,12 @@ def get_captcha():
 		shutil.copyfileobj(response.raw, out_file)
 	del response
 
-	call(['open', '/tmp/pexcap.png'])
+
+# call(['open', '/tmp/pexcap.png'])
 
 
 def login(c):
-	ocr_value = raw_input('Enter Captcha')
+	ocr_value = raw_input('Enter Captcha: ')
 
 	if ocr_value:
 		payload = {
@@ -137,35 +143,45 @@ def get_search_html(session, from_date, to_date, data={}):
 	}
 
 
-get_captcha()
+def ex():
+	get_captcha()
 
-f = open('/tmp/cookieload', 'rb')
-session = requests.Session()
-session.cookies = requests.utils.cookiejar_from_dict(pickle.load(f))
+	f = open('/tmp/cookieload', 'rb')
+	session = requests.Session()
+	session.cookies = requests.utils.cookiejar_from_dict(pickle.load(f))
 
-if login(session):
-	total_forms = []
+	if login(session):
+		total_forms = []
 
-	# Init search page to bypass system
-	session.get('https://www.pextax.com/PEXWAR/appmanager/pexportal/PunjabExcise', params={
-		'_nfpb': 'true',
-		'_pageLabel': 'PunjabExcise_portal_page_90'
-	})
+		# Init search page to bypass system
+		session.get('https://www.pextax.com/PEXWAR/appmanager/pexportal/PunjabExcise', params={
+			'_nfpb': 'true',
+			'_pageLabel': 'PunjabExcise_portal_page_90'
+		})
 
-	# Collect all ref no from search pages
-	rs = get_search_html(session, '2015-12-10', '2015-12-10')
-	for i in [(i - 1) * 5 for i in xrange(rs['current_page'], rs['total_pages'] + 1)]:
-		data = {'IccStatusSearchController_2netui_row': 'Table;{}'.format(i)} if i > 0 else {}
-		rs = get_search_html(session, '2015-12-10', '2015-12-10', data)
-		total_forms.extend(rs['date_list'])
+		# Collect all ref no from search pages
+		rs = get_search_html(session, '2015-12-10', '2015-12-10')
+		for i in [(i - 1) * 5 for i in xrange(rs['current_page'], rs['total_pages'] + 1)]:
+			data = {'IccStatusSearchController_2netui_row': 'Table;{}'.format(i)} if i > 0 else {}
+			rs = get_search_html(session, '2015-12-10', '2015-12-10', data)
+			total_forms.extend(rs['date_list'])
 
-	final_data_list = []
-	for ref in total_forms:
-		final_data_list.append(scrape_detail_page(session, ref['Request Number']))
+		final_data_list = []
+		for ref in total_forms:
+			final_data_list.append(scrape_detail_page(session, ref['Request Number']))
 
-	import json
+		common_db_dict = {'doctype': 'ICC Form'}
+		for data in final_data_list:
+			if frappe.db.sql("""select name from `tabICC Form` where acknowledgement_no='{}'""".format(
+					data['acknowledgement_no']
+			)):
+				continue
+			data.update(common_db_dict)
+			doc = frappe.get_doc(data)
+			doc.ignore_permissions = True
+			doc.save()
 
-	print json.dumps(final_data_list, indent=2)
+		frappe.db.commit()
 
-else:
-	print('login failed')
+	else:
+		print('login failed')
