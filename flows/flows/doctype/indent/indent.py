@@ -349,7 +349,7 @@ def validate_c_form(customer, plant, billing_date):
 	def get_lease_date(plant):
 		if 'iocl' in plant.lower():
 			return 60
-		elif 'hplc' in plant.lower():
+		elif 'hpcl' in plant.lower():
 			return 90
 		elif 'bpcl' in plant.lower():
 			return 365
