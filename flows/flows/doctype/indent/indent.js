@@ -342,8 +342,8 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 	},
 
 	fetch_balance:function (doc, cdt, cdn) {
-		if (doc.plant.toLowerCase().indexOf("hpcl") > -1) {
-			var indent_item = frappe.get_doc(cdt, cdn);
+		var indent_item = frappe.get_doc(cdt, cdn);
+		if (doc.plant.toLowerCase().indexOf("hpcl") > -1 && indent_item.customer != '') {
 			frappe.call({
 				method:"flows.flows.doctype.indent.indent.fetch_account_balance_with_omc",
 				args:{
