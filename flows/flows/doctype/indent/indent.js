@@ -97,6 +97,17 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 		this.populate_payment_type_info(doc, cdt, cdn);
 		this.compute_base_rate(doc, cdt, cdn);
 		this.fetch_balance(doc, cdt, cdn);
+		this.clear_ship_to(doc, cdt, cdn);
+	},
+
+	clear_ship_to: function(doc, cdt, cdn) {
+		var me = this;
+		var indent_item = frappe.get_doc(cdt, cdn);
+		indent_item.ship_to = '';
+		refresh_field("ship_to", indent_item.name, indent_item.parentfield);
+		if (me.ship_to) {
+			me.ship_to(indent_item, indent_item.doctype, indent_item.name);
+		}
 	},
 
 	item:function (doc, cdt, cdn) {
