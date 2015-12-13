@@ -17,9 +17,29 @@ class CFormIndentInvoice(Document):
 		self.cst = self.amount * 0.02
 		self.amount_with_tax = self.amount * 1.02
 
+
+	def load_quarter_start_end(self):
+		from frappe.utils.data import add_months, get_last_day
+		fiscal_start_date = frappe.db.get_value('Fiscal Year', self.fiscal_year, 'year_start_date')
+
+		if self.quarter == 'I':
+			offset = 0
+		elif self.quarter == 'II':
+			offset = 1
+		elif self.quarter == 'III':
+			offset = 2
+		elif self.quarter == 'IV':
+			offset = 3
+		start_d = add_months(fiscal_start_date, offset * 3)
+		end_d = get_last_day(add_months(fiscal_start_date, (offset * 3) + 2))
+		self.start_date = start_d
+		self.end_date = end_d.strftime('%Y-%m-%d')
+		return start_d, end_d.strftime('%Y-%m-%d')
+
+
 	def before_print(self):
-		start_date = frappe.db.get_value('Fiscal Year', self.fiscal_year, 'year_start_date')
-		self.start_date, self.end_date = get_quarter_start_end(start_date, self.quarter)
+
+		self.load_quarter_start_end()
 
 		self.tin_no = frappe.db.sql(
 			"SELECT tin_number FROM `tabSupplier` WHERE name = '{}'".format(self.supplier)
@@ -58,20 +78,6 @@ class CFormIndentInvoice(Document):
 			frappe.throw("C Form Instance Already exist for this combination of customer, supplier, year and quarter")
 
 
-def get_quarter_start_end(fiscal_start_date, quarter):
-	from frappe.utils.data import add_months, get_last_day
-
-	if quarter == 'I':
-		offset = 0
-	elif quarter == 'II':
-		offset = 1
-	elif quarter == 'III':
-		offset = 2
-	elif quarter == 'IV':
-		offset = 3
-	start_d = add_months(fiscal_start_date, offset * 3)
-	end_d = get_last_day(add_months(fiscal_start_date, (offset * 3) + 2))
-	return start_d, end_d.strftime('%Y-%m-%d')
 
 
 def get_supplier_list(doctype, txt, searchfield, start, page_len, filters):

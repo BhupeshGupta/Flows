@@ -2,8 +2,6 @@
 # For license information, please see license.txt
 from __future__ import unicode_literals
 
-import json
-
 from flows import utils as flows_utils
 from erpnext.stock.stock_ledger import make_sl_entries
 from frappe.model.document import Document
@@ -30,6 +28,7 @@ class Indent(Document):
 			validate_bill_to_ship_to(indent_item.customer, indent_item.ship_to, self.posting_date)
 			if not indent_item.ship_to:
 				indent_item.ship_to = indent_item.customer
+			validate_c_form(indent_item.customer, self.plant, self.posting_date)
 
 	def on_submit(self):
 		self.process_material_according_to_indent()
@@ -342,6 +341,50 @@ def validate_bill_to_ship_to(bill_to, ship_to, date):
 			return True
 
 	raise_error()
+
+
+def validate_c_form(customer, plant, billing_date):
+	from frappe.utils import add_days
+
+	def get_lease_date(plant):
+		if 'iocl' in plant.lower():
+			return 60
+		elif 'hplc' in plant.lower():
+			return 90
+		elif 'bpcl' in plant.lower():
+			return 365
+
+	c_form_name = frappe.db.sql("""
+	SELECT name FROM `tabC Form Indent Invoice`
+	WHERE customer='{customer}'
+	AND SUBSTRING_INDEX(`supplier`, ' ', 1)='{supplier}'
+	AND docstatus = 0
+	""".format(
+		customer=customer,
+		supplier=plant.split(' ')[0]
+	))
+
+	if c_form_name:
+		c_form = frappe.get_doc("C Form Indent Invoice", c_form_name[0][0])
+		c_form.load_quarter_start_end()
+		days = get_lease_date(plant)
+
+		warn_date = add_days(c_form.end_date, days-15)
+
+		stop_date = add_days(c_form.end_date, days)
+
+		if billing_date >= stop_date:
+			frappe.msgprint(
+				"""Customer {customer}'s c form is pending supply wont be released by {plant}!""".format(
+					customer=customer, plant=plant
+				)
+			)
+		elif billing_date >= warn_date:
+			frappe.msgprint(
+				"""Customer {customer}'s c form is pending and its supply will be blocked by {plant} in 15 days!""".format(
+					customer=customer, plant=plant
+				)
+			)
 
 
 @frappe.whitelist()
