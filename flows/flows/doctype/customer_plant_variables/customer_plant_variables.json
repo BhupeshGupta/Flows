@@ -178,6 +178,14 @@
    "permlevel": 0, 
    "precision": "", 
    "reqd": 1
+  }, 
+  {
+   "fieldname": "sales_tax", 
+   "fieldtype": "Link", 
+   "label": "Sales Tax", 
+   "options": "Indent Invoice Tax", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "hide_heading": 0, 
@@ -187,7 +195,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-11-15 16:48:10.531785", 
+ "modified": "2015-12-13 19:33:47.142723", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Customer Plant Variables", 
