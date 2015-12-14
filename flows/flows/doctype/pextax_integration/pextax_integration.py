@@ -90,7 +90,7 @@ class PextaxIntegration(Document):
 			frappe.db.sql("""
 				UPDATE `tabIndent Invoice`
 				SET icc_form = '{icc_form}'
-				WHERE name = '{invoice_no}'
+				WHERE invoice_number = '{invoice_no}'
 			""".format(icc_form=icc_form.name, invoice_no=icc_form.invoice_no))
 
 		frappe.db.commit()
