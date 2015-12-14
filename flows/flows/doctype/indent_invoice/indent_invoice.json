@@ -551,6 +551,20 @@
    "options": "Do Not Adjust Rate\nAdjust Rate", 
    "permlevel": 0, 
    "precision": ""
+  }, 
+  {
+   "fieldname": "section_break_68", 
+   "fieldtype": "Section Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "icc_form", 
+   "fieldtype": "Link", 
+   "label": "ICC Form", 
+   "options": "ICC Form", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "hide_heading": 0, 
@@ -560,7 +574,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-10-14 15:38:50.517941", 
+ "modified": "2015-12-14 11:20:49.077281", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 
@@ -573,16 +587,39 @@
    "cancel": 1, 
    "create": 1, 
    "delete": 1, 
-   "email": 1, 
+   "email": 0, 
    "export": 0, 
    "import": 0, 
    "permlevel": 0, 
-   "print": 1, 
+   "print": 0, 
    "read": 1, 
    "report": 1, 
    "role": "All", 
    "set_user_permissions": 0, 
    "submit": 1, 
+   "write": 1
+  }, 
+  {
+   "permlevel": 1, 
+   "read": 1, 
+   "role": "All"
+  }, 
+  {
+   "amend": 1, 
+   "cancel": 1, 
+   "create": 1, 
+   "delete": 1, 
+   "permlevel": 0, 
+   "read": 1, 
+   "report": 1, 
+   "role": "Purchase Manager", 
+   "submit": 1, 
+   "write": 1
+  }, 
+  {
+   "permlevel": 1, 
+   "read": 1, 
+   "role": "Purchase Manager", 
    "write": 1
   }
  ], 
