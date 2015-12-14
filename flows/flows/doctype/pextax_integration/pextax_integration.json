@@ -250,6 +250,14 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0
+  }, 
+  {
+   "fieldname": "reconcile", 
+   "fieldtype": "Button", 
+   "label": "Reconcile", 
+   "options": "reconcile", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "hide_heading": 0, 
@@ -259,7 +267,7 @@
  "is_submittable": 0, 
  "issingle": 1, 
  "istable": 0, 
- "modified": "2015-12-12 17:26:47.248788", 
+ "modified": "2015-12-14 11:08:32.489244", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Pextax Integration", 
