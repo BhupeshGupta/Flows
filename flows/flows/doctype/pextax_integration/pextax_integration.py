@@ -91,7 +91,7 @@ class PextaxIntegration(Document):
 				UPDATE `tabIndent Invoice`
 				SET icc_form = '{icc_form}'
 				WHERE name = '{invoice_no}'
-			""".format(icc_form=icc_form.icc_form, invoice_no=icc_form.invoice_no))
+			""".format(icc_form=icc_form.name, invoice_no=icc_form.invoice_no))
 
 		frappe.db.commit()
 		frappe.msgprint("Run Success! ICC form list updated.")
