@@ -76,6 +76,27 @@ class PextaxIntegration(Document):
 
 		return False
 
+	def reconcile(self):
+		for icc_form in frappe.db.sql("""
+			select name, invoice_no from `tabICC Form`
+			where name not in (
+				select icc_form
+				from `tabIndent Invoice`
+				where docstatus != 2
+				and icc_form != ''
+			)
+		""", as_dict=True):
+
+			frappe.db.sql("""
+				UPDATE `tabIndent Invoice`
+				SET icc_form = '{icc_form}'
+				WHERE name = '{invoice_no}'
+			""".format(icc_form=icc_form.icc_form, invoice_no=icc_form.invoice_no))
+
+		frappe.db.commit()
+		frappe.msgprint("Run Success! ICC form list updated.")
+
+
 
 	def run(self):
 		f = open('/tmp/pextax_cookie', 'rb')
@@ -222,4 +243,3 @@ def scrape_acknowledgement_page(page):
 	'vehicle_number': vehicle_table('tr')[1]('td')[1].text.strip(),
 	'gr_date': map_date(vehicle_table('tr')[4]('td')[3].text.strip())
 	}
-
