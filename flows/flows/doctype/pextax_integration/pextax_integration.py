@@ -15,6 +15,7 @@ from frappe.model.document import Document
 from frappe.utils import get_files_path
 import frappe, frappe.utils
 import time
+from flows.stdlogger import root
 
 fname = 'pextax.png'
 
@@ -120,19 +121,24 @@ class PextaxIntegration(Document):
 				total_forms.extend(rs['date_list'])
 
 			final_data_list = []
-			for ref in total_forms:
-				final_data_list.append(scrape_detail_page(session, ref['Request Number']))
 
-			common_db_dict = {'doctype': 'ICC Form'}
-			for data in final_data_list:
-				if frappe.db.sql("""SELECT name FROM `tabICC Form` WHERE acknowledgement_no='{}'""".format(
-						data['acknowledgement_no']
-				)):
-					continue
-				data.update(common_db_dict)
-				doc = frappe.get_doc(data)
-				doc.ignore_permissions = True
-				doc.save()
+			for ref in total_forms:
+				try:
+					final_data_list.append(scrape_detail_page(session, ref['Request Number']))
+
+					common_db_dict = {'doctype': 'ICC Form'}
+					for data in final_data_list:
+						if frappe.db.sql("""SELECT name FROM `tabICC Form` WHERE acknowledgement_no='{}'""".format(
+								data['acknowledgement_no']
+						)):
+							continue
+						data.update(common_db_dict)
+						doc = frappe.get_doc(data)
+						doc.ignore_permissions = True
+						doc.save()
+				except Exception as e:
+					root.error(e)
+					root.error(ref)
 
 			self.last_run_on = frappe.utils.now()
 			self.last_run_from_date = self.from_date
