@@ -5,6 +5,8 @@ from flows.stdlogger import root
 
 from requests.adapters import HTTPAdapter
 
+from requests.packages.urllib3.util.retry import Retry
+
 headers = {'User-agent': 'ALPINE ENERGY LIMITED ND Distributor/9914526902/alpineenergyhpcl@gmail.com'}
 
 
@@ -15,8 +17,15 @@ class HPCLCustomerPortal():
 
 			logging.basicConfig(level=logging.DEBUG)
 			self.session = requests.Session()
-			self.session.mount('https://', HPCLAdapter(max_retries=5))
-			self.session.mount('http://', HPCLAdapter(max_retries=5))
+			retry = Retry(
+				total=10, connect=5, read=5, redirect=5,
+				method_whitelist=('GET', 'POST'), status_forcelist=None,
+				backoff_factor=0.1
+			)
+			adapter = HPCLAdapter(max_retries=retry)
+			self.session.mount('https://', adapter)
+			self.session.mount('http://', adapter)
+
 		return self.session
 
 	def __init__(self, user, password, debug=False):
@@ -250,4 +259,4 @@ class ServerBusy(Exception):
 
 class HPCLAdapter(HTTPAdapter):
 	def send(self, request, timeout=None, **kwargs):
-		return super(HPCLAdapter, self).send(request, timeout=4, **kwargs)
+		return super(HPCLAdapter, self).send(request, timeout=(4, 6), **kwargs)
