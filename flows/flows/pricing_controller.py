@@ -28,7 +28,7 @@ def get_landed_rate(customer, posting_date, item):
 
 @frappe.whitelist()
 def compute_base_rate_for_a_customer(
-		customer, plant, item, sales_tax_type, posting_date, extra_precision=1, adjustment=None,
+		customer, plant, item, sales_tax, posting_date, extra_precision=1, adjustment=None,
 		details={}, force_check_for_this_month_plant_rate=False
 ):
 	adjustment = adjustment if adjustment else {}
@@ -39,7 +39,7 @@ def compute_base_rate_for_a_customer(
 	'plant': plant,
 	'item': item,
 	'posting_date': posting_date,
-	'sales_tax_type': sales_tax_type
+	'sales_tax': sales_tax
 	}
 
 	rs = frappe.db.sql("""
@@ -73,7 +73,7 @@ def compute_base_rate_for_a_customer(
 	purchase_variables.update(rs[0])
 
 
-	purchase_variables.update(frappe.get_doc("Indent Invoice Tax", sales_tax_type).as_dict())
+	purchase_variables.update(frappe.get_doc("Indent Invoice Tax", sales_tax).as_dict())
 
 	for key, value in adjustment.items():
 		purchase_variables[key] += adjustment[key]

@@ -144,7 +144,7 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 							plant:doc.plant,
 							customer:indent_item.customer,
 							item:indent_item.item,
-							sales_tax_type:indent_item.sales_tax_type,
+							sales_tax:indent_item.sales_tax,
 							posting_date:doc.posting_date
 						},
 						callback:function (r) {
@@ -193,7 +193,8 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 						args:{
 							plant:doc.plant,
 							customer:indent_item.customer,
-							posting_date:doc.posting_date
+							posting_date:doc.posting_date,
+
 						},
 						callback:function (r) {
 							if (!r.exc) {
