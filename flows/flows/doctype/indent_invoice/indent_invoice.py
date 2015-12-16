@@ -19,6 +19,7 @@ from frappe.utils import cint
 from frappe.utils import get_first_day
 from flows.flows import payer
 from flows.flows.doctype.indent.indent import validate_bill_to_ship_to
+from flows.flows.pricing_controller import compute_base_rate_for_a_customer
 
 
 class IndentInvoice(StockController):
@@ -30,11 +31,37 @@ class IndentInvoice(StockController):
 			self.posting_date = today()
 			self.fiscal_year = account_utils.get_fiscal_year(self.get("transaction_date"))[0]
 
-		self.check_previous_doc()
 		self.validate_purchase_rate()
+		self.check_previous_doc()
 		self.make_gl_entries()
 		self.make_stock_refill_entry()
 		self.raise_transportation_bill()
+
+	def populate_reports(self, tax=None):
+		cpv = frappe.get_doc("Customer Plant Variables", self.customer_plant_variables)
+		handling_per_kg = cpv.transportation + (self.handling if cint(self.adjusted) == 1 else 0)
+
+		material_in_kg = self.qty * float(self.item.replace('FC', '').replace('L', ''))
+
+		expected_handling = handling_per_kg * material_in_kg
+
+		if not self.handling_charges:
+			self.handling_charges = expected_handling
+		else:
+			handling_diff = abs(float(self.handling_charges - expected_handling))
+			if handling_diff > 1:
+				frappe.throw("Handling mismatch! Handling should be around {}. Current is {}. Diff is {}".format(
+					expected_handling, self.handling_charges, handling_diff
+				))
+
+		if tax:
+			expected_cst = tax * material_in_kg
+			if not self.cst:
+				self.cst = expected_cst
+			else:
+				if abs(float(self.cst - expected_cst)) > 1:
+					frappe.throw("CST mismatch! CST should be around {}".format(expected_cst))
+
 
 	def check_previous_doc(self):
 		if self.indent:
@@ -46,6 +73,11 @@ class IndentInvoice(StockController):
 				frappe.throw("Indent {} not found. check if is canceled, amended or deleted".format(
 					self.indent
 				))
+
+		cpv = frappe.get_doc("Customer Plant Variables", self.customer_plant_variables)
+
+		if cpv.docstatus != 1:
+			frappe.throw("Customer Plant Variable {} need to be submitted.".format(cpv.name))
 
 	def on_update_after_submit(self):
 		if self.cross_sold == 0:
@@ -114,6 +146,20 @@ class IndentInvoice(StockController):
 			self.supplier = indent.plant
 			self.company = indent.company
 
+			cpv = frappe.db.sql("""
+				SELECT name
+				FROM `tabCustomer Plant Variables`
+				WHERE plant="{plant}" AND with_effect_from <= DATE("{posting_date}") AND customer="{customer}"
+				ORDER BY with_effect_from DESC LIMIT 1;
+				""".format(plant=self.supplier, posting_date=self.transaction_date, customer=self.customer))
+			if not cpv:
+				frappe.throw("Customer Plant Variables Not Found!")
+			self.customer_plant_variables = cpv[0][0]
+
+			if not self.sales_tax:
+				self.sales_tax = indent_item.sales_tax
+
+
 			# IF ship to is defined in indent and not defined in invoice, copy value over to invoice
 			if indent_item.ship_to and indent_item.ship_to.strip() != '':
 				if not (self.ship_to and self.ship_to.strip() != ''):
@@ -141,20 +187,20 @@ class IndentInvoice(StockController):
 		if self.customer == 'VK Logistics':
 			return
 
-		from flows.flows.pricing_controller import compute_base_rate_for_a_customer
-
-		indent_item = frappe.get_doc("Indent Item", self.indent_item)
-
 		adjustment = {
 		'discount': self.discount if self.discount else 0,
 		'transportation': self.handling if self.handling else 0
 		} if self.adjusted else {}
 
+		pricing_detail = {}
+
 		expected = compute_base_rate_for_a_customer(
 			self.customer, self.supplier,
-			self.item, indent_item.sales_tax_type,
+			self.item, self.sales_tax,
 			self.transaction_date, extra_precision=1,
-			adjustment=adjustment
+			adjustment=adjustment,
+			details=pricing_detail,
+			force_check_for_this_month_plant_rate=True
 		) / float(self.item.replace('FC', '').replace('L', ''))
 
 		qty_in_kg, per_kg_rate_in_invoice = self.get_invoice_rate()
@@ -167,6 +213,8 @@ class IndentInvoice(StockController):
 				there is a diff of {diff}, rate in master is {master} and in invoice is {invoice}
 				""".format(diff=rate_diff, invoice=per_kg_rate_in_invoice, master=expected)
 			)
+
+		self.populate_reports(tax=pricing_detail['tax']+pricing_detail['surcharge'])
 
 	def make_gl_entries(self, repost_future_gle=True):
 		gl_entries = self.get_gl_entries()
@@ -714,6 +762,7 @@ class IndentInvoice(StockController):
 		per_kg_rate_in_invoice = self.actual_amount / qty_in_kg
 
 		return qty_in_kg, per_kg_rate_in_invoice
+
 
 	#
 	# def transport_bill_variables_old_method(self, indent_invoice_settings):

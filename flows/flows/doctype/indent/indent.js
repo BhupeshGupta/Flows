@@ -196,14 +196,13 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 							posting_date:doc.posting_date
 						},
 						callback:function (r) {
-							console.log("populate_payment_type_info callback");
 							if (!r.exc) {
 								console.log(r.message);
 
-								indent_item.sales_tax_type = r.message.sales_tax_type;
-								refresh_field("sales_tax_type", indent_item.name, indent_item.parentfield);
-								if (me.sales_tax_type) {
-									me.sales_tax_type(indent_item, indent_item.doctype, indent_item.name);
+								indent_item.sales_tax = r.message.sales_tax;
+								refresh_field("sales_tax", indent_item.name, indent_item.parentfield);
+								if (me.sales_tax) {
+									me.sales_tax(indent_item, indent_item.doctype, indent_item.name);
 								}
 
 								indent_item.payment_type = r.message.payment_mode;

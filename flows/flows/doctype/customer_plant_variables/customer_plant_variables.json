@@ -186,16 +186,25 @@
    "options": "Indent Invoice Tax", 
    "permlevel": 0, 
    "precision": ""
+  }, 
+  {
+   "fieldname": "amended_from", 
+   "fieldtype": "Link", 
+   "label": "Amended From", 
+   "no_copy": 1, 
+   "options": "Customer Plant Variables", 
+   "print_hide": 1, 
+   "read_only": 1
   }
  ], 
  "hide_heading": 0, 
  "hide_toolbar": 0, 
  "in_create": 0, 
  "in_dialog": 0, 
- "is_submittable": 0, 
+ "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-12-13 19:33:47.142723", 
+ "modified": "2015-12-14 15:33:15.431688", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Customer Plant Variables", 
@@ -203,9 +212,9 @@
  "owner": "Administrator", 
  "permissions": [
   {
-   "amend": 0, 
+   "amend": 1, 
    "apply_user_permissions": 0, 
-   "cancel": 0, 
+   "cancel": 1, 
    "create": 1, 
    "delete": 1, 
    "email": 0, 
@@ -217,7 +226,7 @@
    "report": 1, 
    "role": "All", 
    "set_user_permissions": 0, 
-   "submit": 0, 
+   "submit": 1, 
    "write": 1
   }
  ], 
