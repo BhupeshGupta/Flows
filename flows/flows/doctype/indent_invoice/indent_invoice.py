@@ -150,7 +150,7 @@ class IndentInvoice(StockController):
 				SELECT name
 				FROM `tabCustomer Plant Variables`
 				WHERE plant="{plant}" AND with_effect_from <= DATE("{posting_date}") AND customer="{customer}"
-				ORDER BY with_effect_from DESC LIMIT 1;
+				AND docstatus != 2 ORDER BY with_effect_from DESC LIMIT 1;
 				""".format(plant=self.supplier, posting_date=self.transaction_date, customer=self.customer))
 			if not cpv:
 				frappe.throw("Customer Plant Variables Not Found!")
