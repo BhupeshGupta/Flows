@@ -79,7 +79,7 @@ def fetch_and_record_iocl_transactions(customer_list, for_date=None, force_run=F
 			frappe.db.commit()
 
 
-def fetch_and_record_iocl_transactions(date=None):
+def fetch_and_record_iocl_transactions_controller(date=None):
 
 	customer_account_map = {
 		'605251': frappe._dict({'id': '605251', 'passwd': '605251'}),
@@ -103,5 +103,5 @@ def fetch_and_record_iocl_transactions(date=None):
 		if customer.iocl_sap_code in customer_account_map:
 			iocl_account_list.append(customer_account_map[customer.iocl_sap_code])
 
-	fetch_and_record_iocl_transactions(iocl_account_list, date)
+	fetch_and_record_iocl_transactions(iocl_account_list, for_date=date)
 	reconcile_omc_txns_with_indents()
