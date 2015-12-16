@@ -356,8 +356,8 @@ def validate_c_form(customer, plant, billing_date):
 
 	c_form_name = frappe.db.sql("""
 	SELECT name FROM `tabC Form Indent Invoice`
-	WHERE customer='{customer}'
-	AND SUBSTRING_INDEX(`supplier`, ' ', 1)='{supplier}'
+	WHERE customer="{customer}"
+	AND SUBSTRING_INDEX(`supplier`, ' ', 1)="{supplier}"
 	AND docstatus = 0
 	""".format(
 		customer=customer,
