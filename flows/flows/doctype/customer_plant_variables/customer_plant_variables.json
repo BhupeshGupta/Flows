@@ -133,16 +133,6 @@
    "precision": ""
   }, 
   {
-   "default": "CST", 
-   "fieldname": "sales_tax_type", 
-   "fieldtype": "Select", 
-   "label": "Sales Tax Type", 
-   "options": "CST\nVAT", 
-   "permlevel": 0, 
-   "precision": "", 
-   "reqd": 1
-  }, 
-  {
    "default": "0", 
    "depends_on": "", 
    "fieldname": "cenvat", 
@@ -150,24 +140,6 @@
    "label": "Cenvat", 
    "permlevel": 0, 
    "precision": "", 
-   "reqd": 1
-  }, 
-  {
-   "default": "2", 
-   "fieldname": "tax_percentage", 
-   "fieldtype": "Percent", 
-   "label": "Tax Percentage", 
-   "permlevel": 0, 
-   "precision": "2", 
-   "reqd": 1
-  }, 
-  {
-   "default": "0", 
-   "fieldname": "surcharge_percentage", 
-   "fieldtype": "Percent", 
-   "label": "Surcharge Percentage", 
-   "permlevel": 0, 
-   "precision": "2", 
    "reqd": 1
   }, 
   {
@@ -185,7 +157,8 @@
    "label": "Sales Tax", 
    "options": "Indent Invoice Tax", 
    "permlevel": 0, 
-   "precision": ""
+   "precision": "", 
+   "reqd": 1
   }, 
   {
    "fieldname": "amended_from", 
@@ -193,6 +166,7 @@
    "label": "Amended From", 
    "no_copy": 1, 
    "options": "Customer Plant Variables", 
+   "permlevel": 0, 
    "print_hide": 1, 
    "read_only": 1
   }
@@ -204,7 +178,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-12-14 15:33:15.431688", 
+ "modified": "2015-12-16 17:50:56.155789", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Customer Plant Variables", 
