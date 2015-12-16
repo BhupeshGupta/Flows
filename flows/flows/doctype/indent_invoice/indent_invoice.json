@@ -555,6 +555,7 @@
   {
    "fieldname": "section_break_68", 
    "fieldtype": "Section Break", 
+   "label": "Links", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -563,6 +564,34 @@
    "fieldtype": "Link", 
    "label": "ICC Form", 
    "options": "ICC Form", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "column_break_70", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "customer_plant_variables", 
+   "fieldtype": "Link", 
+   "label": "Customer Plant Variables", 
+   "options": "Customer Plant Variables", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "column_break_72", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "sales_tax", 
+   "fieldtype": "Link", 
+   "label": "Sales Tax", 
+   "options": "Indent Invoice Tax", 
    "permlevel": 0, 
    "precision": ""
   }
@@ -574,7 +603,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-12-14 11:20:49.077281", 
+ "modified": "2015-12-14 17:10:38.488761", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 
