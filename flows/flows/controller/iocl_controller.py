@@ -14,7 +14,7 @@ def get_iocl_customer_list():
 	return
 
 
-def fetch_and_record_iocl_balance(customer_list, for_date=None, force_run=False):
+def fetch_and_record_iocl_transactions(customer_list, for_date=None, force_run=False):
 	if not force_run:
 		if skip_run():
 			return
@@ -83,7 +83,7 @@ def fetch_and_record_iocl_transactions(date=None):
 
 	customer_account_map = {
 		'605251': frappe._dict({'id': '605251', 'passwd': '605251'}),
-		'106474': frappe._dict({'id': '106474', 'passwd': '106474'})
+		# '106474': frappe._dict({'id': '106474', 'passwd': '106474'})
 	}
 
 	iocl_account_list = [customer_account_map['605251']]
@@ -103,5 +103,5 @@ def fetch_and_record_iocl_transactions(date=None):
 		if customer.iocl_sap_code in customer_account_map:
 			iocl_account_list.append(customer_account_map[customer.iocl_sap_code])
 
-	fetch_and_record_iocl_balance(iocl_account_list, date)
+	fetch_and_record_iocl_transactions(iocl_account_list, date)
 	reconcile_omc_txns_with_indents()
