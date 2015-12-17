@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from frappe.utils.data import date_diff, today
 from flows.stdlogger import root
 from requests.packages.urllib3.util.retry import Retry
+import frappe
 
 
 class IOCLPortal(object):
@@ -24,6 +25,11 @@ class IOCLPortal(object):
 			import logging
 
 			logging.basicConfig(level=logging.DEBUG)
+
+			proxy_map = {}
+			if frappe.conf.iocl_proxy:
+				proxy_map['http://'] = frappe.conf.iocl_proxy
+
 			self.session = requests.Session()
 			retry = Retry(
 				total=10, connect=5, read=5, redirect=5,
