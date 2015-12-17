@@ -1,8 +1,12 @@
 import requests
+from requests.adapters import HTTPAdapter
+
 from bs4 import BeautifulSoup
-from flows.stdlogger import root
-import json
+
 from frappe.utils.data import date_diff, today
+from flows.stdlogger import root
+from requests.packages.urllib3.util.retry import Retry
+
 
 class IOCLPortal(object):
 	@classmethod
@@ -17,15 +21,27 @@ class IOCLPortal(object):
 
 	def get_session(self):
 		if not self.session:
+			import logging
+
+			logging.basicConfig(level=logging.DEBUG)
 			self.session = requests.Session()
+			retry = Retry(
+				total=10, connect=5, read=5, redirect=5,
+				method_whitelist=('GET', 'POST'), status_forcelist=None,
+				backoff_factor=0.1
+			)
+			adapter = IOCLAdapter(max_retries=retry)
+			self.session.mount('https://', adapter)
+			self.session.mount('http://', adapter)
+
 		return self.session
 
 	def login(self):
 		s = self.get_session()
 		login_key = {
-			'LogId': self.user,
-			'LogPwd': self.passwd,
-			'LogType': 2
+		'LogId': self.user,
+		'LogPwd': self.passwd,
+		'LogType': 2
 		}
 		content = s.post('http://webapp.indianoil.co.in/ioconline/iocExSignIn.jsp', data=login_key).text
 		if self.debug:
@@ -80,18 +96,26 @@ class IOCLPortal(object):
 				total_credit += amt
 
 		return {
-			'txns': data_map,
-			'current_balance': float(soup.findAll('table')[5].text.split(':')[1].replace(',', '').strip()),
-			'total_credit': total_credit,
-			'total_debit': total_debit
+		'txns': data_map,
+		'current_balance': float(soup.findAll('table')[5].text.split(':')[1].replace(',', '').strip()),
+		'total_credit': total_credit,
+		'total_debit': total_debit
 		}
 
 	def get_current_balance_as_on_date(self, mode='raw'):
 		return self.transactions_since_yesterday(mode='dict')['current_balance']
 
+
 def get_iocl_user_pass():
-	return [{
+	return [
+		{
 		"customer": "Mosaic",
 		"id": "605251",
-		"pass": "605251",
-	}]
+		"pass": "605251"
+		}
+	]
+
+
+class IOCLAdapter(HTTPAdapter):
+	def send(self, request, timeout=None, **kwargs):
+		return super(IOCLAdapter, self).send(request, timeout=(10, 20), **kwargs)
