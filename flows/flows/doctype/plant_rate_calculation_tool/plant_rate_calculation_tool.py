@@ -17,8 +17,8 @@ class PlantRateCalculationTool(Document):
 		}
 
 		discount_transportation_query = """
-		SELECT transportation, discount, tax_percentage, surcharge_percentage
-		FROM `tabCustomer Plant Variables`
+		SELECT cpv.transportation, cpv.discount, tax.tax_percentage, tax.surcharge_percentage
+		FROM `tabCustomer Plant Variables` cpv left join `tabIndent Invoice Tax` tax on cpv.sales_tax = tax.name
 		WHERE plant="{plant}" AND with_effect_from <= DATE("{date}") AND customer="{customer}"
 		ORDER BY with_effect_from DESC LIMIT 1;
 		""".format(**context)
