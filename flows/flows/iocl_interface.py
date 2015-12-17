@@ -28,9 +28,11 @@ class IOCLPortal(object):
 
 			proxy_map = {}
 			if frappe.conf.iocl_proxy:
-				proxy_map['http://'] = frappe.conf.iocl_proxy
+				proxy_map['http'] = frappe.conf.iocl_proxy
 
 			self.session = requests.Session()
+			self.session.proxies = proxy_map
+
 			retry = Retry(
 				total=10, connect=5, read=5, redirect=5,
 				method_whitelist=('GET', 'POST'), status_forcelist=None,
