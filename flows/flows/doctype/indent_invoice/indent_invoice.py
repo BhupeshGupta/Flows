@@ -20,6 +20,8 @@ from frappe.utils import get_first_day
 from flows.flows import payer
 from flows.flows.doctype.indent.indent import validate_bill_to_ship_to
 from flows.flows.pricing_controller import compute_base_rate_for_a_customer
+from frappe.utils.formatters import format_value
+import collections
 
 
 class IndentInvoice(StockController):
@@ -672,10 +674,14 @@ class IndentInvoice(StockController):
 			description += "Rate: {} - {} (Paid By Consignor) per KG\n".format(transportation_rate_per_kg,
 																			   discount_per_kg)
 
-		description += """(Bill No: {bill_no} Dt: {invoice_date} Item: {item} Qty: {qty} Amt: {amt})""".format(
-			bill_no=self.invoice_number, invoice_date=self.transaction_date, item=self.item, qty=self.qty,
-			amt=self.actual_amount
-		)
+		d_m = collections.OrderedDict()
+		d_m['Dt'] = format_value(self.transaction_date, {"fieldtype": "Date"})
+		d_m['Bill No'] = self.invoice_number
+		d_m['Item'] = '<strong>{}</strong>'.format(self.item)
+		d_m['qty'] = '<strong>{}</strong>'.format(self.qty)
+		d_m['Amt'] = '<strong>\u20b9{}</strong>'.format(format_value(self.actual_amount, {"fieldtype": "Currency"}))
+
+		description += """({})""".format(', '.join(['{}: {}'.format(k, v) for k, v in d_m.items()]))
 
 		consignment_note_json_doc = {
 		"doctype": "Sales Invoice",
