@@ -675,11 +675,11 @@ class IndentInvoice(StockController):
 																			   discount_per_kg)
 
 		d_m = collections.OrderedDict()
-		d_m['Dt'] = format_value(self.transaction_date, {"fieldtype": "Date"})
-		d_m['Bill No'] = self.invoice_number
+		d_m['Dt.'] = format_value(self.transaction_date, {"fieldtype": "Date"})
+		d_m['Bill No.'] = self.invoice_number
 		d_m['Item'] = '<strong>{}</strong>'.format(self.item)
-		d_m['qty'] = '<strong>{}</strong>'.format(self.qty)
-		d_m['Amt'] = '<strong>\u20b9{}</strong>'.format(format_value(self.actual_amount, {"fieldtype": "Currency"}))
+		d_m['Qty.'] = '<strong>{}</strong>'.format(self.qty)
+		d_m['Amt.'] = '<strong>\u20b9{}</strong>'.format(format_value(self.actual_amount, {"fieldtype": "Currency"}))
 
 		description += """({})""".format(', '.join(['{}: {}'.format(k, v) for k, v in d_m.items()]))
 
