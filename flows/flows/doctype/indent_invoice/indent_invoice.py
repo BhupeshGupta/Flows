@@ -61,7 +61,7 @@ class IndentInvoice(StockController):
 			if not self.cst:
 				self.cst = expected_cst
 			else:
-				if abs(float(self.cst - expected_cst)) > 1:
+				if abs(float(self.cst - expected_cst)) > 100:
 					frappe.throw("CST mismatch! CST should be around {}".format(expected_cst))
 
 
