@@ -49,7 +49,7 @@ class IndentInvoice(StockController):
 			self.handling_charges = expected_handling
 		else:
 			handling_diff = abs(float(self.handling_charges - expected_handling))
-			if handling_diff > 1:
+			if handling_diff > 0:
 				frappe.throw("Handling mismatch! Handling should be around {}. Current is {}. Diff is {}".format(
 					expected_handling, self.handling_charges, handling_diff
 				))
@@ -59,7 +59,7 @@ class IndentInvoice(StockController):
 			if not self.cst:
 				self.cst = expected_cst
 			else:
-				if abs(float(self.cst - expected_cst)) > 0:
+				if abs(float(self.cst - expected_cst)) > 1:
 					frappe.throw("CST mismatch! CST should be around {}".format(expected_cst))
 
 
