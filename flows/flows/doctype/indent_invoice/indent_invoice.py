@@ -51,7 +51,7 @@ class IndentInvoice(StockController):
 			self.handling_charges = expected_handling
 		else:
 			handling_diff = abs(float(self.handling_charges - expected_handling))
-			if round(handling_diff, 2) > 0:
+			if round(handling_diff/material_in_kg, 2) > 0:
 				frappe.throw("Handling mismatch! Handling should be around {}. Current is {}. Diff is {}".format(
 					expected_handling, self.handling_charges, handling_diff
 				))
