@@ -1,0 +1,44 @@
+{% if(!doc) { %}
+	<div class="row">
+		<div class="col-sm-2">{%= __("Invoice") %}</div>
+		<div class="col-sm-4">{%= __("Customer") %}</div>
+		<div class="col-sm-2 text-right">{%= __("Handling") %}</div>
+        <div class="col-sm-2 text-right">{%= __("Excise") %}</div>
+        <div class="col-sm-2 text-right">{%= __("Cst") %}</div>
+	</div>
+{% } else { %}
+
+    <div class="row">
+        <div class="col-sm-2">
+	        {%= doc.indent_invoice %}{% if(doc.printable==1) { %}</br><i class="icon-print"></i>{% } %}
+            <div>
+                <span class="label
+                    {%= (doc.workflow_state == 'Ok') ? "label-success": "" %}
+                    {%= (doc.workflow_state == 'Missing Values') ? "label-warning": "" %}
+                    {%= (doc.workflow_state == 'Unchecked') ? "label-danger": "" %}">
+	                {%= doc.workflow_state || "Missing State" %}</span>
+            </div>
+        </div>
+
+        <!-- qty -->
+        <div class="col-sm-4">
+            {%= doc.get_formatted("customer") %}
+        </div>
+
+        <!-- amount -->
+        <div class="col-sm-2 text-right">
+            {%= doc.get_formatted("handling") %}
+        </div>
+
+        <!-- amount -->
+        <div class="col-sm-2 text-right">
+            {%= doc.get_formatted("excise") %}
+        </div>
+
+        <!-- amount -->
+        <div class="col-sm-2 text-right">
+            {%= doc.get_formatted("cst") %}
+        </div>
+    </div>
+
+{% } %}

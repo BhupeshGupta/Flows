@@ -1,7 +1,7 @@
 from collections import OrderedDict
 
 import frappe
-
+from frappe.utils import cint
 
 def indent_refill_qty(indent_items):
 	sum = 0
@@ -52,6 +52,7 @@ def get_contract_number(customer, date, plant):
     WHERE customer = "{}"
     AND with_effect_from < "{}"
     AND plant = "{}"
+    AND docstatus != 2
     ORDER BY with_effect_from DESC limit 1;
     """.format(customer, date, plant))
 
@@ -63,10 +64,6 @@ def get_registration_code(customer, vendor):
 	customer: customer to get code for
 	vendor: vendor to get registration code for (HPCL, BPLC, IOCL)
 	"""
-
-	from stdlogger import root
-
-	root.debug((customer, vendor))
 
 	vendor = vendor.lower()
 
@@ -104,19 +101,12 @@ def get_customer_field(customer_name, field):
 
 def get_cenvat_status(customer_name, date, plant):
 	rs = frappe.db.sql("""
-    SELECT {key}
-    FROM `tabCustomer Plant Variables`
-    WHERE customer = "{customer}"
-    AND with_effect_from < "{date}"
-    AND plant = "{plant}"
-    ORDER BY with_effect_from DESC limit 1;
-    """.format(key="cenvat", customer=customer_name, date=date, plant=plant)
-	)
+    SELECT cenvat
+    FROM `tabCustomer`
+    WHERE name = "{customer}"
+    """.format(customer=customer_name))
 
-	if not rs:
-		return "NONMODVAT"
-
-	return "MODVAT" if rs[0][0] == 1 else "NONMODVAT"
+	return "MODVAT" if cint(rs[0][0]) == 1 else "NONMODVAT"
 
 
 def get_address_display(address_of, address_type):
