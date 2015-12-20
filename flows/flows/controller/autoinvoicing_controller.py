@@ -1,6 +1,6 @@
 import frappe
 from frappe.utils import today, cint
-
+from flows.stdlogger import root
 
 def save_and_submit_invoices():
 	for invoice in frappe.db.sql("""
@@ -41,4 +41,7 @@ def __create_and_save_invoice__(data_dict):
 	doc = frappe.get_doc(doc_dict)
 
 	doc.save()
-	doc.submit()
+	try:
+		doc.submit()
+	except Exception as e:
+		root.error(e)
