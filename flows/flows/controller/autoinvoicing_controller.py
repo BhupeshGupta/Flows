@@ -1,10 +1,10 @@
 import frappe
-from frappe.utils import today
+from frappe.utils import today, cint
 
 
 def save_and_submit_invoices():
 	for invoice in frappe.db.sql("""
-	SELECT iitm.name AS indent_item, iitm.cross_sold, omctxn.document_no, omctxn.date, omctxn.debit
+	SELECT iitm.parent as indent, iitm.name AS indent_item, iitm.cross_sold, omctxn.document_no, omctxn.date, omctxn.debit
 	FROM `tabIndent Item` iitm LEFT JOIN `tabOMC Transactions` omctxn
 	ON iitm.invoice_reference = omctxn.document_no
 	WHERE ifnull(iitm.invoice_reference, '') != ''
@@ -14,6 +14,13 @@ def save_and_submit_invoices():
 		WHERE docstatus != 2
 	)
 	""", as_dict=True):
+
+		docstatus = frappe.db.get_value("Indent", invoice.indent, 'docstatus')
+		if cint(docstatus) == 0:
+			indent = frappe.get_doc("Indent", invoice.indent)
+			indent.docstatus = 1
+			indent.workflow_state = indent.state = 'Processed'
+			indent.save()
 
 		__create_and_save_invoice__({
 		'invoice_number': invoice.document_no,
