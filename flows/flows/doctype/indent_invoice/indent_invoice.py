@@ -15,7 +15,7 @@ from erpnext.accounts.party import get_party_account
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.stock.stock_ledger import make_sl_entries
 from frappe.utils import today
-from frappe.utils import cint
+from frappe.utils import cint, now
 from frappe.utils import get_first_day
 from flows.flows import payer
 from flows.flows.doctype.indent.indent import validate_bill_to_ship_to
@@ -38,6 +38,30 @@ class IndentInvoice(StockController):
 		self.make_gl_entries()
 		self.make_stock_refill_entry()
 		self.raise_transportation_bill()
+
+	def update_status(self):
+		# Data Logging
+		self.checked_by = frappe.session.user
+		self.checked_on = now()
+
+		old_workflow_state = self.workflow_state
+
+		# State Logic
+		if cint(self.cenvat) == 1:
+			if self.excise:
+				self.workflow_state = 'Ok'
+			else:
+				self.workflow_state = 'Missing Values'
+		else:
+			self.workflow_state = 'Ok'
+
+		if old_workflow_state != self.workflow_state:
+			self.add_comment('Log', "State Changed From {} to {}".format(old_workflow_state, self.workflow_state))
+
+		# Printable Logic
+		if self.workflow_state != 'Unchecked':
+			self.printable = 1
+
 
 	def populate_reports(self, tax=None):
 		cpv = frappe.get_doc("Customer Plant Variables", self.customer_plant_variables)
@@ -168,6 +192,7 @@ class IndentInvoice(StockController):
 					self.ship_to = indent_item.ship_to
 
 			validate_bill_to_ship_to(self.customer, self.ship_to, self.transaction_date)
+			self.cenvat = frappe.db.get_value("Customer", {'name': indent_item.customer}, 'cenvat')
 
 		if not cint(self.adjusted) == 1:
 			self.discount = 0

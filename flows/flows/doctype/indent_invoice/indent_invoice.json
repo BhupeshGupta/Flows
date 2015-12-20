@@ -594,6 +594,74 @@
    "options": "Indent Invoice Tax", 
    "permlevel": 0, 
    "precision": ""
+  }, 
+  {
+   "fieldname": "state", 
+   "fieldtype": "Section Break", 
+   "label": "State", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "cenvat", 
+   "fieldtype": "Check", 
+   "label": "Cenvat", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
+  }, 
+  {
+   "allow_on_submit": 1, 
+   "fieldname": "printable", 
+   "fieldtype": "Check", 
+   "label": "Printable", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "column_break_77", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 0
+  }, 
+  {
+   "allow_on_submit": 1, 
+   "fieldname": "checked_by", 
+   "fieldtype": "Link", 
+   "label": "Checked By", 
+   "options": "User", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
+  }, 
+  {
+   "allow_on_submit": 1, 
+   "fieldname": "checked_on", 
+   "fieldtype": "Datetime", 
+   "label": "Checked On", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "column_break_80", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 0
+  }, 
+  {
+   "allow_on_submit": 1, 
+   "default": "Unchecked", 
+   "fieldname": "workflow_state", 
+   "fieldtype": "Select", 
+   "label": "Workflow State", 
+   "options": "Unchecked\nMissing Values\nOk", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
   }
  ], 
  "hide_heading": 0, 
@@ -603,7 +671,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-12-14 17:10:38.488761", 
+ "modified": "2015-12-20 13:35:54.106854", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 
