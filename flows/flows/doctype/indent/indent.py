@@ -24,6 +24,9 @@ class Indent(Document):
 		self.load_gatepasses()
 
 	def validate(self):
+		if self.vehicle not in get_allowed_vehicle(None, '', 'name', None, None, None):
+			frappe.throw("""Indent is not allowed to be placed on this vehicle until previous bills are
+			entered for this vehicle. You can place indent on `Self` for time being.""")
 		for indent_item in self.indent:
 			validate_bill_to_ship_to(indent_item.customer, indent_item.ship_to, self.posting_date)
 			if not indent_item.ship_to:
@@ -128,7 +131,6 @@ class Indent(Document):
 
 		return sl_entries
 
-
 	def transfer_stock_back_to_ba(self, sl_entries, stock_transfer_map):
 
 		vehicle_warehouse_ba = flows_utils.get_or_create_vehicle_stock_account(
@@ -147,7 +149,6 @@ class Indent(Document):
 				sl_entries.append(e)
 
 		return sl_entries
-
 
 	def transfer_stock_back_to_logistics_partner(self, sl_entries, stock_transfer_map):
 
@@ -291,7 +292,6 @@ def link_with_gatepass(gatepass, indent):
 	frappe.msgprint("Linked Gatepass")
 
 
-@frappe.whitelist()
 def get_allowed_vehicle(doctype, txt, searchfield, start, page_len, filters):
 	superset_of_vehicles = set([x[0] for x in frappe.db.sql("""
 		select name from `tabTransportation Vehicle`
@@ -301,11 +301,14 @@ def get_allowed_vehicle(doctype, txt, searchfield, start, page_len, filters):
 	from flows.flows.report.purchase_cycle_report.purchase_cycle_report import get_data
 
 	vehicles_with_state = get_data(frappe._dict())
-	bad_vehicles_set = set([x.indent.vehicle for x in vehicles_with_state if x.bill_state == 'Pending'] + ['Self'])
+	bad_vehicles_set = set([x.indent.vehicle for x in vehicles_with_state if x.bill_state == 'Pending'])
 
 	rs = list(superset_of_vehicles - bad_vehicles_set)
 
-	return [[x] for x in rs]
+	rs = [[x] for x in rs]
+	rs.append('Self')
+
+	return rs
 
 
 def validate_bill_to_ship_to(bill_to, ship_to, date):
@@ -369,7 +372,7 @@ def validate_c_form(customer, plant, billing_date):
 		c_form.load_quarter_start_end()
 		days = get_lease_date(plant)
 
-		warn_date = add_days(c_form.end_date, days-15)
+		warn_date = add_days(c_form.end_date, days - 15)
 
 		stop_date = add_days(c_form.end_date, days)
 
@@ -381,7 +384,8 @@ def validate_c_form(customer, plant, billing_date):
 			)
 		elif billing_date >= warn_date:
 			frappe.msgprint(
-				"""Customer {customer}'s c form is pending and its supply will be blocked by {plant} in 15 days!""".format(
+				"""Customer {customer}'s c form is pending and its supply will be blocked by {plant} in 15
+				days!""".format(
 					customer=customer, plant=plant
 				)
 			)
