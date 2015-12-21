@@ -574,6 +574,7 @@ class IndentInvoice(StockController):
 		if cint(self.adjusted) == 1 and self.handling != 0 and self.consignment_note_adjustment == 'Adjust Rate':
 			adjustment_value = -1 * self.handling * (1 + self.cst / (self.actual_amount - self.cst))
 			transportation_rate += adjustment_value
+			transportation_rate = round(transportation_rate, 2)
 
 		logistics_company_object = frappe.get_doc("Company", self.logistics_partner)
 
