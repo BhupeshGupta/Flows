@@ -301,7 +301,7 @@ def get_allowed_vehicle(vehicle, indent=''):
 	from flows.flows.report.purchase_cycle_report.purchase_cycle_report import get_data
 
 	vehicles_with_state = get_data(frappe._dict())
-	bad_vehicles_set = set([x.indent.vehicle for x in vehicles_with_state if (x.bill_state == 'Pending' and indent!=vehicle)])
+	bad_vehicles_set = set([x.indent.vehicle for x in vehicles_with_state if (x.bill_state == 'Pending' and x.indent!=vehicle)])
 
 	rs = list(superset_of_vehicles - bad_vehicles_set)
 
