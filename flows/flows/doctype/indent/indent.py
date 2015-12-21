@@ -24,7 +24,7 @@ class Indent(Document):
 		self.load_gatepasses()
 
 	def validate(self):
-		if self.docstatus == 0 and self.vehicle not in get_allowed_vehicle(None, '', 'name', None, None, None):
+		if self.docstatus == 0 and self.vehicle not in get_allowed_vehicle(self.vehicle, self.indent):
 			frappe.throw("""Indent is not allowed to be placed on this vehicle until previous bills are
 			entered for this vehicle. You can place indent on `Self` for time being.""")
 		for indent_item in self.indent:
@@ -292,16 +292,16 @@ def link_with_gatepass(gatepass, indent):
 	frappe.msgprint("Linked Gatepass")
 
 
-def get_allowed_vehicle(doctype, txt, searchfield, start, page_len, filters):
+def get_allowed_vehicle(vehicle, indent=''):
 	superset_of_vehicles = set([x[0] for x in frappe.db.sql("""
 		select name from `tabTransportation Vehicle`
-		where {} like '%{}%';
-		""".format(searchfield, txt))])
+		where name = '{}';
+		""".format(vehicle))])
 
 	from flows.flows.report.purchase_cycle_report.purchase_cycle_report import get_data
 
 	vehicles_with_state = get_data(frappe._dict())
-	bad_vehicles_set = set([x.indent.vehicle for x in vehicles_with_state if x.bill_state == 'Pending'])
+	bad_vehicles_set = set([x.indent.vehicle for x in vehicles_with_state if (x.bill_state == 'Pending' and indent!=vehicle)])
 
 	rs = list(superset_of_vehicles - bad_vehicles_set)
 
