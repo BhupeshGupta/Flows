@@ -24,7 +24,7 @@ class Indent(Document):
 		self.load_gatepasses()
 
 	def validate(self):
-		if self.vehicle not in get_allowed_vehicle(None, '', 'name', None, None, None):
+		if self.docstatus == 0 and self.vehicle not in get_allowed_vehicle(None, '', 'name', None, None, None):
 			frappe.throw("""Indent is not allowed to be placed on this vehicle until previous bills are
 			entered for this vehicle. You can place indent on `Self` for time being.""")
 		for indent_item in self.indent:
