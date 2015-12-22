@@ -108,7 +108,7 @@ scheduler_events = {
 	"hourly": [
 		"flows.flows.controller.hpcl_controller.update_invoice_status_for_pending_indents",
 		"flows.flows.controller.iocl_controller.fetch_and_record_iocl_transactions_controller",
-		# "flows.flows.controller.autoinvoicing_controller.save_and_submit_invoices"
+		"flows.flows.controller.autoinvoicing_controller.save_and_submit_invoices"
 	],
 	"weekly": [
 	],
