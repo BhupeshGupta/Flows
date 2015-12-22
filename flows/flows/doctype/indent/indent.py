@@ -1,7 +1,6 @@
 # Copyright (c) 2013, Arun Logistics and contributors
 # For license information, please see license.txt
 from __future__ import unicode_literals
-
 from flows import utils as flows_utils
 from erpnext.stock.stock_ledger import make_sl_entries
 from frappe.model.document import Document
@@ -24,9 +23,9 @@ class Indent(Document):
 		self.load_gatepasses()
 
 	def validate(self):
-		# if self.docstatus == 0 and self.vehicle not in get_allowed_vehicle(self.vehicle, self.name):
-		# 	frappe.throw("""Indent is not allowed to be placed on this vehicle until previous bills are
-		# 	entered for this vehicle. You can place indent on `Self` for time being.""")
+		if self.docstatus == 0 and self.vehicle not in get_allowed_vehicle(self.vehicle, self.name):
+			frappe.throw("""Indent is not allowed to be placed on this vehicle until previous bills are
+			entered for this vehicle. You can place indent on `Self` for time being.""")
 		for indent_item in self.indent:
 			validate_bill_to_ship_to(indent_item.customer, indent_item.ship_to, self.posting_date)
 			if not indent_item.ship_to:
@@ -301,13 +300,13 @@ def get_allowed_vehicle(vehicle, indent=''):
 	from flows.flows.report.purchase_cycle_report.purchase_cycle_report import get_data
 
 	vehicles_with_state = get_data(frappe._dict())
-	bad_vehicles_set = set([x.indent.vehicle for x in vehicles_with_state if (x.bill_state == 'Pending' and x.indent!=vehicle)])
+
+	bad_vehicles_set = set([x.indent.vehicle for x in vehicles_with_state if
+							(x.bill_state == 'Pending' and x.indent.name != indent)
+							])
 
 	rs = list(superset_of_vehicles - bad_vehicles_set)
-
-	rs = [[x] for x in rs]
 	rs.append('Self')
-
 	return rs
 
 
@@ -397,5 +396,3 @@ def fetch_account_balance_with_omc(plant, customer):
 		erpcode = frappe.db.sql('SELECT hpcl_erp_number FROM `tabCustomer` WHERE name = "{}"'.format(customer))
 		return {'status': 'OK', 'balance': HPCLCustomerPortal(erpcode[0], '').get_current_balance_as_on_date()}
 	return {'status': 'Not Implemented', 'balance': 0}
-
-
