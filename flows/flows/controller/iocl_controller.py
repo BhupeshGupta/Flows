@@ -25,7 +25,7 @@ def fetch_and_record_iocl_transactions(customer_list, for_date=None, force_run=F
 		if item_code == 'M00065':
 			return 'FC47.5'
 		if item_code == 'M00069':
-			return 'FC47.5L'
+			return 'FC47.5'
 		return item_code
 
 	def get_plant(plant_code):
