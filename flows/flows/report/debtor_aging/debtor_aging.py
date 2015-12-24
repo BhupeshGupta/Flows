@@ -132,22 +132,29 @@ def get_account_balances(filters):
 
 
 def get_aged_data_for_account(account, balance, filters):
-	running_balance = balance
 	date = filters.date
+
+	if balance > 0:
+		dr_cr = 'debit'
+		running_balance = balance
+	else:
+		dr_cr = 'credit'
+		running_balance = -1 * balance
 
 	interval_balance_map = {}
 
 	for (start_day, end_day) in filters.intervals:
 		interval_balance = frappe.db.sql("""
-		select sum(debit)
+		select sum({dr_cr})
 		from `tabGL Entry`
-		where debit > 0
+		where {dr_cr} > 0
 		and account like "{account} - %"
 		and posting_date between "{end_date}" and "{start_date}"
 		""".format(
 			start_date=add_days(date, -1 * start_day),
 			end_date=add_days(date, -1 * end_day) if end_day else "1950-01-01",
-			account=account
+			account=account,
+			dr_cr=dr_cr
 		))
 		interval_balance = interval_balance[0][0] if interval_balance[0][0] else 0
 		running_balance -= interval_balance
@@ -155,7 +162,7 @@ def get_aged_data_for_account(account, balance, filters):
 		if running_balance < 0:
 			interval_balance += running_balance
 
-		interval_balance_map['{}-{}'.format(start_day, end_day)] = interval_balance
+		interval_balance_map['{}-{}'.format(start_day, end_day)] = interval_balance if balance > 0 else -1 * interval_balance
 
 		if running_balance < 0:
 			break
