@@ -15,13 +15,22 @@ def execute(filters=None):
 	debit_balance_map = {x.account: x.debit_balance for x in debit_balances_list if abs(x.debit_balance) > 100}
 
 	rows = []
-	for account in get_accounts(filters):
-		if account.group_or_ledger == 'Group' or account.name in debit_balance_map:
-			if account.group_or_ledger != 'Group':
-				account.update({
-				'debit_bal': debit_balance_map[account.name]
-				})
-				account.update(get_aged_data_for_account(account.name, debit_balance_map[account.name], filters))
+	filtered_accounts, accounts_by_name, parent_children_map = get_accounts(filters)
+
+	for account in filtered_accounts:
+		if account.group_or_ledger == 'Group':
+			leaf_accounts = list(set(get_leaf_nodes(account.name, parent_children_map)))
+			group_acc_sum = sum([debit_balance_map.get(x, 0) for x in leaf_accounts])
+			account.update({
+			'debit_bal': group_acc_sum
+			})
+			account.update(get_aged_data_for_account(leaf_accounts, group_acc_sum, filters))
+			rows.append(account)
+		elif account.name in debit_balance_map:
+			account.update({
+			'debit_bal': debit_balance_map[account.name]
+			})
+			account.update(get_aged_data_for_account([account.name], debit_balance_map[account.name], filters))
 			rows.append(account)
 
 	# data = []
@@ -40,6 +49,13 @@ def execute(filters=None):
 
 	return cols, rows
 
+def get_leaf_nodes(account, parent_child_map):
+	rs = []
+	if account in parent_child_map:
+		for acc in parent_child_map[account]:
+			rs.extend(get_leaf_nodes(acc.name, parent_child_map))
+		return rs
+	return [account]
 
 def get_accounts(filters):
 	def strip_account(account):
@@ -65,7 +81,7 @@ def get_accounts(filters):
 
 		add_to_list(None, 0)
 
-		return filtered_accounts, accounts_by_name
+		return filtered_accounts, accounts_by_name, parent_children_map
 
 
 	condition = ' or '.join(['(lft >= "{}" and rgt <= "{}")'.format(x[0], x[1]) for x in frappe.db.sql("""
@@ -99,9 +115,9 @@ def get_accounts(filters):
 	'group_or_ledger': 'Group'
 	}))
 
-	filtered_accounts, accounts_by_name = indent_accounts(all_account)
+	filtered_accounts, accounts_by_name, parent_map = indent_accounts(all_account)
 
-	return filtered_accounts
+	return filtered_accounts, accounts_by_name, parent_map
 
 
 def get_account_balances(filters):
@@ -148,12 +164,12 @@ def get_aged_data_for_account(account, balance, filters):
 		select sum({dr_cr})
 		from `tabGL Entry`
 		where {dr_cr} > 0
-		and account like "{account} - %"
+		and ({account_cond})
 		and posting_date between "{end_date}" and "{start_date}"
 		""".format(
 			start_date=add_days(date, -1 * start_day),
 			end_date=add_days(date, -1 * end_day) if end_day else "1950-01-01",
-			account=account,
+			account_cond=' or '.join(['account like "{} - %"'.format(a) for a in account]),
 			dr_cr=dr_cr
 		))
 		interval_balance = interval_balance[0][0] if interval_balance[0][0] else 0
