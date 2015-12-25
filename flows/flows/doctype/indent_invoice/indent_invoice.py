@@ -707,9 +707,9 @@ class IndentInvoice(StockController):
 		d_m = collections.OrderedDict()
 		d_m['Dt.'] = format_value(self.transaction_date, {"fieldtype": "Date"})
 		d_m['Bill No.'] = self.invoice_number
-		d_m['Item'] = '<strong>{}</strong>'.format(self.item)
-		d_m['Qty.'] = '<strong>{}</strong>'.format(self.qty)
 		d_m['Amt.'] = '<strong>\u20b9{}</strong>'.format(format_value(self.actual_amount, {"fieldtype": "Currency"}))
+		d_m['Qty in KG'] = '<strong>{} x {}: <em>{}</em></strong>'.format(self.item, self.qty, qty_in_kg)
+		# d_m[''] = '<strong></strong>'.format(qty_in_kg)
 
 		description += """({})""".format(', '.join(['{}: {}'.format(k, v) for k, v in d_m.items()]))
 
