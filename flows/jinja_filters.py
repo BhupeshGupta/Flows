@@ -7,18 +7,18 @@ def indent_refill_qty(indent_items):
 	sum = 0
 	for indent_item in indent_items:
 		if indent_item.load_type == "Refill":
-			sum += indent_item.qty
+			sum += float(indent_item.item.replace('FC', '').replace('L', '')) * indent_item.qty
 
-	return sum
+	return sum/100
 
 
 def indent_oneway_qty(indent_items):
 	sum = 0
 	for indent_item in indent_items:
 		if indent_item.load_type == "Oneway":
-			sum += indent_item.qty
+			sum += float(indent_item.item.replace('FC', '').replace('L', '')) * indent_item.qty
 
-	return sum
+	return sum/100
 
 
 def compute_erv_for_refill_in_indent(indent_items):
@@ -30,15 +30,17 @@ def compute_erv_for_refill_in_indent(indent_items):
 
 	map = {}
 	for indent_item in indent_items:
-		if indent_item.load_type == "Refill":
+		# if indent_item.load_type == "Refill":
 			key = get_desc(indent_item.item).replace("FC", "")
 			key = key.replace('LOT', 'Kg LOT').replace('VOT', 'Kg VOT') if 'OT' in key else key + ' Kg'
+			key += ' ({})'.format(indent_item.load_type)
 			map.setdefault(key, 0)
 			map[key] += indent_item.qty
 
 	safety_caps = 0
-	for values in map.values():
-		safety_caps += values
+	for item, values in map.items():
+		if 'Refill' in item:
+			safety_caps += values
 	if safety_caps > 0:
 		map["Saf Cap."] = safety_caps
 

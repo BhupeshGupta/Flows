@@ -46,6 +46,8 @@
 
 	{% set show_contract = doc.naming_series == 'IOC' %}
 
+    {% set one_way_indent = doc.indent|indent_oneway_qty > 0 %}
+
 
 	<div class="row clearfix">
 		<div class="col-xs-12 column">
@@ -72,18 +74,22 @@
 					<th>
 						Cap In KG
 					</th>
-					<th>
-						Oneway
-					</th>
+                    {% if one_way_indent %}
+                        <th>
+                            Oneway
+                        </th>
+                    {% endif %}
 					<th>
 						Refill
 					</th>
 					<th>
 						Modvat
 					</th>
-					<th>
+				    {% if doc.naming_series != 'HPC' %}
+                        <th>
 						Payment
-					</th>
+					    </th>
+                    {% endif %}
 					<th>
 						Rate
 					</th>
@@ -115,11 +121,13 @@
 						<td>
 							{{ frappe.db.get_value("Item", indent_item.item, "description") }}
 						</td>
-						<td>
-							{% if indent_item.load_type == 'Oneway' %}
-								{{ indent_item.qty }}
-							{% endif %}
-						</td>
+                        {% if one_way_indent %}
+                            <td>
+                                {% if indent_item.load_type == 'Oneway' %}
+                                    {{ indent_item.qty }}
+                                {% endif %}
+						    </td>
+                        {% endif %}
 						<td>
 							{% if indent_item.load_type == 'Refill' %}
 								{{ indent_item.qty }}
@@ -128,22 +136,20 @@
 						<td>
 							{{ indent_item.customer | get_cenvat_status(doc.posting_date, doc.plant) or '' }}
 						</td>
+                        {% if doc.naming_series != 'HPC' %}
+                            <td>
+                                {% if indent_item.payment_type == 'Indirect' %}
+                                    PAYER
+                                {% else %}
+                                    BAL SAP
+                                {% endif %}
+                            </td>
+                        {% endif %}
 						<td>
-							{% if doc.naming_series != 'HPC' %}
-								{% if indent_item.payment_type == 'Indirect' %}
-									PAYER
-								{% else %}
-									BAL SAP
-								{% endif %}
-							{% else %}
-								Bal Pending
-							{% endif %}
+							{{ frappe.format_value(indent_item.rate | round(2), {'fieldtype': 'Currency'}) }}
 						</td>
 						<td>
-							{{ indent_item.get_formatted("rate") }}
-						</td>
-						<td>
-							{{ indent_item.get_formatted("amount") }}
+							{{ frappe.format_value(indent_item.amount | round(2), {'fieldtype': 'Currency'}) }}
 						</td>
 					</tr>
 
@@ -158,13 +164,17 @@
 						<td></td>
 					{% endif %}
 					<td></td>
-					<td>Total</td>
-					<td>{{ doc.indent| indent_oneway_qty }}</td>
+					<td>Total in M.T.</td>
+                    {% if one_way_indent %}
+                        <td>{{ doc.indent| indent_oneway_qty }}</td>
+                    {% endif %}
 					<td>{{ doc.indent| indent_refill_qty }}</td>
+					{% if doc.naming_series != 'HPC' %}
+                        <td></td>
+                    {% endif %}
 					<td></td>
 					<td></td>
-					<td></td>
-					<td>{{ doc.grand_total }}</td>
+					<td>{{ frappe.format_value(doc.grand_total | round(2), {'fieldtype': 'Currency'}) }}</td>
 				</tr>
 
 
