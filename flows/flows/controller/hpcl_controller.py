@@ -12,7 +12,7 @@ import random
 import time
 import logging as logbook
 from utils import reconcile_omc_txns_with_indents
-from utils import skip_run
+from utils import skip_run, strip_vehicle
 
 
 def update_invoice_status_for_pending_indents(date=None, force_run=False):
@@ -195,7 +195,7 @@ def deduplicate_and_save_invoice_txns(txns, customer_obj_db):
 		'credit': 0,
 		'item': item_map(txn['Item No.']),
 		'quantity': txn['ShippedQuantity'],
-		'vehicle_no': txn['Vehicle No.'],
+		'vehicle_no': strip_vehicle(txn['Vehicle No.']),
 		'plant': txn['Shipping Location'],
 		'supplier': 'HPCL',
 		'dump': json.dumps(txn),

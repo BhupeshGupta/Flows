@@ -7,7 +7,7 @@ import frappe.defaults
 from flows.flows.iocl_interface import IOCLPortal
 from frappe.utils import today
 from utils import reconcile_omc_txns_with_indents
-from utils import skip_run
+from utils import skip_run, strip_vehicle
 
 
 def get_iocl_customer_list():
@@ -67,7 +67,7 @@ def fetch_and_record_iocl_transactions(customer_list, for_date=None, force_run=F
 				'credit': txn['Bill Amt'] if txn['Db/Cr'] == 'C' else 0,
 				'item': get_item(txn['Material']),
 				'quantity': txn['Bill Qty'],
-				'vehicle_no': txn['TTNO'],
+				'vehicle_no': strip_vehicle(txn['TTNO']),
 				'plant': get_plant(txn['Plant']),
 				'supplier': 'IOCL',
 				'dump': json.dumps(txn),

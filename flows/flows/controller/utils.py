@@ -10,6 +10,9 @@ def skip_run():
 	# if time between 11 pm and 8 am skip runs = True
 	return 23 <= t.hour <= 24 or 0 <= t.hour <= 8
 
+def strip_vehicle(vehicle):
+	return vehicle[[i.isalpha() for i in vehicle].index(True):]
+
 
 def reconcile_omc_txns_with_indents():
 	for txn in frappe.db.sql("""
