@@ -9,7 +9,7 @@ def indent_refill_qty(indent_items):
 		if indent_item.load_type == "Refill":
 			sum += float(indent_item.item.replace('FC', '').replace('L', '')) * indent_item.qty
 
-	return sum/100
+	return sum/1000
 
 
 def indent_oneway_qty(indent_items):
@@ -18,7 +18,7 @@ def indent_oneway_qty(indent_items):
 		if indent_item.load_type == "Oneway":
 			sum += float(indent_item.item.replace('FC', '').replace('L', '')) * indent_item.qty
 
-	return sum/100
+	return sum/1000
 
 
 def compute_erv_for_refill_in_indent(indent_items):
