@@ -11,7 +11,10 @@ def skip_run():
 	return 23 <= t.hour <= 24 or 0 <= t.hour <= 8
 
 def strip_vehicle(vehicle):
-	return vehicle[[i.isalpha() for i in vehicle].index(True):]
+	try:
+		return vehicle[[i.isalpha() for i in vehicle].index(True):]
+	except:
+		return vehicle
 
 
 def reconcile_omc_txns_with_indents():
