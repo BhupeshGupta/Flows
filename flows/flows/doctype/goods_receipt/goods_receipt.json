@@ -376,6 +376,20 @@
    "read_only": 1
   }, 
   {
+   "fieldname": "column_break_36", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "deduplicacy_id", 
+   "fieldtype": "Data", 
+   "label": "Deduplicacy Id", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
+  }, 
+  {
    "fieldname": "section_break_35", 
    "fieldtype": "Section Break", 
    "permlevel": 0, 
@@ -481,7 +495,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-09-17 15:10:04.614716", 
+ "modified": "2016-01-02 00:33:26.056449", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Goods Receipt", 
