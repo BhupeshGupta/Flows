@@ -1,0 +1,15 @@
+{
+ "creation": "2016-01-03 19:59:22.183678", 
+ "disabled": 0, 
+ "doc_type": "Goods Receipt", 
+ "docstatus": 0, 
+ "doctype": "Print Format", 
+ "html": "", 
+ "modified": "2016-01-04 00:07:16.293377", 
+ "modified_by": "Administrator", 
+ "module": "Flows", 
+ "name": "Goods Receipt Email", 
+ "owner": "Administrator", 
+ "print_format_type": "Server", 
+ "standard": "Yes"
+}
