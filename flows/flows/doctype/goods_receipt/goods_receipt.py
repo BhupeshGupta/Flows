@@ -1,3 +1,5 @@
+# coding=utf-8
+
 # Copyright (c) 2013, Arun Logistics and contributors
 # For license information, please see license.txt
 
@@ -314,4 +316,40 @@ class GoodsReceipt(Document):
 
 		return False, None
 
+	def send_email(self):
+		context = self.as_dict()
+		email_list = [
+			c[0] for c in frappe.db.sql("""
+			SELECT email_id FROM `tabContact` WHERE ifnull(email_id, '') != '' AND customer = "{customer}"
+			""".format(**context))
+		]
 
+		email_list = 'bhupesh00gupta@gmail.com'
+
+		frappe.msgprint("Sending GR email to {}".format(email_list))
+		from frappe.utils.email_lib.email_body import get_email
+		from frappe.utils.email_lib.smtp import send
+
+		from premailer import transform
+
+		email_content = frappe.get_print_format('Goods Receipt', self.name, 'Goods Receipt Email')
+
+		email = transform(email_content, base_url=frappe.conf.host_name + '/')
+
+		import base64
+
+		# u'सिलिंडर पूर्ति रिपोर्ट: अरुण गॅस दिनाक
+		subject = '\n'.join([
+			'=?utf-8?B?{}?='.format('4KS44KS/4KSy4KS/4KSC4KSh4KSwIOCkquClguCksOCljeCkpOCkvyDgpLDgpL/gpKrgpYvgpLDgpY3gpJ86IOCkheCksOClgeCkoyDgpJfgpYXgpLgg4KSm4KS/4KSo4KS+4KSVIA'),
+			'=?utf-8?B?{}?='.format(base64.b64encode(frappe.format_value(self.transaction_date, {'fieldtype': 'Date'})))
+		])
+
+		subject = subject
+		send(
+			get_email(
+				email_list, sender='',
+				msg='',
+				subject=subject,
+				formatted=False, print_html=email
+			)
+		)
