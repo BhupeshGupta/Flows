@@ -48,6 +48,10 @@ class GoodsReceipt(Document):
 		if self.posting_date <= gr_eod and not frappe.session.user == "Administrator":
 			frappe.throw("Day Closed: {}. Day has been closed for GR. No amendment is allowed in closed days".format(gr_eod))
 
+		# Skip future check if posting is from app
+		if frappe.form_dict.client == "app":
+			return
+
 		if utils.get_next_date(gr_eod) < self.posting_date:
 			frappe.throw("Day Closed: {}. Date is disabled for entry, will be allowed when previous day is closed".format(gr_eod))
 
