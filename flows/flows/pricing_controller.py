@@ -31,8 +31,6 @@ def compute_base_rate_for_a_customer(
 		customer, plant, item, sales_tax, posting_date, extra_precision=1, adjustment=None,
 		details={}, force_check_for_this_month_plant_rate=False
 ):
-	adjustment = adjustment if adjustment else {}
-	round_off_digit = 4 if extra_precision == 0 else 5
 
 	context = {
 	'customer': customer,
@@ -42,8 +40,9 @@ def compute_base_rate_for_a_customer(
 	'sales_tax': sales_tax
 	}
 
+	# Guess Plant Rate Name
 	rs = frappe.db.sql("""
-    SELECT base_rate as base_rate_for_plant, with_effect_from as wef
+    SELECT name, with_effect_from as wef
     FROM `tabPlant Rate`
     WHERE plant="{plant}" AND with_effect_from <= DATE("{posting_date}")
     ORDER BY with_effect_from DESC LIMIT 1;
@@ -59,19 +58,48 @@ def compute_base_rate_for_a_customer(
 		if plant_rate_date != expected_date:
 			frappe.throw("Rate for plant {plant} {date} not found".format(date=expected_date, **context))
 
+	plant_rate_name = rs[0].name
+
+	# Guess CPV Name
+	rs = frappe.db.sql("""
+	SELECT name
+	FROM `tabCustomer Plant Variables` cpv
+	WHERE cpv.plant="{plant}" AND cpv.with_effect_from <= DATE("{posting_date}") AND cpv.customer="{customer}"
+	AND cpv.docstatus != 2 ORDER BY with_effect_from DESC LIMIT 1;
+    """.format(**context), as_dict=True)
+
+	if not (rs and len(rs) > 0):
+		frappe.throw("Unable to find Customer Purchase Variables")
+
+	cpv_name = rs[0].name
+
+
+	return compute_base_rate_for_a_customer_from_cpv_and_plant_rate(
+		plant_rate_name, cpv_name, sales_tax, item,
+		extra_precision=extra_precision, adjustment=adjustment, details=details
+	)
+
+
+
+def compute_base_rate_for_a_customer_from_cpv_and_plant_rate(
+		plant_rate, cpv, sales_tax, item, extra_precision=1, adjustment=None, details={}
+):
+	adjustment = adjustment if adjustment else {}
+	round_off_digit = 4 if extra_precision == 0 else 5
+
+	rs = frappe.db.sql("""
+    SELECT base_rate as base_rate_for_plant
+    FROM `tabPlant Rate`
+    WHERE name = "{}"
+    """.format(plant_rate), as_dict=True)
 	purchase_variables = rs[0]
 
 	rs = frappe.db.sql("""
 	SELECT cpv.transportation, cpv.discount
 	FROM `tabCustomer Plant Variables` cpv
-	WHERE cpv.plant="{plant}" AND cpv.with_effect_from <= DATE("{posting_date}") AND cpv.customer="{customer}"
-	AND cpv.docstatus != 2 ORDER BY with_effect_from DESC LIMIT 1;
-    """.format(**context), as_dict=True)
-	if not (rs and len(rs) > 0):
-		frappe.throw("Unable to find Customer Purchase Variables")
-
+	WHERE name = "{}";
+    """.format(cpv), as_dict=True)
 	purchase_variables.update(rs[0])
-
 
 	purchase_variables.update(frappe.get_doc("Indent Invoice Tax", sales_tax).as_dict())
 
@@ -91,8 +119,8 @@ def compute_base_rate_for_a_customer(
 	conversion_factor = frappe.db.sql("""
     SELECT conversion_factor
     FROM `tabItem Conversion`
-    WHERE item="{item}";
-    """.format(**context))[0][0]
+    WHERE item="{}";
+    """.format(item))[0][0]
 
 	details.update({
 	'base_rate_for_customer_before_tax': base_rate_for_customer_before_tax,
@@ -133,5 +161,4 @@ def get_customer_payment_info(customer, plant, posting_date):
 
 	frappe.throw("""Customer Plant Master Not Found For Customer {}, Plant {} and Date {}.
 	Please enter details in customer plant master and reload this customer in indent before proceeding
-	further""".format(
-		customer, plant, posting_date))
+	further""".format(customer, plant, posting_date))
