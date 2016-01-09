@@ -79,6 +79,21 @@ class CFormIndentInvoice(Document):
 
 
 
+def get_quarter_start_end(fiscal_start_date, quarter):
+	from frappe.utils.data import add_months, get_last_day
+
+	if quarter == 'I':
+		offset = 0
+	elif quarter == 'II':
+		offset = 1
+	elif quarter == 'III':
+		offset = 2
+	elif quarter == 'IV':
+		offset = 3
+	start_d = add_months(fiscal_start_date, offset * 3)
+	end_d = get_last_day(add_months(fiscal_start_date, (offset * 3) + 2))
+	return start_d, end_d.strftime('%Y-%m-%d')
+
 
 def get_supplier_list(doctype, txt, searchfield, start, page_len, filters):
 	start_date = frappe.db.get_value('Fiscal Year', filters['fiscal_year'], 'year_start_date')
@@ -96,8 +111,8 @@ def get_supplier_list(doctype, txt, searchfield, start, page_len, filters):
 				FROM `tabIndent Invoice`
 				WHERE customer = "{customer}"
 				AND transaction_date BETWEEN "{start}" AND "{end}"
-				)
 			)
+		)
 		AND supplier_type = 'OMC STATE'
 		""".format(start=start_date, end=end_date, **filters)
 	)
