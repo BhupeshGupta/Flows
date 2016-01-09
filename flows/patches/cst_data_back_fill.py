@@ -6,7 +6,6 @@ def auto_back_cst_fill():
 	final_log_set = []
 	for i in frappe.db.sql("""
 	select * from `tabIndent Invoice`
-	where ifnull(sales_tax, '') = ''
 	and docstatus = 1
 	and transaction_date > '2015-04-01'
 	and item not like '%BK'
@@ -58,12 +57,15 @@ def auto_back_cst_fill():
 
 			print("Expected: {}, Actual: {}, qty: {}".format(expected, i.actual_amount, qty))
 
-			rate_diff = abs(round((expected - i.actual_amount)/qty, 2))
+			rate_diff = round((expected - i.actual_amount)/qty, 2)
 
-			if rate_diff >= .10:
-				final_log_set.append('Skiping invoice no {} {} mismatch of {}'.format(i.name, i.transaction_date, rate_diff))
+			# final_log_set.append(', '.join(['Skipping', i.transaction_date, i.name, i.customer, rate_diff]))
+			if abs(rate_diff) >= .10:
+				final_log_set.append('Skipping, {}, {}, {}, {}, {}'.format(
+					i.name, i.transaction_date, rate_diff,  i.customer, i.supplier
+				))
 			else:
-				final_log_set.append('Combination Found {} {}'.format(i.name, i.transaction_date))
+				# final_log_set.append('Combination Found {} {}'.format(i.name, i.transaction_date))
 				frappe.db.sql("""
 				update `tabIndent Invoice`
 				set customer_plant_variables = '{cpv}',
@@ -72,7 +74,7 @@ def auto_back_cst_fill():
 				""".format(name=i.name, cpv=cpv, sales_tax=sales_tax))
 		except Exception as e:
 			print e
-
+	print(final_log_set)
 	f = open('/tmp/run.log', 'w')
-	f.write(json.dumps(final_log_set, indent=4))
+	f.write('\n'.join(final_log_set))
 	f.close()
