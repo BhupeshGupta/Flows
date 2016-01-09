@@ -9,6 +9,13 @@
  "document_type": "", 
  "fields": [
   {
+   "fieldname": "supplier_filter", 
+   "fieldtype": "Data", 
+   "label": "Supplier Filter", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "allow_on_submit": 0, 
    "fieldname": "quarter", 
    "fieldtype": "Select", 
@@ -58,6 +65,7 @@
    "in_list_view": 0, 
    "label": "Generate C Forms", 
    "no_copy": 0, 
+   "options": "generate_c_forms", 
    "permlevel": 0, 
    "precision": "", 
    "print_hide": 0, 
@@ -85,6 +93,13 @@
    "fieldname": "email", 
    "fieldtype": "Check", 
    "label": "Email", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "filter_reminders", 
+   "fieldtype": "Check", 
+   "label": "Filter Reminders", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -123,7 +138,7 @@
  "is_submittable": 0, 
  "issingle": 1, 
  "istable": 0, 
- "modified": "2015-12-06 14:43:40.822288", 
+ "modified": "2016-01-09 15:28:21.800030", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "C Form Tool", 

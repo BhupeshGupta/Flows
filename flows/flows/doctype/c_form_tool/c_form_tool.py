@@ -8,8 +8,38 @@ from frappe.utils import cint
 
 
 class CFormTool(Document):
-	def send_reminders(self):
+	def get_conditions(self):
+		cond = []
+		if self.supplier_filter:
+			cond.append('supplier like "{}"'.format(self.supplier_filter))
+		if not cond:
+			cond.append('1=1')
+		return ' and '.join(cond)
 
+	def generate_c_forms(self):
+		for pair in frappe.db.sql("""
+		select t.customer as customer, s.name as supplier
+		from (
+			select DISTINCT i.customer, s.tin_number
+			from `tabIndent Invoice` i join `tabSupplier` s on i.supplier = s.name
+			where sales_tax='CST' AND {cond}
+		) t join `tabSupplier` s on s.tin_number=t.tin_number
+		where s.supplier_type='OMC STATE';
+		""".format(cond=self.get_conditions()), as_dict=True):
+			try:
+				doc = frappe.get_doc({
+					'doctype': 'C Form Indent Invoice',
+					'customer': pair.customer,
+					'supplier': pair.supplier,
+					'quarter': self.quarter,
+					'fiscal_year': self.fiscal_year
+				})
+				doc.save()
+				frappe.msgprint("C Form Generated for {customer}".format(**pair))
+			except Exception as e:
+				frappe.msgprint("Failed to create c form for {customer}".format(**pair))
+
+	def send_reminders(self):
 		for cform in frappe.db.sql("""
 		SELECT `name`, supplier,
 		customer, fiscal_year,
@@ -17,8 +47,13 @@ class CFormTool(Document):
 		FROM `tabC Form Indent Invoice`
 		WHERE docstatus != 2
 		AND ifnull(c_form_number, '') = ''
+		AND {cond}
 		ORDER BY customer;
-		""", as_dict=True):
+		""".format(
+				cond=self.get_conditions() if self.filter_reminders else '1=1'
+		), as_dict=True):
+
+			frappe.msgprint(cform.name)
 
 			# Send sms
 			if cint(self.sms) == 1:
