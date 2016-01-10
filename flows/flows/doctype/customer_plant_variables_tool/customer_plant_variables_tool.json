@@ -85,6 +85,26 @@
    "precision": ""
   }, 
   {
+   "fieldname": "column_break_8", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "export_hpcl_file", 
+   "fieldtype": "Button", 
+   "label": "Export HPCL File", 
+   "options": "export_hpcl_file", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "section_break_10", 
+   "fieldtype": "Section Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "customer_plant_variables_html", 
    "fieldtype": "HTML", 
    "label": "Customer Plant Variables HTML", 
@@ -108,7 +128,7 @@
  "is_submittable": 0, 
  "issingle": 1, 
  "istable": 0, 
- "modified": "2016-01-10 14:31:52.537967", 
+ "modified": "2016-01-10 16:23:21.669217", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Customer Plant Variables Tool", 

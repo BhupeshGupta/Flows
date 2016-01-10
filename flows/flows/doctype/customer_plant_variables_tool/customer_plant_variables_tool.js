@@ -22,6 +22,16 @@ erpnext.flows.CustomerPlantVariablesTool = frappe.ui.form.Controller.extend({
          });
    },
 
+   export_hpcl_file: function (doc, cdt, cdn) {
+      window.location.href = repl(frappe.request.url
+         + '?cmd=%(cmd)s&date=%(date)s&plant=%(plant)s',
+         {
+            cmd:'flows.flows.doctype.customer_plant_variables_tool.customer_plant_variables_tool.export_hpcl_file',
+            date: this.frm.doc.date,
+            plant: this.frm.doc.plant,
+         });
+   },
+
 	refresh: function() {
         this.show_upload();
         this.frm.set_intro(__("You can download template and upload the same to update customer plant variables."));
