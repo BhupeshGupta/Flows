@@ -125,7 +125,7 @@
   {
    "allow_on_submit": 0, 
    "fieldname": "quantity", 
-   "fieldtype": "Int", 
+   "fieldtype": "Float", 
    "hidden": 0, 
    "ignore_user_permissions": 0, 
    "in_filter": 0, 
@@ -196,7 +196,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-10-09 11:32:36.685840", 
+ "modified": "2016-01-13 13:08:12.520772", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Subcontracted Invoice", 
