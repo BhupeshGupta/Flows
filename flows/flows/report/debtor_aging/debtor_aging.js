@@ -7,12 +7,14 @@ frappe.query_reports["Debtor Aging"] = {
 			"fieldname":"interval",
 			"label":__("Interval"),
 			"fieldtype":"Int",
+			"default": 15,
 			"reqd":1
 		},
 		{
 			"fieldname":"no_of_intervals",
 			"label":__("No Of Intervals"),
 			"fieldtype":"Int",
+			"default": 5,
 			"reqd":1
 		},
 		{
@@ -28,6 +30,7 @@ frappe.query_reports["Debtor Aging"] = {
 			"label":__("Account"),
 			"fieldtype":"Link",
 			"options":"Account",
+			"reqd":1,
 			"get_query":function () {
 				var company = frappe.query_report.filters_by_name.company.get_value();
 				return {
