@@ -121,17 +121,6 @@ def get_accounts(filters):
 
 
 def get_account_balances(filters):
-	account_filter = ''
-	if filters.account:
-		condition = ' or '.join(['(lft >= "{}" and rgt <= "{}")'.format(x[0], x[1]) for x in frappe.db.sql("""
-		select lft, rgt from `tabAccount`
-		where name like '{account_name} - %'
-		""".format(account_name=' - '.join(filters.account.split(' - ')[:-1])))])
-
-		account_filter = ' and account in ({})'.format(', '.join(['"{}"'.format(x[0]) for x in frappe.db.sql("""
-		SELECT name FROM `tabAccount` WHERE {}
-		""".format(condition))]))
-
 	rs = frappe.db.sql("""
 	SELECT REPLACE(account, CONCAT(' -', SUBSTRING_INDEX(account, '-',-1)), '') AS account_con,
 	sum(ifnull(debit, 0)) - sum(ifnull(credit, 0)) AS debit_balance
@@ -139,12 +128,28 @@ def get_account_balances(filters):
 	WHERE posting_date <= "{date}"
 	{account_filter}
 	GROUP BY account_con;
-	""".format(date=filters.date, account_filter=account_filter), as_dict=True)
+	""".format(date=filters.date, account_filter=''), as_dict=True)
+
+
+	final_list = []
+
+	account_filter = ''
+	condition = ' or '.join(['(lft >= "{}" and rgt <= "{}")'.format(x[0], x[1]) for x in frappe.db.sql("""
+	select lft, rgt from `tabAccount`
+	where name like '{account_name} - %'
+	""".format(account_name=' - '.join(filters.account.split(' - ')[:-1])))])
+
+	valid_accounts = set([' - '.join(x[0].split(' - ')[:-1]) for x in frappe.db.sql("""
+	SELECT name FROM `tabAccount` WHERE {}
+	""".format(condition))])
 
 	for r in rs:
 		r.account = r.account_con.strip()
+		if r.account in valid_accounts:
+			final_list.append(r)
 
-	return rs
+
+	return final_list
 
 
 def get_aged_data_for_account(account, balance, filters):
