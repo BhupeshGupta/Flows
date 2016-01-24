@@ -16,7 +16,12 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 
 	set_image:function (doc) {
 		console.log('Hello JS!!');
-		$(this.frm.fields_dict['html'].wrapper).html('<img src="' + doc.file + '"/>');
+		$(this.frm.fields_dict['html'].wrapper).html(
+			  '<div class="col-xs-offset-4">' +
+			  '<img src="' + doc.file + '?' + moment().unix() + '"' +
+			  'class="col-xs-offset-4" style="height: 34px; margin: 0 0 10px; padding-left: 15px;">' +
+			  '</div>'
+		);
 	}
 
 });
