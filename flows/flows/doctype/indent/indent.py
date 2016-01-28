@@ -356,7 +356,7 @@ def validate_c_form(customer, plant, billing_date):
 		if 'iocl' in plant.lower():
 			return 60
 		elif 'hpcl' in plant.lower():
-			return 120
+			return 123
 		elif 'bpcl' in plant.lower():
 			return 365
 
