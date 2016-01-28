@@ -380,14 +380,16 @@ def validate_c_form(customer, plant, billing_date):
 		stop_date = add_days(c_form.end_date, days)
 
 		if billing_date >= stop_date:
-			frappe.msgprint(
-				"""Customer {customer}'s c form is pending supply wont be released by {plant}!""".format(
+			frappe.throw(
+				"""
+				Refused to save indent. \nCustomer {customer}'s c form is pending supply wont be released by {plant}!\n
+				If we have received C Form, upladte it before placing indent.""".format(
 					customer=customer, plant=plant
 				)
 			)
 		elif billing_date >= warn_date:
 			frappe.msgprint(
-				"""Customer {customer}'s c form is pending and its supply will be blocked by {plant} in 15
+				"""Customer {customer}'s c form is pending and its supply will be blocked by {plant} in less that 15
 				days!""".format(
 					customer=customer, plant=plant
 				)
