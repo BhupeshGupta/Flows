@@ -8,7 +8,8 @@ from frappe.model.document import Document
 
 validation_map = {
 	'AARTI STEEL': 'AARTI STEEL',
-	'Christian Medical': 'Christian Medical'
+	'Christian Medical': 'Christian Medical',
+	'LUMINOUS': 'LUMINOUS'
 }
 
 class IndentInvoiceCustomerChangeTool(Document):
