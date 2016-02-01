@@ -8,7 +8,8 @@ from frappe.model.document import Document
 
 validation_map = {
 	'AARTI STEEL': 'AARTI STEEL',
-	'Christian Medical': 'Christian Medical'
+	'Christian Medical': 'Christian Medical',
+	'LUMINOUS': 'LUMINOUS'
 }
 
 class IndentInvoiceCustomerChangeTool(Document):
@@ -31,7 +32,7 @@ class IndentInvoiceCustomerChangeTool(Document):
 		self.validate_change(invoice, src_customer, target_customer)
 
 		frappe.db.sql("""
-		UPDATE `tabIndent Item` SET customer = '{customer}' WHERE name = '{name}'
+		UPDATE `tabIndent Item` SET customer = "{customer}", ship_to = "{customer}" WHERE name = "{name}"
 		""".format(name=invoice.indent_item, customer=self.customer))
 
 		invoice.cancel()
