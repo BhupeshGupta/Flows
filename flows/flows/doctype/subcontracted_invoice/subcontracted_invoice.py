@@ -73,8 +73,8 @@ class SubcontractedInvoice(Document):
 		"territory": customer_object.territory if customer_object.territory else 'All Territories',
 		"__islocal": True,
 		"docstatus": 1,
-		"tc_name": "Aggarwal LPG Invoice",
-		"terms": frappe.get_doc('Terms and Conditions', "Aggarwal LPG Invoice").terms
+		# "tc_name": "Aggarwal LPG Invoice",
+		# "terms": frappe.get_doc('Terms and Conditions', "Aggarwal LPG Invoice").terms
 		# "remarks": "Against Bill No. {}""".format(self.invoice_number)
 		}
 
