@@ -3,6 +3,7 @@ from collections import OrderedDict
 import frappe
 from frappe.utils import cint
 
+
 def indent_refill_qty(indent_items):
 	sum = 0
 	for indent_item in indent_items:
@@ -143,3 +144,11 @@ def report_build_erv_item_map(erv_map):
 		rs_list.append('EC47.5L')
 
 	return rs_list
+
+
+def get_item_qty_aggr_gatepass(data, item):
+	result = 0
+	for row in data:
+		if row.item == item:
+			result += row.quantity
+	return result

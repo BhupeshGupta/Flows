@@ -39,6 +39,8 @@ class IndentInvoiceCustomerChangeTool(Document):
 		invoice.amended_from = invoice.name
 		invoice.name = None
 		invoice.docstatus = 0
+		# Change ship to to allow bill to ship to validations
+		invoice.ship_to = target_customer
 		invoice.save()
 		invoice.submit()
 
