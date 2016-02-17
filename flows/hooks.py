@@ -147,5 +147,6 @@ jenv_filter = [
 	'get_customer_tin_number:flows.jinja_filters.get_customer_tin_number',
 	'get_cenvat_status:flows.jinja_filters.get_cenvat_status',
 	'get_address_display:flows.jinja_filters.get_address_display',
-	'report_build_erv_item_map:flows.jinja_filters.report_build_erv_item_map'
+	'report_build_erv_item_map:flows.jinja_filters.report_build_erv_item_map',
+	'get_item_qty_aggr_gatepass:flows.jinja_filters.get_item_qty_aggr_gatepass'
 ]
