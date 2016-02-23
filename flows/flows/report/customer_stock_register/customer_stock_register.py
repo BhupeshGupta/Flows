@@ -13,15 +13,22 @@ def execute(filters=None):
 
 def get_columns(filters):
 	return [
+		"Date 1:Date:100",
+		"Voucher Type 1::120",
+		"Voucher No 1:Dynamic Link/Voucher Type:160",
+
+		"Qty Delivered:Float:100",
+		"Empty Received:Float:100",
+		"Empty Pending:Float:",
+
+		"::200",
+
 		"Date:Date:100",
 		"Voucher Type::120",
 		"Voucher No:Dynamic Link/Voucher Type:160",
 		"Billed Qty:Float:100",
-		"Qty Delivered:Float:100",
-		"Empty Received:Float:100",
 		"Filled Balance:Float:",
-		"Empty Pending:Float:",
-		"Remarks::400"
+		"Remarks::400",
 	]
 
 
@@ -51,17 +58,48 @@ def get_data(filters):
 
 		for voucher in map.entries:
 			billed, delivered, received = bill_filled_empty_status(voucher, item, filters)
-			data.append([
-				voucher.get("posting_date"),
-				voucher.voucher_type if voucher.v_type == 'Stock Ledger Entry' else voucher.v_type,
-				voucher.voucher_no if voucher.v_type == 'Stock Ledger Entry' else voucher.get("name"),
-				billed,
-				delivered,
-				received,
-				voucher.filled,
-				voucher.empty,
-				""
-			])
+			row = []
+
+			row.extend(
+					[
+						voucher.get("posting_date"),
+						voucher.voucher_type if voucher.v_type == 'Stock Ledger Entry' else voucher.v_type,
+						voucher.voucher_no if voucher.v_type == 'Stock Ledger Entry' else voucher.get("name"),
+						delivered,
+						received,
+						voucher.empty
+					] if delivered or received else [
+						"",
+						"",
+						"",
+						"",
+						"",
+						""
+					]
+			)
+
+			row.extend([""])
+
+			row.extend(
+					[
+						voucher.get("posting_date"),
+						voucher.voucher_type if voucher.v_type == 'Stock Ledger Entry' else voucher.v_type,
+						voucher.voucher_no if voucher.v_type == 'Stock Ledger Entry' else voucher.get("name"),
+						billed,
+						voucher.filled,
+						""
+					] if billed else [
+						"",
+						"",
+						"",
+						"",
+						voucher.filled,
+						""
+					]
+			)
+
+			data.append(row)
+
 		data.extend(get_closing_row_with_totals(map))
 
 		data.append(["", "", "", "", "", ""])
@@ -334,26 +372,44 @@ def bill_filled_empty_status(voucher, item, filters):
 
 def get_opening_row(active_map):
 	row = ["", active_map.item, "Opening"]
-	row.append(active_map.opening if active_map.opening > 0 else 0)
+
 	row.append(abs(active_map.opening) if active_map.opening < 0 else 0)
-	row.extend(["", ""])
+	row.append("")
 	row.append(active_map.empty_opening)
+	row.append("")
+
+	row.append("")
+	row.extend([active_map.item, "Opening"])
+	row.append(active_map.opening if active_map.opening > 0 else 0)
+	row.extend(["", ""])
+
 	return row
 
 
 def get_closing_row_with_totals(active_map):
 	rows = []
-	rows.append(["", "", "Totals", active_map.total_billed, active_map.total_delivered, active_map.total_returned])
+	rows.append([
+		"", "", "Totals", active_map.total_delivered, active_map.total_returned, "", "",
+		"", "", "Totals", active_map.total_billed, "", "", ""
+	])
 
 	row = [
 		"",
 		active_map.item,
 		"Closing (Opening + Totals)",
-		active_map.closing if active_map.closing > 0 else 0,
+		# Qty Delivered
 		abs(active_map.closing) if active_map.closing < 0 else 0,
 		"",
+		active_map.empty_closing,
+
 		"",
-		active_map.empty_closing
+
+		"",
+		active_map.item,
+		"Closing (Opening + Totals)",
+		active_map.closing if active_map.closing > 0 else 0,
+		"",
+		"",
 	]
 
 	rows.append(row)

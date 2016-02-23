@@ -107,6 +107,12 @@ def get_data():
 				{
 					"type": "report",
 					"is_query_report": True,
+					"name": "Customer Stock Register",
+					"doctype": "Goods Receipt",
+				},
+				{
+					"type": "report",
+					"is_query_report": True,
 					"name": "Purchase Sale",
 					"doctype": "Item",
 				}
