@@ -31,12 +31,18 @@ def get_data(filters):
 	stock_ledger_entries = get_sl_entries(filters)
 	indent_invoices = get_invoices_entries(filters)
 	opening_grs = get_opening_gr(filters)
-	vouchers = stock_ledger_entries + indent_invoices + opening_grs
+	cross_sale = get_cross_sale_vouchers(filters)
+	stv = get_stock_transfer_vouchers(filters)
+	sci = get_subcontracted_invoices(filters)
+	vouchers = stock_ledger_entries + indent_invoices + opening_grs + cross_sale + stv + sci
 	vouchers = sorted(vouchers, key=lambda k: k['posting_date'])
 
 	opening_map, current_map = initialize_voucher_maps(filters, vouchers)
 
 	current_map = get_data_with_opening_closing(filters, opening_map, current_map)
+
+	if '' in current_map:
+		current_map.pop('')
 
 	for item in sorted(current_map.keys()):
 		map = current_map[item]
@@ -65,47 +71,26 @@ def get_data(filters):
 
 def get_sle_conditions(filters):
 	conditions = []
-	# item_conditions = get_item_conditions(filters)
-	# if item_conditions:
-	# conditions.append("""item_code in (select name from tabItem
-	# {item_conditions})""".format(item_conditions=item_conditions))
-	# if filters.get("warehouse"):
-	# conditions.append("warehouse=%(warehouse)s")
-
 	conditions.append('warehouse like "{}%%"'.format(filters.customer))
-
-	if filters.get("voucher_no"):
-		conditions.append("voucher_no=%(voucher_no)s")
-
 	return "and {}".format(" and ".join(conditions)) if conditions else ""
-
-
-def get_item_conditions(filters):
-	conditions = []
-	if filters.get("item_code"):
-		conditions.append("name=%(item_code)s")
-	if filters.get("brand"):
-		conditions.append("brand=%(brand)s")
-
-	return "where {}".format(" and ".join(conditions)) if conditions else ""
 
 
 def get_sl_entries(filters):
 	stock_ledger_entries = frappe.db.sql(
-		"""
-		SELECT posting_date, item_code as item, actual_qty as qty,
-	           process, voucher_type, voucher_no
-		FROM `tabStock Ledger Entry`
-		WHERE
-	      posting_date <= %(to_date)s AND
-	      ifnull(process, '') = '' AND
-	      voucher_type != "Goods Receipt"
-		  {sle_conditions}
-		ORDER BY posting_date desc, posting_time desc, name desc""".format(
-			sle_conditions=get_sle_conditions(filters)),
-		filters,
-		as_dict=1,
-		debug=True
+			"""
+			SELECT posting_date, item_code as item, actual_qty as qty,
+				   process, voucher_type, voucher_no
+			FROM `tabStock Ledger Entry`
+			WHERE
+			  posting_date <= %(to_date)s AND
+			  ifnull(process, '') = '' AND
+			  voucher_type != "Goods Receipt"
+			  {sle_conditions}
+			ORDER BY posting_date desc, posting_time desc, name desc""".format(
+					sle_conditions=get_sle_conditions(filters)),
+			filters,
+			as_dict=1,
+			debug=True
 	)
 
 	for sle in stock_ledger_entries:
@@ -117,39 +102,47 @@ def get_sl_entries(filters):
 def get_invoices_entries(filters):
 	# posting_date
 	indent_invoices = frappe.db.sql(
-		"""
-		SELECT name, transaction_date as posting_date, customer, item, qty
-		FROM `tabIndent Invoice`
-		WHERE docstatus = 1 AND
-		customer="{}" AND
-		cross_sold = 0 AND
-		transaction_date <= %(to_date)s
-		ORDER BY transaction_date desc, posting_time desc, name desc;""".format(filters['customer']),
-		filters,
-		as_dict=True
+			"""
+			SELECT name, transaction_date as posting_date, customer, ship_to, item, qty
+			FROM `tabIndent Invoice`
+			WHERE docstatus = 1 AND
+			(customer="{0}" or ship_to="{0}") AND
+			cross_sold = 0 AND
+			transaction_date <= %(to_date)s
+			ORDER BY transaction_date desc, posting_time desc, name desc;""".format(filters['customer']),
+			filters,
+			as_dict=True
 	)
+
+	vouchers = []
+
 	for i in indent_invoices:
 		i.v_type = 'Indent Invoice'
+		method = 'opening_computation_method' if i.posting_date < filters['from_date'] else 'current_computation_method'
+		if filters[method] == 'Ship To':
+			i.customer = i.ship_to
+		if i.customer == filters['customer']:
+			vouchers.append(i)
 
-	return indent_invoices
+	return vouchers
 
 
 def get_opening_gr(filters):
 	# posting_date
 	grs = frappe.db.sql(
-		"""
-		SELECT is_opening, name,
-		posting_date, customer,
-		item_delivered, delivered_quantity,
-		item_received, received_quantity
-		FROM `tabGoods Receipt`
-		WHERE docstatus = 1 AND
-		cancelled = 0 AND
-		customer="{}" AND
-		posting_date <= %(to_date)s
-		ORDER BY posting_date desc, posting_time desc, name desc;""".format(filters['customer']),
-		filters,
-		as_dict=True
+			"""
+			SELECT is_opening, name,
+			posting_date, customer,
+			item_delivered, delivered_quantity,
+			item_received, received_quantity
+			FROM `tabGoods Receipt`
+			WHERE docstatus = 1 AND
+			cancelled = 0 AND
+			customer="{}" AND
+			posting_date <= %(to_date)s
+			ORDER BY posting_date desc, posting_time desc, name desc;""".format(filters['customer']),
+			filters,
+			as_dict=True
 	)
 	for i in grs:
 		i.v_type = 'Goods Receipt'
@@ -157,17 +150,78 @@ def get_opening_gr(filters):
 	return grs
 
 
+def get_cross_sale_vouchers(filters):
+	# posting_date
+	cross_sale = frappe.db.sql(
+			"""
+			SELECT name, posting_date, customer, item, qty
+			FROM `tabCross Sale`
+			WHERE docstatus = 1 AND
+			customer="{}" AND
+			posting_date <= %(to_date)s
+			ORDER BY posting_date desc, name desc;""".format(filters['customer']),
+			filters,
+			as_dict=True
+	)
+	for i in cross_sale:
+		i.v_type = 'Cross Sale'
+
+	return cross_sale
+
+
+def get_stock_transfer_vouchers(filters):
+	# posting_date
+	st = frappe.db.sql(
+			"""
+			SELECT name, posting_date, from_customer, to_customer, item, qty
+			FROM `tabStock Transfer Voucher`
+			WHERE docstatus = 1 AND
+			(from_customer="{0}" OR to_customer="{0}") AND
+			posting_date <= %(to_date)s
+			ORDER BY posting_date desc, name desc;""".format(filters['customer']),
+			filters,
+			as_dict=True
+	)
+	for i in st:
+		i.v_type = 'Stock Transfer Voucher'
+
+		i.customer = filters['customer']
+		if i.from_customer == filters['customer']:
+			i.qty *= -1
+
+	return st
+
+
+def get_subcontracted_invoices(filters):
+	# posting_date
+	sci = frappe.db.sql(
+			"""
+			SELECT name, posting_date, customer, item, quantity as qty
+			FROM `tabSubcontracted Invoice`
+			WHERE docstatus = 1 AND
+			customer="{0}" AND
+			posting_date <= %(to_date)s
+			ORDER BY posting_date desc, name desc;""".format(filters['customer']),
+			filters,
+			as_dict=True
+	)
+	for i in sci:
+		i.v_type = 'Subcontracted Invoice'
+
+	return sci
+
+
 def get_default_map(item):
 	return frappe._dict({
-	"opening": 0,
-	"empty_opening": 0,
-	"entries": [],
-	"total_billed": 0,
-	"total_delivered": 0,
-	"total_returned": 0,
-	"closing": 0,
-	"empty_closing": 0,
-	"item": item
+		"opening": 0,
+		"empty_opening": 0,
+		"entries": [],
+		"total_billed": 0,
+		"total_delivered": 0,
+		"total_returned": 0,
+		"closing": 0,
+		"empty_closing": 0,
+		"item": item
 	})
 
 
@@ -184,10 +238,7 @@ def initialize_voucher_maps(filters, vouchers):
 									  get_default_map(voucher.item_delivered))
 				active_map[get_item(voucher.item_delivered, filters)].entries.append(voucher)
 
-			if (not voucher.item_delivered) or (
-					voucher.item_delivered and voucher.item_received and
-					get_base_item(voucher.item_delivered, filters) != get_base_item(voucher.item_received, filters)
-			):
+			if get_base_item(voucher.item_delivered, filters) != get_base_item(voucher.item_received, filters):
 				active_map.setdefault(get_item(voucher.item_received, filters), get_default_map(voucher.item_received))
 				active_map[get_item(voucher.item_received, filters)].entries.append(voucher)
 		else:
@@ -247,33 +298,38 @@ def bill_filled_empty_status(voucher, item, filters):
 
 	elif voucher.v_type == 'Goods Receipt':
 		filled = empty = 0
-		if voucher.item_delivered and\
-			'FC' + item_base == normalize_lot_vot(voucher.item_delivered, filters) and\
-			voucher.delivered_quantity:
+		if voucher.item_delivered and 'FC' + item_base == get_lot_vot_strip(voucher.item_delivered,
+																			filters) and voucher.delivered_quantity:
 			filled = voucher.delivered_quantity
-		elif voucher.item_delivered and\
-			'EC' + item_base == normalize_lot_vot(voucher.item_delivered, filters) and\
-			 voucher.delivered_quantity:
+		elif voucher.item_delivered and 'EC' + item_base == get_lot_vot_strip(voucher.item_delivered,
+																			  filters) and voucher.delivered_quantity:
 			empty = -1 * voucher.delivered_quantity
 
-		if voucher.item_received and\
-			'FC' + item_base == normalize_lot_vot(voucher.item_received, filters)\
-			and voucher.received_quantity:
+		if voucher.item_received and 'FC' + item_base == get_lot_vot_strip(voucher.item_received,
+																		   filters) and voucher.received_quantity:
 			filled = -1 * voucher.received_quantity
-		elif voucher.item_received and\
-			'EC' + item_base == normalize_lot_vot(voucher.item_received, filters)\
-			and voucher.received_quantity:
+		elif voucher.item_received and 'EC' + item_base == get_lot_vot_strip(voucher.item_received,
+																			 filters) and voucher.received_quantity:
 			empty = voucher.received_quantity
 		return 0, filled, empty
 
 	elif voucher.v_type == 'Stock Ledger Entry':
 		filled = empty = 0
-		if 'FC' + item_base == voucher.item and voucher.qty:
+		if 'FC' + item_base == get_lot_vot_strip(voucher.item, filters) and voucher.qty:
 			filled = voucher.qty
-		elif 'EC' + item_base == voucher.item and voucher.qty:
+		elif 'EC' + item_base == get_lot_vot_strip(voucher.item, filters) and voucher.qty:
 			empty = -1 * voucher.qty
 
 		return 0, filled, empty
+
+	elif voucher.v_type == 'Cross Sale':
+		return voucher.qty, 0, 0
+
+	elif voucher.v_type == 'Stock Transfer Voucher':
+		return voucher.qty, 0, 0
+
+	elif voucher.v_type == 'Subcontracted Invoice':
+		return voucher.qty, 0, 0
 
 
 def get_opening_row(active_map):
@@ -306,14 +362,26 @@ def get_closing_row_with_totals(active_map):
 
 
 def get_item(item, filters):
-	return normalize_lot_vot(item, filters).replace('EC', 'FC')
+	if not item:
+		return ''
+
+	if cint(filters.lot_vot_bifurcate) == 0:
+		item = item.replace('L', '')
+
+	return item.replace('EC', 'FC')
 
 
 def get_base_item(item, filters):
-	return normalize_lot_vot(item, filters).replace('EC', '').replace('FC', '')
+	if not item:
+		return ''
+
+	if cint(filters.lot_vot_bifurcate) == 0:
+		item = item.replace('L', '')
+
+	return item.replace('EC', '').replace('FC', '')
 
 
-def normalize_lot_vot(item, filters):
+def get_lot_vot_strip(item, filters):
 	if cint(filters.lot_vot_bifurcate) == 0:
 		item = item.replace('L', '')
 	return item

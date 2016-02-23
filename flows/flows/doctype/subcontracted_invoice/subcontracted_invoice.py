@@ -17,7 +17,7 @@ class SubcontractedInvoice(Document):
 
 		company_abbr = frappe.db.get_value("Company", self.company, "abbr")
 		b_type = 'V' if self.bill_type == 'VAT' else 'R'
-		naming_series = '{}-{}-'.format(company_abbr, b_type)
+		naming_series = '{}#{}#'.format(company_abbr, b_type)
 		self.name = make_autoname(naming_series + '.#####')
 
 	def before_submit(self):
