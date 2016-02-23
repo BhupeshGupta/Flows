@@ -283,8 +283,6 @@ def initialize_voucher_maps(filters, vouchers):
 			active_map.setdefault(get_item(voucher.item, filters), get_default_map(voucher.item))
 			active_map[get_item(voucher.item, filters)].entries.append(voucher)
 
-	frappe.msgprint(active_map)
-
 	return opening_map, current_map
 
 
