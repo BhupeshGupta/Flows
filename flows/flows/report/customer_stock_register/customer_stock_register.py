@@ -13,21 +13,22 @@ def execute(filters=None):
 
 def get_columns(filters):
 	return [
-		"Date 1:Date:100",
+		"Date:Data:100",
 		"Voucher Type 1::120",
-		"Voucher No 1:Dynamic Link/Voucher Type:160",
+		"Challan No.:Dynamic Link/Voucher Type:160",
 
-		"Qty Delivered:Float:100",
-		"Empty Received:Float:100",
-		"Empty Pending:Float:",
+		"No. of filled cylinder received:Float:100",
+		"No. of empty cylinder received:Float:100",
+		"Total Inventory / Floor Stock:Float:",
 
 		"::200",
 
-		"Date:Date:100",
 		"Voucher Type::120",
-		"Voucher No:Dynamic Link/Voucher Type:160",
-		"Billed Qty:Float:100",
-		"Filled Balance:Float:",
+		"Invoice No.:Dynamic Link/Voucher Type:160",
+		"Date Of Invoice:Data:100",
+		"Qty. / No. of cylinders billed:Float:100",
+		"Qty. Pending For Billing:Float:",
+		"Qty. Excess Billed:Float:",
 		"Remarks::400",
 	]
 
@@ -82,18 +83,20 @@ def get_data(filters):
 
 			row.extend(
 					[
-						voucher.get("posting_date"),
 						voucher.voucher_type if voucher.v_type == 'Stock Ledger Entry' else voucher.v_type,
 						voucher.voucher_no if voucher.v_type == 'Stock Ledger Entry' else voucher.get("name"),
+						voucher.get("posting_date"),
 						billed,
-						voucher.filled,
+						voucher.filled if int(voucher.filled) < 0 else '',
+						voucher.filled if int(voucher.filled) > 0 else '',
 						""
 					] if billed else [
 						"",
 						"",
 						"",
 						"",
-						voucher.filled,
+						voucher.filled if int(voucher.filled) < 0 else '',
+						voucher.filled if int(voucher.filled) > 0 else '',
 						""
 					]
 			)
@@ -371,15 +374,14 @@ def bill_filled_empty_status(voucher, item, filters):
 
 
 def get_opening_row(active_map):
-	row = ["", active_map.item, "Opening"]
+	row = [active_map.item, "", "Opening"]
 
 	row.append(abs(active_map.opening) if active_map.opening < 0 else 0)
 	row.append("")
 	row.append(active_map.empty_opening)
 	row.append("")
 
-	row.append("")
-	row.extend([active_map.item, "Opening"])
+	row.extend(["", "Opening", active_map.item])
 	row.append(active_map.opening if active_map.opening > 0 else 0)
 	row.extend(["", ""])
 
@@ -394,18 +396,16 @@ def get_closing_row_with_totals(active_map):
 	])
 
 	row = [
-		"",
 		active_map.item,
+		"",
 		"Closing (Opening + Totals)",
 		# Qty Delivered
 		abs(active_map.closing) if active_map.closing < 0 else 0,
 		"",
 		active_map.empty_closing,
-
-		"",
-
 		"",
 		active_map.item,
+		"",
 		"Closing (Opening + Totals)",
 		active_map.closing if active_map.closing > 0 else 0,
 		"",
