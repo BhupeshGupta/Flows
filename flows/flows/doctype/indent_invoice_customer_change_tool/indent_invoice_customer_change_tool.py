@@ -13,7 +13,7 @@ validation_map = {
 }
 
 class IndentInvoiceCustomerChangeTool(Document):
-	def validate_change(self, invoice, src_customer, target_customer):
+	def validate_change(self, invoice, src_customer, target_customer, throw=True):
 		if invoice.docstatus != 1:
 			frappe.throw("Invoice needs to be submitted before applying change")
 
@@ -21,7 +21,7 @@ class IndentInvoiceCustomerChangeTool(Document):
 			if src in src_customer and target in target_customer:
 				return
 
-		frappe.throw("Change prohibited by rules. Please contact admin")
+		getattr(frappe, 'throw' if throw else 'msgprint')("Change prohibited by rules. Please contact admin")
 
 	def apply_change(self):
 		invoice = frappe.get_doc('Indent Invoice', self.invoice)
@@ -29,7 +29,7 @@ class IndentInvoiceCustomerChangeTool(Document):
 		src_customer = invoice.customer
 		target_customer = self.customer
 
-		self.validate_change(invoice, src_customer, target_customer)
+		self.validate_change(invoice, src_customer, target_customer, throw=frappe.session.user != "Administrator")
 
 		frappe.db.sql("""
 		UPDATE `tabIndent Item` SET customer = "{customer}", ship_to = "{customer}" WHERE name = "{name}"

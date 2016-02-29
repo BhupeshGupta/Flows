@@ -13,6 +13,7 @@ def save_and_submit_invoices():
 		FROM `tabIndent Invoice`
 		WHERE docstatus != 2
 	)
+	AND iitm.docstatus != 2
 	""", as_dict=True):
 
 		docstatus = frappe.db.get_value("Indent", invoice.indent, 'docstatus')
