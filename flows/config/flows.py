@@ -62,6 +62,11 @@ def get_data():
 					"type": "doctype",
 					"name": "Indent Invoice Customer Change Tool",
 					"description": _("Change customer in indent as well as in invoice")
+				},
+				{
+					"type": "doctype",
+					"name": "Payment Mode Change Tool",
+					"description": _("")
 				}
 			]
 		},

@@ -9,12 +9,31 @@
 	}
 
 	h1, .h1, h2, .h2, h3, .h3 {
-		margin-top: 10px;
-		margin-bottom: 5px;
+		margin-top: 5px;
+		margin-bottom: 0px;
+	}
+
+	.w-50 {
+		width: 50px
+	}
+
+	.w-70 {
+		width: 70px
+	}
+
+	.w-80 {
+		width: 80px
+	}
+
+	.w-100 {
+		width: 100px
+	}
+	* {
+		line-height: 1.1;
 	}
 </style>
 
-{% var rows_per_page = 49; var total_pages = Math.ceil(data.length / rows_per_page) %}
+{% var rows_per_page = 47; var total_pages = Math.ceil(data.length / rows_per_page) %}
 
 {%  var cur_page = 0; %}
 
@@ -27,40 +46,37 @@
              printed on {%= dateutil.str_to_user(dateutil.get_datetime_as_string()) %}, page {%= cur_page+1 %} of {%= total_pages %}
          </p>
     </h5>
-    <hr>
 
     <table class="table table-condensed table-bordered table-striped table-nowrap">
         <thead>
             <tr>
-                <th>{%= __("Date") %}</th>
-                <th>{%= __("Voucher") %}</th>
-	            <th>{%= __("Voucher No") %}</th>
-                <th>{%= __("Qty Del.") %}</th>
-                <th>{%= __("Empty Rec.") %}</th>
-                <th>{%= __("Empty Pending.") %}</th>
+                <th class="w-70">{%= __("Date") %}</th>
+	            <th class="w-100">{%= __("Challan No.") %}</th>
+                <th class="w-50">{%= __("No. of filled cylinder received") %}</th>
+                <th class="w-50">{%= __("No. of empty cylinder received") %}</th>
+                <th class="w-50">{%= __("Total Inventory / Floor Stock") %}</th>
                 <th>{%= __("") %}</th>
-                <th>{%= __("Date") %}</th>
-                <th>Voucher</th>
-                <th>{%= __("Voucher No") %}</th>
-                <th>{%= __("Bill") %}</th>
-                <th>{%= __("Filled Balance") %}</th>
+                <th class="w-80">{%= __("Invoice No.") %}</th>
+                <th class="w-100">{%= __("Date Of Invoice") %}</th>
+                <th class="w-50">{%= __("Qty. / No. of cylinders billed") %}</th>
+                <th class="w-50">{%= __("Qty. Pending For Billing") %}</th>
+	            <th class="w-50">{%= __("Qty. Excess Billed") %}</th>
             </tr>
         </thead>
 	    <tbody>
 	    {% for(var i=cur_page * rows_per_page; (i < data.length) && (i < (cur_page + 1) * rows_per_page); i++) { %}
             <tr>
-                <td>{%= data[i]["Date 1"] %}</td>
-                <td>{%= data[i]["Voucher Type 1"] %}</td>
-	            <td>{%= data[i]["Voucher No 1"] %}</td>
-                <td style="text-align: right">{%= data[i]["Qty Delivered"] %}
-                <td style="text-align: right">{%= data[i]["Empty Received"] %}</td>
-                <td style="text-align: right">{%= data[i]["Empty Pending"] %}</td>
-	            <td></td>
                 <td>{%= data[i]["Date"] %}</td>
-                <td>{%= data[i]["Voucher Type"] %}</td>
-                <td>{%= data[i]["Voucher No"] %}</td>
-                <td style="text-align: right">{%= data[i]["Billed Qty"] %}</td>
-                <td style="text-align: right">{%= data[i]["Filled Balance"] %}</td>
+	            <td>{%= data[i]["Challan No."] %}</td>
+                <td style="text-align: right">{%= data[i]["No. of filled cylinder received"] %}
+                <td style="text-align: right">{%= data[i]["No. of empty cylinder received"] %}</td>
+                <td style="text-align: right">{%= data[i]["Total Inventory / Floor Stock"] %}</td>
+	            <td></td>
+                <td>{%= data[i]["Invoice No."] %}</td>
+                <td>{%= data[i]["Date Of Invoice"] %}</td>
+                <td style="text-align: right">{%= data[i]["Qty. / No. of cylinders billed"] %}</td>
+                <td style="text-align: right">{%= data[i]["Qty. Pending For Billing"] %}</td>
+	            <td style="text-align: right">{%= data[i]["Qty. Excess Billed"] %}</td>
             </tr>
 	    {% } %}
 	    </tbody>
