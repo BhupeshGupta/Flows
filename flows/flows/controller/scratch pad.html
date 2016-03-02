@@ -1,0 +1,168 @@
+<style>
+	.print-format {
+		padding: 0.1in;
+	}
+
+	.print-format td, .print-format th {
+		vertical-align: top !important;
+		padding: 4px 6px 4px 6px !important;
+	}
+
+	h1, .h1, h2, .h2, h3, .h3 {
+		margin-top: 10px;
+		margin-bottom: 5px;
+	}
+</style>
+<div class="container-fluid">
+
+	{% if letter_head and not no_letterhead %}
+		<p class="text-left">
+		<div class="letter-head">{{ letter_head }}</div>
+		<div class="print-heading">
+			<h4>Transporters Gate Pass/Challan/LR/Equipment Return Voucher</h4>
+		</div>
+		</p>
+		<br/>
+		<br/>
+	{% endif %}
+
+	<div class="row">
+		<p class="col-xs-6">
+			<strong>Dated____________________</strong></br>
+			<strong>Vehicle No.____________________</strong></br>
+			<strong>Driver Name____________________</strong></br>
+		</p>
+
+		<p class="col-xs-6">
+			<strong>Time_____________________</strong></br>
+			<strong>Helper___________________</strong></br>
+		</p>
+	</div>
+
+	</br>
+	</br>
+
+
+	<div class="row">
+		<div class="col-xs-12">
+			<table class="table table-bordered table-condensed">
+				<thead>
+				<tr>
+					<th>S.No.</th>
+					<th>Particulars</th>
+					<th>19kg</th>
+					<th>35kg</th>
+					<th>47.5</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+					<td>1</td>
+					<td>Cylinders Filled</td>
+					<td></td>
+					<td></td>
+					<td></td>
+				</tr>
+				<tr>
+					<td></td>
+					<td>Cylinder Empty</td>
+					<td></td>
+					<td></td>
+					<td></td>
+				</tr>
+				<tr>
+					<td>2</td>
+					<td>Oil Slip No.</td>
+					<td>Ltr.</td>
+					<td colspan="2">Meter Reading</td>
+				</tr>
+				<tr>
+					<td>3</td>
+					<td colspan="4">Name of Petrol Pump</td>
+				</tr>
+				<tr>
+					<td>4</td>
+					<td colspan="4">Others</td>
+				</tr>
+				<tr>
+					<td colspan="5">Documents :
+						<input type="checkbox" name="DL" value="Dl">DL
+						<input type="checkbox" name="RC" value="RC">RC
+						<input type="checkbox" name="INs" value="Ins">Insurance
+						<input type="checkbox" name="Poll" value="Poll">Pollution
+						<input type="checkbox" name="Permit" value="Permit">Permit
+						<input type="checkbox" name="Indent" value="Indent">Indent
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<div class="col-xs-12">
+			<strong>Remarks</strong>
+			<pre>Test Remarks</pre>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-xs-12">
+			<table class="table table-bordered table-condensed">
+				<thead>
+				<tr>
+					<th>S.No.</th>
+					<th>Particulars</th>
+					<th>19kg</th>
+					<th>35kg</th>
+					<th>47.5</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+					<td>1</td>
+					<td>Cylinders Filled</td>
+					<td></td>
+					<td></td>
+					<td></td>
+				</tr>
+				<tr>
+					<td></td>
+					<td>Cylinder Empty</td>
+					<td></td>
+					<td></td>
+					<td></td>
+				</tr>
+				<tr>
+					<td>2</td>
+					<td colspan="4">Meter Reading</td>
+				</tr>
+				<tr>
+					<td>3</td>
+					<td colspan="4">Shortage/Disc</td>
+				</tr>
+				<tr>
+					<td>4</td>
+					<td colspan="4">No Of Bills Received</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<div class="col-xs-12">
+			<strong>Remarks</strong>
+			<pre>Test Remarks</pre>
+			<p class="col-xs-6">
+				</br>
+				<strong>Owner's sign___________________________</strong></br></br>
+				<strong>Godown Incharge________________________</strong></br></br>
+			</p>
+
+			<p class="col-xs-6">
+				</br>
+				<strong>Accounts Assistant_____________________</strong></br></br>
+				<strong>Head Accountant________________________</strong></br></br>
+			</p>
+
+		</div>
+	</div>
+
+</div>

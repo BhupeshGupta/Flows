@@ -1,0 +1,75 @@
+<style>
+	.print-format {
+		padding: 0.1in;
+	}
+
+	.print-format td, .print-format th {
+		vertical-align: top !important;
+		padding: 0px 3px 0px 3px !important;
+	}
+
+	h1, .h1, h2, .h2, h3, .h3 {
+		margin-top: 10px;
+		margin-bottom: 5px;
+	}
+</style>
+
+{% var rows_per_page = 49; var total_pages = Math.ceil(data.length / rows_per_page) %}
+
+{%  var cur_page = 0; %}
+
+{% for(var cur_page=0; cur_page < total_pages; cur_page++) { %}
+
+    <h2 class="text-center">{%= __("Filled Ledger") %}</h2>
+    <h5 class="text-center">
+         <p class="text-center text-muted">
+             {%= dateutil.str_to_user(filters.from_date) %} to {%= dateutil.str_to_user(filters.to_date) %},
+             printed on {%= dateutil.str_to_user(dateutil.get_datetime_as_string()) %}, page {%= cur_page+1 %} of {%= total_pages %}
+         </p>
+    </h5>
+    <hr>
+
+    <table class="table table-condensed table-bordered table-striped table-nowrap">
+        <thead>
+            <tr>
+                <th>{%= __("Date") %}</th>
+                <th>{%= __("Voucher") %}</th>
+	            <th>{%= __("Voucher No") %}</th>
+                <th>{%= __("Qty Del.") %}</th>
+                <th>{%= __("Empty Rec.") %}</th>
+                <th>{%= __("Empty Pending.") %}</th>
+                <th>{%= __("") %}</th>
+                <th>{%= __("Date") %}</th>
+                <th>Voucher</th>
+                <th>{%= __("Voucher No") %}</th>
+                <th>{%= __("Bill") %}</th>
+                <th>{%= __("Filled Balance") %}</th>
+            </tr>
+        </thead>
+	    <tbody>
+	    {% for(var i=cur_page * rows_per_page; (i < data.length) && (i < (cur_page + 1) * rows_per_page); i++) { %}
+            <tr>
+                <td>{%= data[i]["Date 1"] %}</td>
+                <td>{%= data[i]["Voucher Type 1"] %}</td>
+	            <td>{%= data[i]["Voucher No 1"] %}</td>
+                <td style="text-align: right">{%= data[i]["Qty Delivered"] %}
+                <td style="text-align: right">{%= data[i]["Empty Received"] %}</td>
+                <td style="text-align: right">{%= data[i]["Empty Pending"] %}</td>
+	            <td></td>
+                <td>{%= data[i]["Date"] %}</td>
+                <td>{%= data[i]["Voucher Type"] %}</td>
+                <td>{%= data[i]["Voucher No"] %}</td>
+                <td style="text-align: right">{%= data[i]["Billed Qty"] %}</td>
+                <td style="text-align: right">{%= data[i]["Filled Balance"] %}</td>
+            </tr>
+	    {% } %}
+	    </tbody>
+    </table>
+
+
+    {% if (cur_page + 1 < total_pages) { %}
+        <div class="page-break"></div>
+    {% } %}
+
+
+{% } %}

@@ -82,6 +82,17 @@ def get_data():
 			]
 		},
 		{
+			"label": _("Enrollment Docs"),
+			"icon": "icon-star",
+			"items": [
+				{
+					"type": "doctype",
+					"name": "OMC Customer Variables",
+					"description": _("")
+				}
+			]
+		},
+		{
 			"label": _("Main Reports"),
 			"icon": "icon-table",
 			"items": [

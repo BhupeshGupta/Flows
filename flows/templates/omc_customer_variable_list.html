@@ -1,0 +1,129 @@
+<style>
+	.omc .col-sm-5 td{ padding:10px 8px; color:#000; text-align:right;}
+	.omc .col-sm-5 tr th,.omc .col-sm-5 tr td{ width:200px;}
+    .omc .col-sm-5 th{ color:#666; padding:8px;}
+	.omc .col-sm-7 table{ margin-bottom:10px;}
+	.omc .col-sm-7 .col-sm-6 td{ padding:4px 0; font-size:12px; font-weight:500; color:#666; text-align:right;}
+	.omc .col-sm-7 .col-sm-6 th{ padding:4px 0; font-size:12px;  font-weight:300;}
+	.omc th{ font-weight:300; width: 100%;}
+	.omc tr{ font-weight:300; display:inline-block; width:100%;}
+	.omc .col-sm-7 .col-sm-6 table{display:inline-block; padding:0 40px 0 0;}
+	.omc table tr:first-child th,.omc table tr:first-child td { border-top:0;}
+	.omc .col-sm-5 table{border-right:1px solid #ccc; display:inline-block; padding-right:10px;}
+	.omc input{ margin-right:10px;}
+</style>
+
+<p><button class="btn btn-sm btn-default btn-address">
+<i class="icon-plus"></i> New OMC Customer Variables</button></p>
+
+{% for(var i=0, l=omc_customer_variables_list.length; i < l; i++) { %}
+
+	<div class="row omc">
+		<div class="col-sm-5">
+		    <table class="table" style="">
+		        <tr>
+			        <th>
+				        <input type="checkbox" />
+
+				        {%= omc_customer_variables_list[i].omc %}
+
+			        </th>
+			        <td>
+				        <a href="#Form/OMC Customer Variables/{%= omc_customer_variables_list[i].name %}" class="btn btn-sm btn-default pull-right">
+					        Edit
+					    </a>
+			        </td>
+		        </tr>
+		        <tr>
+			        <th>Customer Code</th>
+
+		            <td>{%= omc_customer_variables_list[i].customer_code %}</td>
+
+		        </tr>
+                <tr>
+			        <th>Debit A/c</th>
+
+		             <td>{%= omc_customer_variables_list[i].debit_account %}</td>
+
+                </tr>
+			    <tr>
+			        <th>Field Officer</th>
+
+		            <td>{%= omc_customer_variables_list[i].field_officer %}</td>
+
+			    </tr>
+                <tr>
+			        <th>Portal Password</th>
+
+		            <td>{%= omc_customer_variables_list[i].portal_password %}</td>
+
+                </tr>
+		    </table>
+		</div>
+		<div class="col-sm-7">
+		     {% for(var plantRow=0, plantRowMax=Math.ceil(omc_customer_variables_list[i].plants.length/2); plantRow < plantRowMax; plantRow++) { %}
+				<div class="row">
+					{% for(var pIndex=plantRow*2, pIndexMax=Math.min(plantRow*2+2, omc_customer_variables_list[i].plants.length); pIndex < pIndexMax; pIndex++) { %}
+					     <div class="col-sm-6" >
+					        <table class="table">
+					            <tr>
+						            <th>
+							            <input type="checkbox"/>
+							            {%= omc_customer_variables_list[i].plants[pIndex].plant %}
+						            </th>
+						            <td>
+				                        <a href="#Form/Customer Plant Variables/{%= omc_customer_variables_list[i].plants[pIndex].name %}" class="btn btn-sm btn-default pull-right">
+									        Edit
+									    </a>
+						            </td>
+					            </tr>
+						        {% if (omc_customer_variables_list[i].plants[pIndex].contract_number && omc_customer_variables_list[i].plants[pIndex].contract_number != "") { %}
+						            <tr>
+							            <th>Contract Number</th>
+							            <td>{%= omc_customer_variables_list[i].plants[pIndex].contract_number %}</td>
+						            </tr>
+						        {% } %}
+					            {% if (omc_customer_variables_list[i].plants[pIndex].discount && omc_customer_variables_list[i].plants[pIndex].discount != 0) { %}
+						            <tr>
+							            <th>Discount In Invoice</th>
+							            <td>{%= omc_customer_variables_list[i].plants[pIndex].discount %}</td>
+						            </tr>
+						        {% } %}
+                                {% if (omc_customer_variables_list[i].plants[pIndex].discount_via_credit_note && omc_customer_variables_list[i].plants[pIndex].discount_via_credit_note != 0) { %}
+						        <tr>
+							        <th>Discount via C.N.</th>
+							        <td>{%= omc_customer_variables_list[i].plants[pIndex].discount_via_credit_note %}</td>
+						        </tr>
+                                {% } %}
+
+                                {% if (omc_customer_variables_list[i].plants[pIndex].incentive && omc_customer_variables_list[i].plants[pIndex].incentive != 0) { %}
+					            <tr>
+						            <th>Incentive</th>
+						            <td>{%= omc_customer_variables_list[i].plants[pIndex].incentive %}</td>
+					            </tr>
+	                            {% } %}
+
+                                {% if (omc_customer_variables_list[i].plants[pIndex].transportation && omc_customer_variables_list[i].plants[pIndex].transportation != 0) { %}
+						        <tr>
+							        <th>Transportation</th>
+							        <td>{%= omc_customer_variables_list[i].plants[pIndex].transportation %}</td>
+						        </tr>
+	                            {% } %}
+
+						        <tr>
+							        <th>Payment Mode</th>
+							        <td>{%= omc_customer_variables_list[i].plants[pIndex].payment_mode %}</td>
+						        </tr>
+
+					        </table>
+		                </div>
+					{% } %}
+				</div>
+		     {% } %}
+		</div>
+	</div>
+{% } %}
+
+{% if(!omc_customer_variables_list.length) { %}
+	<p class="text-muted">{%= __("No OMC Customer Variables Yet.") %}</p>
+{% } %}

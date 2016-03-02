@@ -1,6 +1,7 @@
 {
 	"js/flows.min.js": [
 		"public/js/flows.js",
-        "templates/gatepass_list.html"
+        "templates/gatepass_list.html",
+		"templates/omc_customer_variable_list.html"
 	]
 }
