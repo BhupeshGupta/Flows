@@ -8,6 +8,7 @@ from flows.flows.iocl_interface import IOCLPortal
 from frappe.utils import today
 from utils import reconcile_omc_txns_with_indents
 from utils import skip_run, strip_vehicle
+from utils import get_portal_user_password
 
 
 def get_iocl_customer_list():
@@ -50,16 +51,16 @@ def fetch_and_record_iocl_transactions(customer_list, for_date=None, force_run=F
 			):
 				continue
 
-			customer_obj = None
+			registration = None
 			if txn['Ship to Party'].strip():
-				customer_obj = frappe.db.get_value(
-					"Customer",
-					{'iocl_sap_code': int(txn['Ship to Party'].strip())}, ["name"],
+				registration = frappe.db.get_value(
+					"OMC Customer Registration",
+					{'customer_code': int(txn['Ship to Party'].strip())}, ["customer"],
 					as_dict=True
 				)
 
 			doc = frappe.get_doc({
-				'customer': customer_obj.name if customer_obj else '',
+				'customer': registration.customer if registration else '',
 				'date': for_date,
 				'doctype': 'OMC Transactions',
 				'document_no': int(txn['Doc. No']),
@@ -80,17 +81,10 @@ def fetch_and_record_iocl_transactions(customer_list, for_date=None, force_run=F
 
 
 def fetch_and_record_iocl_transactions_controller(date=None):
-
-	customer_account_map = {
-		'605251': frappe._dict({'id': '605251', 'passwd': '605251'}),
-		# '106474': frappe._dict({'id': '106474', 'passwd': '106474'})
-	}
-
-	iocl_account_list = [customer_account_map['605251']]
+	iocl_account_list = []
 
 	for customer in frappe.db.sql("""
-	select name, iocl_sap_code from `tabCustomer` where name in (
-	select distinct iitm.customer
+	select distinct iitm.customer, iitm.credit_account
 	from `tabIndent Item` iitm left join `tabIndent` ind on iitm.parent = ind.name
 	where plant like 'iocl%' and iitm.name not in (
 			select indent_item
@@ -98,10 +92,11 @@ def fetch_and_record_iocl_transactions_controller(date=None):
 			where docstatus != 2
 			and ifnull(indent_item, '')!=''
 		) and ifnull(iitm.invoice_reference, '') = ''
-	);
 	""", as_dict=True):
-		if customer.iocl_sap_code in customer_account_map:
-			iocl_account_list.append(customer_account_map[customer.iocl_sap_code])
+
+		user, passwd = get_portal_user_password(customer.cutomer, 'IOCL', customer.credit_account)
+		if passwd:
+			iocl_account_list.append({'id': user, 'passwd': passwd})
 
 	fetch_and_record_iocl_transactions(iocl_account_list, for_date=date)
 	reconcile_omc_txns_with_indents()

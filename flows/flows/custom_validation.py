@@ -50,12 +50,12 @@ def validate_imprest_account_gl_entry_date(doc, method=None, *args, **kwargs):
 def customer_onload(doc, method=None, *args, **kwargs):
 	rs = []
 
-	omcs = frappe.db.sql('select DISTINCT omc from `tabOMC Customer Variables` where customer="{}"'.format(doc.name))
+	omcs = frappe.db.sql('select DISTINCT omc from `tabOMC Customer Registration` where customer="{}"'.format(doc.name))
 	omcs = [x[0] for x in omcs]
 	for omc in omcs:
 		row = frappe.db.sql("""
 		select *
-		from `tabOMC Customer Variables`
+		from `tabOMC Customer Registration`
 		where customer="{}"
 		and omc="{}"
 		order by with_effect_from desc

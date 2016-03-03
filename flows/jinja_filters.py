@@ -50,19 +50,19 @@ def compute_erv_for_refill_in_indent(indent_items):
 
 def get_contract_number(customer, date, plant):
 	rs = frappe.db.sql("""
-    SELECT contract_number
-    FROM `tabCustomer Plant Variables`
-    WHERE customer = "{}"
-    AND with_effect_from < "{}"
-    AND plant = "{}"
-    AND docstatus != 2
-    ORDER BY with_effect_from DESC limit 1;
-    """.format(customer, date, plant))
+	SELECT contract_number
+	FROM `tabCustomer Plant Variables`
+	WHERE customer = "{}"
+	AND with_effect_from < "{}"
+	AND plant = "{}"
+	AND docstatus != 2
+	ORDER BY with_effect_from DESC limit 1;
+	""".format(customer, date, plant))
 
 	return rs[0][0] if rs else ""
 
 
-def get_registration_code(customer, vendor):
+def get_registration_code(customer, vendor, date):
 	"""
 	customer: customer to get code for
 	vendor: vendor to get registration code for (HPCL, BPLC, IOCL)
@@ -70,17 +70,25 @@ def get_registration_code(customer, vendor):
 
 	vendor = vendor.lower()
 
-	if vendor == "hpc":
-		key = "hpcl_erp_number"
-	elif vendor == "bpc":
-		key = "bpcl_sap_code"
-	elif vendor == "ioc":
-		key = "iocl_sap_code"
+	if vendor in ["hpc", "bpc", "ioc"]:
+		key = vendor + 'l'
 	else:
-		return ""
+		frappe.throw("Invalid vendor")
 
-	val = get_customer_field(customer, key)
-	return val if val else ""
+	val = frappe.db.sql("""
+	Select customer_code from
+	`tabOMC Customer Registration`
+	where customer = "{customer}"
+	and omc = "{omc}"
+	and docstatus !=2
+	and with_effect_from <= "{date}"
+	order by with_effect_from desc limit 1
+	""".format(customer=customer, omc=key, date=date))
+
+	if not val:
+		frappe.throw("Customer {} not registred with OMC {}".format(customer, key))
+
+	return val[0][0]
 
 
 def get_customer_tin_number(customer):

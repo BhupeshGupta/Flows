@@ -108,7 +108,7 @@
 							{{ indent_item.customer }}
 						</td>
 						<td>
-							{{ indent_item.customer | get_registration_code(doc.naming_series) }}
+							{{ indent_item.customer | get_registration_code(doc.naming_series, doc.posting_date) }}
 						</td>
 						{% if show_contract %}
 							<td>

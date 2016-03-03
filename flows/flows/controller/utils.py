@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import frappe
 import frappe.defaults
+from frappe.utils import today
 
 
 def skip_run():
@@ -51,3 +52,45 @@ def reconcile_omc_txns_with_indents():
 				ref=txn.document_no, name=indent_list[0].name
 			))
 			frappe.db.commit()
+
+
+def get_portal_user_password(customer, omc, account_type=None, date=None):
+	date = date if date else today()
+
+	registration_record = frappe.db.sql("""
+	select name, default_credit_account from `tabOMC Customer Registration`
+	where customer = "{customer}"
+	and omc = "{omc}"
+	and with_effect_from <= "{date}"
+	order by with_effect_from desc limit 1
+	""".format(customer=customer, omc=omc, date=date), as_dict=True)
+
+	if not registration_record:
+		frappe.throw("OMC Registration missing for customer")
+	registration_record = registration_record[0]
+
+	accounts = frappe.db.sql(
+		"""
+		select * from `tabOMC Customer Registration Credit Account`
+		where parent = "{}"
+		""".format(registration_record.name), as_dict=True
+	)
+
+	account_type = account_type if account_type else registration_record.default_credit_account
+
+	valid_account = [account.account for account in accounts if account.type == account_type]
+
+	if len(valid_account) > 1:
+		frappe.throw("Multiple accounts with same account type are linked")
+
+
+	rs = frappe.db.get_values(
+		"Account",
+		{'name': valid_account[0]},
+		['integration_type', 'username', 'password'],
+		as_dict=True
+	)[0]
+
+	print(rs)
+
+	return (rs.username, rs.password)

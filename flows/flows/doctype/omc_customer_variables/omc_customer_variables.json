@@ -106,13 +106,13 @@
   {
    "allow_on_submit": 0, 
    "default": "", 
-   "fieldname": "debit_account", 
+   "fieldname": "credit_account", 
    "fieldtype": "Select", 
    "hidden": 0, 
    "ignore_user_permissions": 0, 
    "in_filter": 0, 
    "in_list_view": 1, 
-   "label": "Debit Account", 
+   "label": "Credit Account", 
    "no_copy": 0, 
    "options": "Payer Code\nCustomer Code", 
    "permlevel": 0, 
@@ -134,6 +134,7 @@
    "reqd": 1
   }, 
   {
+   "allow_on_submit": 1, 
    "fieldname": "portal_password", 
    "fieldtype": "Data", 
    "label": "Portal Password", 
@@ -158,7 +159,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2016-03-01 17:17:59.973060", 
+ "modified": "2016-03-02 18:01:27.967797", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "OMC Customer Variables", 

@@ -14,7 +14,7 @@
 </style>
 
 <p><button class="btn btn-sm btn-default btn-address">
-<i class="icon-plus"></i> New OMC Customer Variables</button></p>
+<i class="icon-plus"></i> New OMC Customer Registration</button></p>
 
 {% for(var i=0, l=omc_customer_variables_list.length; i < l; i++) { %}
 
@@ -29,7 +29,7 @@
 
 			        </th>
 			        <td>
-				        <a href="#Form/OMC Customer Variables/{%= omc_customer_variables_list[i].name %}" class="btn btn-sm btn-default pull-right">
+				        <a href="#Form/OMC Customer Registration/{%= omc_customer_variables_list[i].name %}" class="btn btn-sm btn-default pull-right">
 					        Edit
 					    </a>
 			        </td>
@@ -125,5 +125,5 @@
 {% } %}
 
 {% if(!omc_customer_variables_list.length) { %}
-	<p class="text-muted">{%= __("No OMC Customer Variables Yet.") %}</p>
+	<p class="text-muted">{%= __("No OMC Customer Registration Yet.") %}</p>
 {% } %}

@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe.utils import cint, flt
 
 
 incentive_per_cylinder = {
@@ -11,7 +12,7 @@ incentive_per_cylinder = {
 'FC47.5L': 125
 }
 
-SERVICE_TAX = 12.36
+SERVICE_TAX = 14.5
 
 
 def execute(filters=None):
@@ -28,9 +29,12 @@ def get_columns(filters):
 		"Qty 19Kg::",
 		"Qty 47.5Kg::",
 		"Incentive per cyl.:Currency:",
+		"Incentive On Investment Per Kg:Currency:",
+		"Incentive On Investment:Currency:",
 		"Net Incentive Claim:Currency:",
 		"Assessable Value:Currency:",
 		"Service Tax:Currency:"
+
 	]
 
 
@@ -43,7 +47,10 @@ def get_data(filters):
 	root.debug(invoices)
 
 	for invoice in invoices:
-		net_incentive = incentive_per_cylinder[invoice.item] * invoice.qty
+		incentive_on_investment_per_kg = get_omc_customer_variables(invoice.customer, invoice.transaction_date)
+		incentive_on_investment = incentive_on_investment_per_kg * get_conversion_factor_item(invoice.item) * invoice.qty
+
+		net_incentive = (incentive_per_cylinder[invoice.item] * invoice.qty) + incentive_on_investment
 		assessable_value = round((net_incentive / (100 + SERVICE_TAX)) * 100, 2)
 		service_tax = round(net_incentive - assessable_value, 2)
 		rows.append([
@@ -54,17 +61,44 @@ def get_data(filters):
 			invoice.qty if 'FC19' in invoice.item else "",
 			invoice.qty if 'FC47.5' in invoice.item else "",
 			incentive_per_cylinder[invoice.item],
-			net_incentive,
+			incentive_on_investment_per_kg,
+			incentive_on_investment,
 			assessable_value,
-			service_tax
+			service_tax,
 		])
 
 	return rows
 
 
+def get_omc_customer_variables(customer, date):
+	val = frappe.db.sql("""
+	select incentive_on_investment, docstatus
+	from `tabOMC Customer Variables`
+	where customer = "{customer}"
+	and omc = "IOCL"
+	and docstatus != 2
+	and with_effect_from <= "{date}"
+	order by with_effect_from desc limit 1
+	""".format(customer=customer, date=date), as_dict=True)
+
+	if not val:
+		frappe.throw("OMC Customer Variable not found for customer `{}`.".format(
+			customer
+		))
+
+	val = val[0]
+
+	if cint(val.docstatus) == 0:
+		frappe.throw("OMC Customer Variable for customer `{}` is in pending state. Please get it approved.".format(
+			customer
+		))
+
+	return val.incentive_on_investment
+
+
 def get_invoices(filters):
 
-	cond = ' and customer in (select name from `tabCustomer` where iocl_field_officer = "{}")'.format(filters.field_officer) \
+	cond = ' and customer in (select customer from `tabOMC Customer Registration` where field_officer = "{}")'.format(filters.field_officer) \
 	if filters.field_officer else ''
 
 	return frappe.db.sql("""
@@ -85,3 +119,7 @@ def get_sap_code(customer):
 	if customer not in sap_code_map:
 		sap_code_map[customer] = frappe.db.get_value("Customer", customer, fieldname="iocl_sap_code")
 	return sap_code_map[customer]
+
+
+def get_conversion_factor_item(item):
+	return flt(item.replace('FC', '').replace('L', '').replace('EC', ''))

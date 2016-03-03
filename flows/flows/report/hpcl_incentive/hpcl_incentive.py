@@ -65,7 +65,7 @@ def get_data(filters):
 
 def get_invoices(filters):
 
-	cond = ' and customer in (select name from `tabCustomer` where hpcl_field_officer = "{}")'.format(filters.field_officer) \
+	cond = ' and customer in (select customer from `tabOMC Customer Registration` where field_officer = "{}")'.format(filters.field_officer) \
 	if filters.field_officer else ''
 
 	sql = """

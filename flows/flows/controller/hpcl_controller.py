@@ -12,7 +12,7 @@ import random
 import time
 import logging as logbook
 from utils import reconcile_omc_txns_with_indents
-from utils import skip_run, strip_vehicle
+from utils import skip_run, strip_vehicle, get_portal_user_password
 
 
 def update_invoice_status_for_pending_indents(date=None, force_run=False):
@@ -21,9 +21,8 @@ def update_invoice_status_for_pending_indents(date=None, force_run=False):
 		if skip_run():
 			return
 
-	customer_list = [c[0] for c in frappe.db.sql("""
-	select name from `tabCustomer` where name in (
-		select distinct iitm.customer
+	customer_account_list = frappe.db.sql("""
+		select distinct iitm.customer, iitm.credit_account
 		from `tabIndent Item` iitm left join `tabIndent` ind on iitm.parent = ind.name
 		where plant like 'hpcl%' and iitm.name not in (
 			select indent_item
@@ -31,31 +30,32 @@ def update_invoice_status_for_pending_indents(date=None, force_run=False):
 			where docstatus != 2
 			and ifnull(indent_item, '')!=''
 		) and ifnull(iitm.invoice_reference, '') = ''
-	) and ifnull(hpcl_payer_password, '') != '';
-	""")]
+	""", as_dict=True)
 
 	date = date if date else today()
 
-	fetch_and_record_hpcl_transactions(customer_list, date)
+	fetch_and_record_hpcl_transactions(customer_account_list, date)
 
 	reconcile_omc_txns_with_indents()
 
 
-def fetch_and_record_hpcl_transactions(customer_list, for_date):
+def fetch_and_record_hpcl_transactions(customer_account_list, for_date):
 	logbook.basicConfig(
 		filename="/tmp/logreport.out",
 		level=logbook.DEBUG,
 		format='%(asctime)s %(levelname)s  %(message)s'
 	)
 
-	customer_list_db = frappe.db.sql("""
-	SELECT name, hpcl_erp_number, hpcl_payer_password
-	FROM `tabCustomer`
-	WHERE name IN ({})
-	""".format('"' + '", "'.join(customer_list) + '"'), as_dict=True)
+	for customer_account in customer_account_list:
+		customer = customer_account.customer
+		account_type = customer_account.credit_account
+		user, passwd = get_portal_user_password(customer, 'HPCL', account_type)
 
-	for customer in customer_list_db:
-		portal = HPCLCustomerPortal(customer.hpcl_erp_number, customer.hpcl_payer_password)
+		# We can not get transaction without password
+		if not passwd:
+			continue
+
+		portal = HPCLCustomerPortal(user, passwd)
 
 		try:
 			portal.login()
@@ -76,14 +76,6 @@ def fetch_and_record_hpcl_transactions(customer_list, for_date):
 			logbook.debug((customer, e))
 			print e
 
-	# frappe.sendmail(
-	# 	['bhupesh00gupta@gmail.com', 'deol.engg@gmail.com'],
-	# 	sender='erpnext.root@arungas.com',
-	# 	subject='Scheduler Report',
-	# 	message='PFA',
-	# 	attachments={'fname': 'runlog.txt', 'fcontent': open('/tmp/logreport.out').read()}
-	# )
-
 
 def fetch_and_record_hpcl_balance(for_date=None):
 	from flows.stdlogger import root
@@ -96,9 +88,9 @@ def fetch_and_record_hpcl_balance(for_date=None):
 	# from frappe.utils import now_datetime
 
 	customer_list = frappe.db.sql("""
-	SELECT name, hpcl_erp_number, hpcl_payer_password
+	SELECT master_name as name, username, password
 	FROM `tabCustomer`
-	WHERE ifnull(hpcl_erp_number, '') != ''
+	WHERE name like "Hpcl a/c %"
 	""", as_dict=True)
 
 	customer_defer_list = []
@@ -106,7 +98,7 @@ def fetch_and_record_hpcl_balance(for_date=None):
 	while run < max_run:
 		root.debug("Run Level {}".format(run))
 		for customer in customer_list:
-			portal = HPCLCustomerPortal(customer.hpcl_erp_number, customer.hpcl_payer_password)
+			portal = HPCLCustomerPortal(customer.username, customer.password)
 			total_debit = total_credit = 0
 			msg = error = ''
 
@@ -155,7 +147,7 @@ def fetch_and_record_hpcl_balance(for_date=None):
 				frappe.db.commit()
 
 			except Exception as e:
-				print (customer.name, customer.hpcl_erp_number, e)
+				print (customer.name, customer.username, e)
 
 			sleep_time = random.choice([0.4, 0.2, 0.8, 1])
 			print "Sleeping for {} sec".format(sleep_time)
@@ -199,7 +191,7 @@ def deduplicate_and_save_invoice_txns(txns, customer_obj_db):
 		'plant': txn['Shipping Location'],
 		'supplier': 'HPCL',
 		'dump': json.dumps(txn),
-		'account_number': customer_obj_db.hpcl_erp_number
+		'account_number': customer_obj_db.username
 		})
 
 		doc.ignore_permissions = True
@@ -226,7 +218,7 @@ def deduplicate_and_save_accounts_txns(txns, customer_obj_db):
 		'plant': txn['Supply Location'],
 		'supplier': 'HPCL',
 		'dump': json.dumps(txn),
-		'account_number': customer_obj_db.hpcl_erp_number
+		'account_number': customer_obj_db.username
 		})
 
 		doc.ignore_permissions = True
