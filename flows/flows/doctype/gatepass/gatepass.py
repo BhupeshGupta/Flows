@@ -20,7 +20,10 @@ class Gatepass(Document):
 			self.name = '{}-{}'.format(self.id, self.gatepass_type)
 			return
 
-		name_series = 'GP+.DD.MM.YY.###'
+		if self.voucher_type == 'ERV' and self.id == '':
+			name_series = 'P-GP/.###'
+		else:
+			name_series = 'GP+.DD.MM.YY.###'
 		self.name = make_autoname(name_series)
 		self.name = self.name.replace('+', self.dispatch_destination[0].upper())
 		self.name = '{}-{}'.format(self.name, self.gatepass_type)
