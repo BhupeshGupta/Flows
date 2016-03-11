@@ -62,6 +62,7 @@ def get_portal_user_password(customer, omc, account_type=None, date=None):
 	where customer = "{customer}"
 	and omc = "{omc}"
 	and with_effect_from <= "{date}"
+	and docstatus = 1
 	order by with_effect_from desc limit 1
 	""".format(customer=customer, omc=omc, date=date), as_dict=True)
 

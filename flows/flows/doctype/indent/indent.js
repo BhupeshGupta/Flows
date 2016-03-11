@@ -64,12 +64,6 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 			}
 		});
 
-		//this.frm.set_query("vehicle", function () {
-		//	return {
-		//		query:"flows.flows.doctype.indent.indent.get_allowed_vehicle"
-		//	}
-		//});
-
 		this.frm.fields_dict['indent'].grid.get_field("eiv")
 	},
 
@@ -194,7 +188,6 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 							plant:doc.plant,
 							customer:indent_item.customer,
 							posting_date:doc.posting_date,
-
 						},
 						callback:function (r) {
 							if (!r.exc) {
@@ -206,10 +199,10 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 									me.sales_tax(indent_item, indent_item.doctype, indent_item.name);
 								}
 
-								indent_item.payment_type = r.message.payment_mode;
-								refresh_field("payment_type", indent_item.name, indent_item.parentfield);
-								if (me.payment_type) {
-									me.payment_type(indent_item, indent_item.doctype, indent_item.name);
+                                indent_item.credit_account = r.message.credit_account;
+                                refresh_field("credit_account", indent_item.name, indent_item.parentfield);
+								if (me.credit_account) {
+									me.credit_account(indent_item, indent_item.doctype, indent_item.name);
 								}
 
 							}
@@ -342,13 +335,22 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 	},
 
 	fetch_balance:function (doc, cdt, cdn) {
+
+        if (doc.doctype != "Indent") {
+	        return;
+	    }
+
 		var indent_item = frappe.get_doc(cdt, cdn);
-		if (doc.plant.toLowerCase().indexOf("hpcl") > -1 && indent_item.customer != '') {
+		if (
+            (doc.plant.toLowerCase().indexOf("hpcl") > -1 || doc.plant.toLowerCase().indexOf("iocl") > -1)
+            && indent_item.customer != ''
+        ) {
 			frappe.call({
 				method:"flows.flows.doctype.indent.indent.fetch_account_balance_with_omc",
 				args:{
 					plant:doc.plant,
-					customer:indent_item.customer
+					customer:indent_item.customer,
+					credit_account: indent_item.credit_account
 				},
 				callback:function (r) {
 					console.log(r.message);
@@ -360,6 +362,40 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 			});
 		}
 
+	},
+
+    credit_account: function (doc, cdt, cdn) {
+		this.fetch_balance(doc, cdt, cdn);
+		this.get_account_info(doc, cdt, cdn);
+	},
+
+	get_account_info: function (doc, cdt, cdn) {
+
+        if (doc.doctype != "Indent") {
+	        var doc = frappe.get_doc("Indent", doc.parent);
+	    }
+
+        var indent_item = frappe.get_doc(cdt, cdn);
+
+	    frappe.call({
+            method:"flows.flows.pricing_controller.get_account_info",
+            args:{
+                customer:indent_item.customer,
+                credit_account: indent_item.credit_account,
+                plant:doc.plant,
+                date:doc.posting_date,
+            },
+            callback:function (r) {
+                console.log(r.message);
+                if (!r.exc) {
+                    indent_item.payment_type = r.message.payment_type;
+                    refresh_field("payment_type", indent_item.name, indent_item.parentfield);
+                    if (me.payment_type) {
+                        me.payment_type(indent_item, indent_item.doctype, indent_item.name);
+                    }
+                }
+            }
+        });
 	},
 
 	setup_balance_formatter: function() {

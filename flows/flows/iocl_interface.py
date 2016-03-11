@@ -14,6 +14,10 @@ class IOCLPortal(object):
 	def parse_date(cls, date):
 		return '-'.join(reversed(date.split('.')))
 
+	@classmethod
+	def parse_amount(cls, amt):
+		return float(amt.replace(',', '').strip())
+
 	def __init__(self, user, passwd, debug=False):
 		self.user = user
 		self.passwd = passwd
@@ -66,7 +70,6 @@ class IOCLPortal(object):
 		def get_date(date):
 			return IOCLPortal.parse_date(date)
 
-
 		if form_date and date_diff(today(), get_date(form_date)) not in (0, 1):
 			raise Exception('Can only fetch data from yesterday and today')
 
@@ -97,7 +100,7 @@ class IOCLPortal(object):
 
 		total_debit = total_credit = 0
 		for row in data_map:
-			amt = float(row['Bill Amt'].replace(',', '').strip())
+			amt = IOCLPortal.parse_amount(row['Bill Amt'])
 			if row['Db/Cr'] == 'D':
 				total_debit += amt
 			else:
@@ -110,18 +113,41 @@ class IOCLPortal(object):
 		'total_debit': total_debit
 		}
 
-	def get_current_balance_as_on_date(self, mode='raw'):
-		return self.transactions_since_yesterday(mode='dict')['current_balance']
+	def get_current_balance_as_on_date(self, cca='Total'):
+		session = self.get_session()
+		content = session.post('http://webapp.indianoil.co.in/ioconline/iocExcust_bal_process.jsp').text
 
+		soup = BeautifulSoup(content, 'lxml')
 
-def get_iocl_user_pass():
-	return [
-		{
-		"customer": "Mosaic",
-		"id": "605251",
-		"pass": "605251"
+		valid_rows = [x for x in soup.findAll('table')[3].findAll('table')[0].findAll('tr') if x.text.strip() != '']
+
+		rows = []
+		for row in valid_rows:
+			data = [x.text.strip() for x in row.findAll('td')]
+			rows.append(data)
+
+		header = rows[0]
+		data = rows[1:-1]
+		closing = rows[-1]
+
+		rs = {
+			'balance': 0,
+			'cca': {},
+			'closing': 0
 		}
-	]
+		for data_row in data:
+			cca_dict = {k: v for k, v in zip(header, data_row)}
+			cca_dict['Balance'] = IOCLPortal.parse_amount(cca_dict['Balance'])
+			rs['cca'][cca_dict['CCA']] = cca_dict
+
+		rs['closing'] = IOCLPortal.parse_amount(closing[4])
+
+		if cca == 'Total':
+			rs['balance'] = rs['closing']
+		else:
+			rs['balance'] = rs['cca'][cca]['Balance']
+
+		return rs
 
 
 class IOCLAdapter(HTTPAdapter):

@@ -138,11 +138,8 @@
 						</td>
                         {% if doc.naming_series != 'HPC' %}
                             <td>
-                                {% if indent_item.payment_type == 'Indirect' %}
-                                    PAYER
-                                {% else %}
-                                    BAL SAP
-                                {% endif %}
+	                            {{ indent_item.customer | get_account_code(doc.plant, indent_item.credit_account, doc.posting_date) }}
+
                             </td>
                         {% endif %}
 						<td>

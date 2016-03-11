@@ -7,7 +7,7 @@ import frappe.defaults
 
 from erpnext.accounts.party import get_party_account
 from flows.flows import payer
-
+from frappe.exceptions import DoesNotExistError
 
 def execute():
 	default_company = 'Arun Logistics'
@@ -19,7 +19,6 @@ def execute():
 		'with_effect_from': '2015-04-01',
 		'sales_invoice_company': default_company,
 		'incentive_on_investment': 0,
-		'default_credit_account': 'Payer Code',
 	}
 
 	for customer in frappe.db.sql("""select * from `tabCustomer`""", as_dict=True):
@@ -40,21 +39,40 @@ def execute():
 				'customer_code': customer.iocl_sap_code,
 				'omc': 'IOCL',
 				'sales_invoice_account': default_debit_account,
-				'indent_invoice_company': 'Iocl' if isDirect else default_company,
-				'indent_invoice_account': 'Sales - ioc' if isDirect
-				else get_party_account(default_company, customer.name, "Customer"),
+
+				'default_credit_account': 'Customer Code' if isDirect else 'Payer Code',
 				'credit_accounts': [
 					{
-						'company': company,
 						'type': 'Customer Code' if isDirect else 'Payer Code',
-						'account': payer.get_payer_account(company, 'IOCL una', customer.name, payment_mode)
+						'credit_account_company': company,
+						'credit_account': payer.get_payer_account(company, 'IOCL una', customer.name, payment_mode),
+						'debit_account_company': 'Iocl' if isDirect else default_company,
+						'debit_account': 'Sales - ioc' if isDirect
+						else get_party_account(default_company, customer.name, "Customer"),
+						'payment_type': payment_mode
 					}
-				]
+				],
+				'ba': 'Mosaic Enterprises Ltd.',
+				'docstatus': 1
 				})
 
 				print (iocl_omc_reg)
 
 				frappe.get_doc(iocl_omc_reg).save()
+
+				if isDirect:
+					try:
+						acc = frappe.get_doc("Account", iocl_omc_reg['credit_accounts'][0]['credit_account'])
+						acc.integration_type = 'IOCL Integration'
+						acc.username = customer.iocl_sap_code
+						acc.save()
+					except DoesNotExistError:
+						exceptions.append("IOCL Account does not exist for customer: {}, {}".format(
+								customer.name, customer.iocl_sap_code
+						))
+					except AttributeError:
+						print(iocl_omc_reg)
+						raise
 			except Exception as e:
 				if 'Customer plant variable' in e.message:
 					exceptions.append(e.message)
@@ -73,19 +91,44 @@ def execute():
 				'customer_code': customer.hpcl_erp_number,
 				'omc': 'HPCL',
 				'sales_invoice_account': default_debit_account,
-				'indent_invoice_company': 'Hpcl' if isDirect else default_company,
-				'indent_invoice_account': 'Sales - hpc' if isDirect
-				else get_party_account(default_company, customer.name, "Customer"),
+
+				'default_credit_account': 'Customer Code',
 				'credit_accounts': [
 					{
-						'company': company,
 						'type': 'Customer Code',
-						'account': payer.get_payer_account(company, 'HPCL B', customer.name, 'Direct' if isDirect else 'Indirect')
+						'credit_account_company': company,
+						'credit_account': payer.get_payer_account(company, 'HPCL B', customer.name, 'Direct' if isDirect else 'Indirect'),
+						'debit_account_company': 'Hpcl' if isDirect else default_company,
+						'debit_account': 'Sales - hpc' if isDirect
+						else get_party_account(default_company, customer.name, "Customer"),
+						'payment_type': payment_mode
 					}
-				]
+				],
+				'ba': 'Alpine Energy',
+				'docstatus': 1
 				})
 
 				frappe.get_doc(hpcl_omc_reg).save()
+
+				try:
+					acc = frappe.get_doc("Account", hpcl_omc_reg['credit_accounts'][0]['credit_account'])
+					acc.integration_type = 'HPCL Integration'
+					acc.username = customer.hpcl_erp_number
+					acc.password = customer.hpcl_payer_password.strip() if customer.hpcl_payer_password else ''
+					acc.save()
+				except DoesNotExistError:
+					exceptions.append("HPCL Account does not exist for customer: {}, {}, {}".format(
+							customer.name, customer.hpcl_erp_number, customer.hpcl_payer_password
+					))
+					frappe.db.sql(
+						"""
+						update `tabCustomer` set customer_details = "{}" where name = "{}"
+						""".format('HPCL Password: {}'.format(customer.hpcl_payer_password), customer.name)
+					)
+				except AttributeError:
+					print(hpcl_omc_reg)
+					raise
+
 			except Exception as e:
 				if 'Customer plant variable' in e.message:
 					exceptions.append(e.message)
@@ -105,27 +148,44 @@ def execute():
 				'customer_code': customer.bpcl_sap_code,
 				'omc': 'BPCL',
 				'sales_invoice_account': default_debit_account,
-				'indent_invoice_company': 'Bpcl' if isDirect else default_company,
-				'indent_invoice_account': 'Sales - bpc' if isDirect
-				else get_party_account(default_company, customer.name, "Customer"),
+				'default_credit_account': 'Customer Code' if isDirect else 'Payer Code',
 				'credit_accounts': [
 					{
-						'company': company,
 						'type': 'Customer Code' if isDirect else 'Payer Code',
-						'account': payer.get_payer_account(company, 'BPCL Loni', customer.name, payment_mode)
+						'credit_account_company': company,
+						'credit_account': payer.get_payer_account(company, 'BPCL Loni', customer.name, payment_mode),
+						'debit_account_company': 'Bpcl' if isDirect else default_company,
+						'debit_account': 'Sales - bpc' if isDirect
+						else get_party_account(default_company, customer.name, "Customer"),
+						'payment_type': payment_mode
 					}
-				]
+				],
+				'ba': 'Ludhiana Enterprises Ltd.',
+				'docstatus': 1
 				})
 
 				frappe.get_doc(bpcl_omc_reg).save()
+
+				if isDirect:
+					try:
+						acc = frappe.get_doc("Account", bpcl_omc_reg['credit_accounts'][0]['credit_account'])
+						acc.username = customer.bpcl_sap_code
+						acc.save()
+					except DoesNotExistError:
+						exceptions.append("BPCL Account does not exist for customer: {}, {}".format(
+								customer.name, customer.bpcl_sap_code
+						))
+					except AttributeError:
+						print(bpcl_omc_reg)
+						raise
 			except Exception as e:
 				if 'Customer plant variable' in e.message:
 					exceptions.append(e.message)
 				else:
 					raise
 
-
-	print exceptions
+	import json
+	print json.dumps(exceptions)
 
 
 def get_payment_mode(customer, omc):

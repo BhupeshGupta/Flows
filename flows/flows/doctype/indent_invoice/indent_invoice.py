@@ -17,9 +17,8 @@ from erpnext.stock.stock_ledger import make_sl_entries
 from frappe.utils import today
 from frappe.utils import cint, now
 from frappe.utils import get_first_day
-from flows.flows import payer
 from flows.flows.doctype.indent.indent import validate_bill_to_ship_to
-from flows.flows.pricing_controller import compute_base_rate_for_a_customer
+from flows.flows.pricing_controller import compute_base_rate_for_a_customer, get_customer_payment_info
 from frappe.utils.formatters import format_value
 import collections
 
@@ -136,6 +135,15 @@ class IndentInvoice(StockController):
 		self.set_missing_values()
 		self.validate_branch_out_for_special_cases()
 
+
+		if not self.credit_account:
+			self.credit_account = frappe.db.get_value("Indent Item", self.indent_item, "credit_account")
+
+		if not self.service_tax_liability:
+			self.service_tax_liability = frappe.db.get_value("Customer", self.customer, "service_tax_liability")
+
+
+
 		if self.docstatus == 0:
 			if self.amended_from != "":
 				self.update_data_bank({
@@ -172,15 +180,9 @@ class IndentInvoice(StockController):
 			self.supplier = indent.plant
 			self.company = indent.company
 
-			cpv = frappe.db.sql("""
-				SELECT name
-				FROM `tabCustomer Plant Variables`
-				WHERE plant="{plant}" AND with_effect_from <= DATE("{posting_date}") AND customer="{customer}"
-				AND docstatus != 2 ORDER BY with_effect_from DESC LIMIT 1;
-				""".format(plant=self.supplier, posting_date=self.transaction_date, customer=self.customer))
-			if not cpv:
-				frappe.throw("Customer Plant Variables Not Found!")
-			self.customer_plant_variables = cpv[0][0]
+			payment_info = get_customer_payment_info(self.customer, self.supplier, self.transaction_date)
+			self.customer_plant_variables = payment_info['cpv']
+			self.omc_customer_registration = payment_info['registration']
 
 			if not self.sales_tax:
 				self.sales_tax = indent_item.sales_tax
@@ -383,102 +385,51 @@ class IndentInvoice(StockController):
 		if break_out:
 			return
 
-		customer_obj = frappe.get_doc("Customer", self.customer)
-		# customer_obj.payment_company
-		payment_company_type = 'BA' if 'aggarwal' in self.supplier.lower() else 'Logistics Partner'
+		if not self.actual_amount:
+			return
 
-		logistics_partner_account = flow_utils.get_supplier_account(self.company, self.logistics_partner)
+		registration = frappe.get_doc("OMC Customer Registration", self.omc_customer_registration)
+		material_account = frappe.db.get_value("OMC Customer Registration Credit Account", {
+			'parent': registration.name,
+			'type': self.credit_account
+		}, '*', as_dict=True)
 
-		logistics_company_object = frappe.get_doc("Company", self.logistics_partner)
-		if logistics_company_object:
-			customer_account = get_party_account(self.logistics_partner, self.customer, "Customer")
-			ba_account = get_party_account(self.logistics_partner, self.company, "Customer")
+		gl_entries.append(
+			self.get_gl_dict({
+			"account": material_account.credit_account,
+			"company": material_account.credit_account_company,
+			"credit": self.actual_amount,
+			"remarks": "Against Invoice Id {}".format(self.invoice_number),
+			})
+		)
 
-		if self.actual_amount:
+		gl_entries.append(
+			self.get_gl_dict({
+			"account": material_account.debit_account,
+			"company": material_account.debit_account_company,
+			"debit": self.actual_amount,
+			"remarks": "Against Invoice Id {}".format(self.invoice_number),
+			})
+		)
 
-			company = self.company
-			if self.payment_type == "Direct" and (
-						'ioc' in self.supplier.lower() or
-						'bpc' in self.supplier.lower() or
-					'hpc' in self.supplier.lower()
-			):
-				company = self.supplier.split(' ')[0].title()
-
-			# BA paid on behalf of Customer, but asks logistics partner to collect amount from customer
-			# and pay him the same
-
-			if self.payment_type == "Indirect":
-				gl_entry_1_debit_cost_center = ''
-				gl_entry_1_debit_ac = get_party_account(company, self.customer, "Customer") \
-					if payment_company_type == 'BA' else logistics_partner_account
-				gl_entry_1_credit_ac = payer.get_payer_account(company, self.supplier, self.customer,
-															   self.payment_type)
-			else:
-				# Invert entry to match our side of books
-				s_comp = frappe.db.get_value(
-					"Company", company,
-					["default_income_account", "cost_center"],
-					as_dict=True
-				)
-				gl_entry_1_debit_ac = s_comp.default_income_account
-				gl_entry_1_debit_cost_center = s_comp.cost_center
-				gl_entry_1_credit_ac = payer.get_payer_account(company, self.supplier, self.customer,
-															   self.payment_type)
-
-			gl_entry_2_enabled = payment_company_type != 'BA' and self.payment_type == "Indirect"
-			gl_entry_2_debit_ac = customer_account
-			gl_entry_2_credit_ac = ba_account
-
+		if material_account.debit_account_company != material_account.credit_account_company:
 			gl_entries.append(
 				self.get_gl_dict({
-				"account": gl_entry_1_debit_ac,
-				"cost_center": gl_entry_1_debit_cost_center,
-				"against": gl_entry_1_credit_ac,
-				"debit": self.actual_amount,
-				"remarks": "Against Invoice Id {}".format(self.invoice_number),
-				"against_voucher": self.name,
-				"against_voucher_type": self.doctype,
-				"company": company
-				})
-			)
-
-			gl_entries.append(
-				self.get_gl_dict({
-				"account": gl_entry_1_credit_ac,
-				"against": gl_entry_1_debit_ac,
+				"account": self._get_account_(material_account.debit_account_company, material_account.credit_account_company),
+				"company": material_account.debit_account_company,
 				"credit": self.actual_amount,
 				"remarks": "Against Invoice Id {}".format(self.invoice_number),
-				"against_voucher": self.name,
-				"against_voucher_type": self.doctype,
-				"company": company
 				})
 			)
 
-			if logistics_company_object and gl_entry_2_enabled:
-				# Entry in logistics partner account to get money form customer
-				gl_entries.append(
-					self.get_gl_dict({
-					"account": gl_entry_2_debit_ac,
-					"against": gl_entry_2_credit_ac,
-					"debit": self.actual_amount,
-					"remarks": "Against Invoice no. {}".format(self.invoice_number),
-					"against_voucher": self.name,
-					"against_voucher_type": self.doctype,
-					"company": self.logistics_partner
-					})
-				)
-
-				gl_entries.append(
-					self.get_gl_dict({
-					"account": gl_entry_2_credit_ac,
-					"against": gl_entry_2_debit_ac,
-					"credit": self.actual_amount,
-					"remarks": "Against Invoice no. {}".format(self.invoice_number),
-					"against_voucher": self.name,
-					"against_voucher_type": self.doctype,
-					"company": self.logistics_partner
-					})
-				)
+			gl_entries.append(
+				self.get_gl_dict({
+				"account": self._get_account_(material_account.credit_account_company, material_account.debit_account_company),
+				"company": material_account.credit_account_company,
+				"debit": self.actual_amount,
+				"remarks": "Against Invoice Id {}".format(self.invoice_number),
+				})
+			)
 
 	def get_gl_dict(self, args):
 		"""this method populates the common properties of a gl entry record"""
@@ -640,6 +591,8 @@ class IndentInvoice(StockController):
 		'customer': customer_object,
 		'total_payable_amount': payable_amount,
 		'indent_invoice': self,
+		'commercial_invoice': commercial_invoice,
+		'doc': frappe._dict(self.as_dict()),
 		'crn_raised': True if credit_note else False,
 		'credit_note': credit_note,
 		}
@@ -649,67 +602,28 @@ class IndentInvoice(StockController):
 		return render_template(terms_template, context) + '\n' + (
 		self.transport_vars.terms if self.transport_vars.terms else '')
 
-	def raise_credit_note(self, from_company, amount, indent_invoice_settings):
-		credit_note_doc = {
-		"docstatus": 0,
-		"doctype": "Journal Voucher",
-		"naming_series": "SCRN-",
-		"voucher_type": "Credit Note",
-		"is_opening": "No",
-		"write_off_based_on": "Accounts Receivable",
-		"company": from_company,
-		"posting_date": self.transaction_date,
-		"entries": [
-			{
-			"docstatus": 0,
-			"doctype": "Journal Voucher Detail",
-			"is_advance": "No",
-			"idx": 1,
-			"account": get_party_account(from_company, self.customer, "Customer"),
-			"credit": amount
-			},
-			{
-			"docstatus": 0,
-			"doctype": "Journal Voucher Detail",
-			"is_advance": "No",
-			"idx": 2,
-			"account": indent_invoice_settings.credit_note_write_off_account,
-			"cost_center": indent_invoice_settings.credit_note_write_off_cost_center,
-			"debit": amount,
-			"user_remark": "Credit Note Against Bill No: {bill_no} Dt: {invoice_date}".format(
-				bill_no=self.invoice_number, invoice_date=self.transaction_date, item=self.item, qty=self.qty,
-				amt=self.actual_amount
-			),
-			"letter_head": "Arun Logistics"
-			}
-		],
-		}
+	def raise_consignment_note(
+		self, qty_in_kg, transportation_rate_per_kg,
+		indent_invoice_settings, discount_per_kg=0
+	):
 
-		data_bank = self.get_data_bank()
-		if 'credit_note' in data_bank:
-			credit_note_doc["amended_from"] = data_bank.credit_note
+		registration = frappe.get_doc("OMC Customer Registration", self.omc_customer_registration)
 
-		credit_note = frappe.get_doc(credit_note_doc)
-		credit_note.save()
-		return credit_note
-
-	def raise_consignment_note(self, qty_in_kg, transportation_rate_per_kg, indent_invoice_settings,
-							   discount_per_kg=0):
+		sales_invoice_conf = get_sales_invoice_config(registration.sales_invoice_company, self.fiscal_year)
 
 		customer_object = frappe.get_doc("Customer", self.customer)
 
 		description = ''
 
 		if discount_per_kg > 0:
-			description += "Rate: {} - {} (Paid By Consignor) per KG\n".format(transportation_rate_per_kg,
-																			   discount_per_kg)
+			description += "Rate: {} - {} (Paid By Consignor) per KG\n".\
+				format(transportation_rate_per_kg, discount_per_kg)
 
 		d_m = collections.OrderedDict()
 		d_m['Dt.'] = format_value(self.transaction_date, {"fieldtype": "Date"})
 		d_m['Bill No.'] = self.invoice_number
 		d_m['Amt.'] = '<strong>\u20b9{}</strong>'.format(format_value(self.actual_amount, {"fieldtype": "Currency"}))
 		d_m['Qty in KG'] = '<strong>{} x {}: <em>{}</em></strong>'.format(self.item, self.qty, qty_in_kg)
-		# d_m[''] = '<strong></strong>'.format(qty_in_kg)
 
 		description += """({})""".format(', '.join(['{}: {}'.format(k, v) for k, v in d_m.items()]))
 
@@ -730,22 +644,22 @@ class IndentInvoice(StockController):
 			"stock_uom": "Kg",
 			"doctype": "Sales Invoice Item",
 			"idx": 1,
-			"income_account": "Service - AL",
-			"cost_center": "Main - AL",
+			"income_account": sales_invoice_conf.credit_account,
+			"cost_center": sales_invoice_conf.cost_center,
 			"parenttype": "Sales Invoice",
 			"parentfield": "entries",
 			}
 		],
-		"against_income_account": "Service - AL",
+		"against_income_account": sales_invoice_conf.credit_account,
 		"select_print_heading": "Transportation Invoice / Consignment Note",
-		"company": "Arun Logistics",
-		"letter_head": "Arun Logistics",
+		"company": registration.sales_invoice_company,
+		"letter_head": registration.sales_invoice_company,
 		"is_opening": "No",
-		"naming_series": "SCN-",
+		"naming_series": sales_invoice_conf.naming_series,
 		"price_list_currency": "INR",
 		"currency": "INR",
 		"plc_conversion_rate": 1,
-		"tc_name": "Consignment Note",
+		"tc_name": sales_invoice_conf.tc_name,
 		"consignor": self.supplier,
 		"territory": customer_object.territory if customer_object.territory else
 		indent_invoice_settings.default_territory,
@@ -764,7 +678,7 @@ class IndentInvoice(StockController):
 
 		consignment_note_json_doc[
 			"tax_paid_by_supplier"
-		] = 1 if customer_object.service_tax_liability == "Transporter" else 0
+		] = 1 if self.service_tax_liability == "Transporter" else 0
 
 		data_bank = self.get_data_bank()
 		if 'transportation_invoice' in data_bank:
@@ -799,39 +713,17 @@ class IndentInvoice(StockController):
 
 		return qty_in_kg, per_kg_rate_in_invoice
 
-
-	#
-	# def transport_bill_variables_old_method(self, indent_invoice_settings):
-	#
-	# qty_in_kg, per_kg_rate_in_invoice = self.get_invoice_rate()
-	#
-	#
-	# 	landed_rate, transportation_rate = get_landed_rate_for_customer(self.customer, self.transaction_date)
-	#
-	# 	discount = 0
-	#
-	# 	# Customers purchase - landed rate
-	# 	rate_diff = per_kg_rate_in_invoice + transportation_rate - landed_rate
-	# 	rate_diff = round(rate_diff, 2)
-	#
-	# 	if rate_diff < float(indent_invoice_settings.min_rate_diff_for_discount):
-	# 		rate_diff = 0
-	#
-	# 	# Discount & Credit Note
-	# 	# Credit Note Only
-	# 	algo = frappe.db.get_value("Customer", self.customer, "rate_match_algorithm")
-	# 	algo = algo if algo else 'Discount & Credit Note'
-	#
-	# 	if rate_diff < 0:
-	# 		# Bump up transportation Rate
-	# 		transportation_rate += (-1 * rate_diff)
-	# 	elif rate_diff > 0 and algo == 'Discount & Credit Note':
-	# 		discount = transportation_rate if rate_diff >= transportation_rate else rate_diff
-	# 		rate_diff -= discount
-	#
-	# 	return transportation_rate, discount, rate_diff
-	#
-
+	def _get_account_(self, company, account):
+		"""
+		Hack to get account, will be refactored when erp will get ability.
+		:param company:
+		:param account:
+		:return:
+		"""
+		acc = get_party_account(company, account, "Supplier")
+		if not acc:
+			acc = get_party_account(company, account, "Customer")
+		return acc
 
 def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
 	indent_items_sql = """
@@ -878,3 +770,18 @@ def get_landed_rate_for_customer(customer, date):
 	if rs:
 		return rs[0]
 	frappe.throw('Landed Rate Not Found For Customer {} for date {}'.format(customer, date))
+
+
+def get_sales_invoice_config(company, fiscal_year):
+	config_map = [
+		frappe._dict({
+			'company': 'Arun Logistics', 'fiscal_year': '2015-16', 'naming_series': 'SCN-',
+			'credit_account': 'Service - AL', "cost_center": "Main - AL", "tc_name": "Consignment Note"
+		})
+	]
+
+	for conf in config_map:
+		if conf['company'] == company and conf['fiscal_year'] == fiscal_year:
+			return conf
+
+	return None

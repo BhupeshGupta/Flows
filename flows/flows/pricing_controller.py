@@ -16,10 +16,10 @@ def get_landed_rate(customer, posting_date, item):
 	landed_rate_per_kg = rs[0][0] if rs and len(rs) > 0 else 0
 
 	rs = frappe.db.sql("""
-    SELECT conversion_factor
-    FROM `tabItem Conversion`
-    WHERE item="{item}";
-    """.format(item=item))
+	SELECT conversion_factor
+	FROM `tabItem Conversion`
+	WHERE item="{item}";
+	""".format(item=item))
 
 	conversion_factor = rs[0][0] if rs and len(rs) > 0 else 0
 
@@ -141,24 +141,79 @@ def get_customer_payment_info(customer, plant, posting_date):
 	'posting_date': posting_date,
 	}
 
+	registration = frappe.db.sql("""
+	select name, default_credit_account, docstatus
+	from `tabOMC Customer Registration`
+	where customer= "{customer}"
+	and omc= "{omc}"
+	and docstatus != 2
+	and with_effect_from <= DATE("{posting_date}")
+	ORDER BY with_effect_from DESC LIMIT 1;
+	""".format(omc=plant.split(' ')[0].capitalize(), **context), as_dict=True)[0]
+
+	if registration.docstatus != 1:
+		frappe.throw("Customer `{}` registration is not approved."
+					 "Please get it approved from competent authority"
+					 .format(customer))
+
+	possible_account_types = [x[0] for x in frappe.db.sql("""
+	select DISTINCT type from `tabOMC Customer Registration Credit Account`
+	where parent="{}"
+	""".format(registration.name))]
+
 	discount_transportation_query = """
-    SELECT sales_tax, cenvat, payment_mode
-    FROM `tabCustomer Plant Variables`
-    WHERE plant="{plant}" AND with_effect_from <= DATE("{posting_date}") AND customer="{customer}"
+	SELECT name, sales_tax
+	FROM `tabCustomer Plant Variables`
+	WHERE plant="{plant}"
+	AND with_effect_from <= DATE("{posting_date}")
+	AND customer="{customer}"
 	AND docstatus != 2
-    ORDER BY with_effect_from DESC LIMIT 1;
-    """.format(**context)
+	ORDER BY with_effect_from DESC LIMIT 1;
+	""".format(**context)
 
-	rs = frappe.db.sql(discount_transportation_query)
-	if len(rs) > 0:
-		sales_tax, cenvat, payment_mode = rs[0]
+	cpv = frappe.db.sql(discount_transportation_query, as_dict=True)
 
-		return {
-		"sales_tax": sales_tax,
-		"cenvat": cenvat,
-		"payment_mode": payment_mode
-		}
+	if not cpv:
+		frappe.throw(
+		"""Customer Plant Master Not Found For Customer {}, Plant {} and Date {}.
+		Please enter details in customer plant master and reload this customer in indent before proceeding
+		further""".format(customer, plant, posting_date))
+	cpv = cpv[0]
 
-	frappe.throw("""Customer Plant Master Not Found For Customer {}, Plant {} and Date {}.
-	Please enter details in customer plant master and reload this customer in indent before proceeding
-	further""".format(customer, plant, posting_date))
+
+	return {
+	"sales_tax": cpv.sales_tax,
+	"credit_account": registration.default_credit_account,
+	"possible_credit_accounts": possible_account_types,
+	"registration": registration.name,
+	"cpv": cpv.name
+	}
+
+
+@frappe.whitelist()
+def get_account_info(customer, credit_account, plant, date):
+	rs = frappe.db.sql("""
+	select ca.*
+	from `tabOMC Customer Registration` reg left join `tabOMC Customer Registration Credit Account` ca
+	on reg.name = ca.parent
+	where reg.customer= "{customer}"
+	and reg.omc = "{omc}"
+	AND reg.with_effect_from <= DATE("{posting_date}")
+	and reg.docstatus = 1
+	and ca.type = "{credit_account}"
+	ORDER BY reg.with_effect_from DESC LIMIT 1;
+	"""
+	.format(
+		customer=customer,
+		omc=plant.split(' ')[0].capitalize(),
+		posting_date=date,
+		credit_account=credit_account
+	), as_dict=True)
+
+	if not rs:
+		frappe.throw("No account configured for customer `{}` account type `{}`".
+					 format(customer, credit_account))
+
+	rs = rs[0]
+
+	return rs

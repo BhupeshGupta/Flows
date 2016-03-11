@@ -9,8 +9,10 @@ import frappe.defaults
 from flows import utils as flow_utils
 from frappe.utils import comma_and
 from erpnext.accounts import utils as account_utils
-from frappe.utils import today, now, add_days
+from frappe.utils import today, now, add_days, get_first_day, get_last_day
 from flows.flows.hpcl_interface import HPCLCustomerPortal
+from flows.flows.iocl_interface import IOCLPortal
+from flows.flows.controller.utils import get_portal_user_password
 
 
 class Indent(Document):
@@ -23,6 +25,9 @@ class Indent(Document):
 		self.load_gatepasses()
 
 	def validate(self):
+		self.validate_registration_and_customer_plant_variables()
+		self.validate_cross_sale_limit()
+
 		# If document is new or vehicle is changed in this document
 		if (self.get("__islocal") or not self.get("name")) or \
 			self.vehicle != frappe.db.get_value("Indent", self.name, 'vehicle'):
@@ -35,6 +40,7 @@ class Indent(Document):
 			if not indent_item.ship_to:
 				indent_item.ship_to = indent_item.customer
 			validate_c_form(indent_item.customer, self.plant, self.posting_date)
+
 
 	def on_submit(self):
 		self.process_material_according_to_indent()
@@ -229,6 +235,109 @@ class Indent(Document):
 		self.get("__onload").gp_list = frappe.get_all("Gatepass",
 													  fields="*", filters={'indent': self.name, 'docstatus': 1})
 
+	def validate_cross_sale_limit(self):
+		indent_amount = {}
+		errors = []
+
+		for indent_item in self.indent:
+			if indent_item.cross_sold:
+				indent_amount.setdefault(indent_item.customer, 0)
+				indent_amount[indent_item.customer] += indent_item.amount
+
+		month_end = get_last_day(self.posting_date)
+		month_start = get_first_day(self.posting_date)
+
+		for customer in indent_amount:
+			invoice_sum_value = frappe.db.sql("""
+			select ifnull(sum(actual_amount), 0)
+			from `tabIndent Invoice`
+			where customer = "{customer}"
+			and docstatus != 2
+			and cross_sold = 1
+			and transaction_date between "{month_start}" and "{month_end}"
+			""".format(customer=customer, month_end=month_end, month_start=month_start))[0][0]
+
+			indent_sum = frappe.db.sql("""
+			select ifnull(sum(itm.amount), 0)
+			from `tabIndent Item` itm left join `tabIndent` ind
+			on itm.parent = ind.name
+			where itm.name not in (
+				select indent_item
+				from `tabIndent Invoice`
+				where docstatus != 2
+			) and itm.docstatus != 2
+			and itm.customer = "{customer}"
+			and itm.cross_sold = 1
+			and ind.posting_date  between "{month_start}" and "{month_end}"
+			""".format(customer=customer, month_end=month_end, month_start=month_start))[0][0]
+
+			limit = frappe.db.get_value("Customer", {'name': customer}, 'cross_sale_limit')
+			limit = limit if limit else 0
+
+			available_limit = limit - invoice_sum_value - indent_sum
+
+			diff = abs(round(available_limit - indent_amount.get(customer, 0), 2))
+
+			if diff > 0:
+				errors.append(
+					"Cross sold limit exceeded for customer `{}` by {}. Get it increased or place indent for other customer"
+						.format(customer, diff)
+				)
+
+		if errors:
+			errors.insert(0, 'Did not save')
+			frappe.throw('\n'.join(errors))
+
+	def validate_registration_and_customer_plant_variables(self):
+		errors = []
+
+		all_customer_set = set([i.customer for i in self.indent])
+		customer_list = ', '.join(['"{}"'.format(i.customer) for i in self.indent])
+		omc = self.plant.split(" ")[0].lower()
+
+		valid_omc_reg = frappe.db.sql("""
+		select customer, docstatus from `tabOMC Customer Registration`
+		where customer in ({})
+		and docstatus != 2
+		and omc = "{}"
+		""".format(customer_list, omc), as_dict=True)
+
+		approved_omc_customer = set([x.customer for x in valid_omc_reg if x.docstatus == 1])
+		draft_omc_customer = set([x.customer for x in valid_omc_reg if x.docstatus == 0])
+
+		non_existing_regs = all_customer_set - approved_omc_customer - draft_omc_customer
+		non_approved_regs = draft_omc_customer
+
+		for x in non_existing_regs:
+			errors.append("Customer Registration Missing. {}".format(x))
+
+		for x in non_approved_regs:
+			errors.append("Customer Registration Approval Pending. {}".format(x))
+
+
+		valid_cpv_set = set(
+			[
+				x[0] for x in frappe.db.sql(
+				"""
+				select customer
+				from `tabCustomer Plant Variables`
+				where docstatus != 2
+				and plant = "{}"
+				and customer in ({})
+				""".format(self.plant, customer_list))
+			]
+		)
+
+		invalid_cpv = all_customer_set - valid_cpv_set
+
+		for x in invalid_cpv:
+			errors.append("Customer Plant Variables not drafted/submitted. {}".format(x))
+
+		if errors:
+			errors.insert(0, 'Did not save')
+			frappe.throw('\n'.join(errors))
+
+
 
 @frappe.whitelist()
 def make_gatepass(source_name, target_doc=None):
@@ -350,7 +459,6 @@ def validate_bill_to_ship_to(bill_to, ship_to, date):
 
 
 def validate_c_form(customer, plant, billing_date):
-	from frappe.utils import add_days
 
 	def get_lease_date(plant):
 		if 'iocl' in plant.lower():
@@ -379,7 +487,7 @@ def validate_c_form(customer, plant, billing_date):
 
 		stop_date = add_days(c_form.end_date, days)
 
-		if billing_date >= stop_date:
+		if billing_date > stop_date:
 			frappe.throw(
 				"""
 				Refused to save indent. \nCustomer {customer}'s c form is pending supply wont be released by {plant}!\n
@@ -387,7 +495,15 @@ def validate_c_form(customer, plant, billing_date):
 					customer=customer, plant=plant
 				)
 			)
-		elif billing_date >= warn_date:
+		elif billing_date == stop_date:
+			frappe.throw(
+				"""
+				Last day for lifting supply. Ensure that load get through.
+				Customer {customer}'s c form is pending supply wont be released by {plant} a day after!""".format(
+					customer=customer, plant=plant
+				)
+			)
+		elif billing_date > warn_date:
 			frappe.msgprint(
 				"""Customer {customer}'s c form is pending and its supply will be blocked by {plant} in less that 15
 				days!""".format(
@@ -397,8 +513,16 @@ def validate_c_form(customer, plant, billing_date):
 
 
 @frappe.whitelist()
-def fetch_account_balance_with_omc(plant, customer):
+def fetch_account_balance_with_omc(plant, customer, credit_account):
 	if 'hpcl' in plant.lower():
-		erpcode = frappe.db.sql('SELECT hpcl_erp_number FROM `tabCustomer` WHERE name = "{}"'.format(customer))
-		return {'status': 'OK', 'balance': HPCLCustomerPortal(erpcode[0], '').get_current_balance_as_on_date()}
+		user, passed = get_portal_user_password(customer, 'HPCL', credit_account)
+		return {'status': 'OK', 'balance': HPCLCustomerPortal(user, '').get_current_balance_as_on_date()}
+	elif 'iocl' in plant.lower():
+		user, passwd = get_portal_user_password(customer, 'IOCL', credit_account)
+		if not (passwd and passwd.strip() != ""):
+			frappe.throw("Can not query balance for customer {}. Password not found!".format(customer))
+		portal = IOCLPortal(user, passwd)
+		portal.login()
+		return {'status': 'OK', 'balance': portal.get_current_balance_as_on_date('C002')['balance']}
+
 	return {'status': 'Not Implemented', 'balance': 0}

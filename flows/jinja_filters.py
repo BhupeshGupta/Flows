@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 import frappe
 from frappe.utils import cint
-
+from flows.controller.utils import get_portal_user_password
 
 def indent_refill_qty(indent_items):
 	sum = 0
@@ -122,8 +122,12 @@ def get_cenvat_status(customer_name, date, plant):
 
 def get_address_display(address_of, address_type):
 	from erpnext.utilities.doctype.address.address import get_address_display as gda
-
 	return gda("{}-{}".format(address_of.strip(), address_type))
+
+
+def get_address_display_name(address):
+	from erpnext.utilities.doctype.address.address import get_address_display as gda
+	return gda(address)
 
 
 def report_build_erv_item_map(erv_map):
@@ -160,3 +164,12 @@ def get_item_qty_aggr_gatepass(data, item):
 		if row.item == item:
 			result += row.quantity
 	return result
+
+
+def get_account_code(customer, plant, account_type=None, date=None):
+	omc = plant.split(' ')[0].capitalize()
+	user, passwd = get_portal_user_password(customer, omc, account_type=account_type, date=date)
+	return user
+
+
+

@@ -1,0 +1,15 @@
+{
+ "creation": "2016-03-09 17:07:45.115781", 
+ "disabled": 0, 
+ "doc_type": "OMC Customer Registration", 
+ "docstatus": 0, 
+ "doctype": "Print Format", 
+ "html": "", 
+ "modified": "2016-03-10 11:15:07.376717", 
+ "modified_by": "Administrator", 
+ "module": "Flows", 
+ "name": "Customer Registration", 
+ "owner": "Administrator", 
+ "print_format_type": "Server", 
+ "standard": "Yes"
+}

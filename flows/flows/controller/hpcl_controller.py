@@ -47,17 +47,17 @@ def fetch_and_record_hpcl_transactions(customer_account_list, for_date):
 	)
 
 	for customer_account in customer_account_list:
-		customer = customer_account.customer
-		account_type = customer_account.credit_account
-		user, passwd = get_portal_user_password(customer, 'HPCL', account_type)
-
-		# We can not get transaction without password
-		if not passwd:
-			continue
-
-		portal = HPCLCustomerPortal(user, passwd)
-
 		try:
+			customer = customer_account.customer
+			account_type = customer_account.credit_account
+			user, passwd = get_portal_user_password(customer, 'HPCL', account_type)
+
+			# We can not get transaction without password
+			if not passwd:
+				continue
+
+			portal = HPCLCustomerPortal(user, passwd)
+
 			portal.login()
 
 			invoice_data = portal.get_invoice_data(for_date, for_date)
@@ -73,7 +73,7 @@ def fetch_and_record_hpcl_transactions(customer_account_list, for_date):
 			time.sleep(sleep_time)
 
 		except Exception as e:
-			logbook.debug((customer, e))
+			print((customer, e))
 			print e
 
 

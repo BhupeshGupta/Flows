@@ -81,7 +81,7 @@ def fetch_and_record_iocl_transactions(customer_list, for_date=None, force_run=F
 
 
 def fetch_and_record_iocl_transactions_controller(date=None):
-	iocl_account_list = []
+	iocl_account_map = {}
 
 	for customer in frappe.db.sql("""
 	select distinct iitm.customer, iitm.credit_account
@@ -92,11 +92,14 @@ def fetch_and_record_iocl_transactions_controller(date=None):
 			where docstatus != 2
 			and ifnull(indent_item, '')!=''
 		) and ifnull(iitm.invoice_reference, '') = ''
+	and iitm.docstatus != 2
 	""", as_dict=True):
 
-		user, passwd = get_portal_user_password(customer.cutomer, 'IOCL', customer.credit_account)
-		if passwd:
-			iocl_account_list.append({'id': user, 'passwd': passwd})
+		user, passwd = get_portal_user_password(customer.customer, 'IOCL', customer.credit_account)
+		if passwd and user not in iocl_account_map:
+			iocl_account_map[user] = frappe._dict({'id': user, 'passwd': passwd})
 
-	fetch_and_record_iocl_transactions(iocl_account_list, for_date=date)
+	fetch_and_record_iocl_transactions(iocl_account_map.values(), for_date=date)
 	reconcile_omc_txns_with_indents()
+
+	print(iocl_account_map.values())
