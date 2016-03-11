@@ -1,0 +1,15 @@
+{
+ "creation": "2016-02-23 13:42:15.093014", 
+ "disabled": 0, 
+ "doc_type": "Local Gatepass", 
+ "docstatus": 0, 
+ "doctype": "Print Format", 
+ "html": "<style>\n\t.print-format {\n\t\tpadding: 0.1in;\n\t}\n\n\t.print-format td, .print-format th {\n\t\tvertical-align: top !important;\n\t\tpadding: 4px 6px 4px 6px !important;\n\t}\n\n\th1, .h1, h2, .h2, h3, .h3 {\n\t\tmargin-top: 10px;\n\t\tmargin-bottom: 5px;\n\t}\n</style>\n<div class=\"container-fluid\">\n\n\t{% if letter_head and not no_letterhead %}\n                       \n\t\t</div>\n\t\t</p>\n\t\t<br/>\n\t\t<br/>\n\t{% endif %}\n\n\t<div class=\"row\">\n\t\t<p class=\"col-xs-6\">\n                        <strong>Stock Dated :{{doc.date}}</strong></br>\n\t\t\t<strong>Vehicle No. :{{doc.vehicle}}</strong></br>\n\t\t\t<strong>Driver Name :{{doc.driver}}</strong></br>\n\t\t</p>\n\n\t\t<p class=\"col-xs-6\">\n\t\t\t<strong>Time_____________________</strong></br></br>\n\t\t</p>\n\t</div>\n\n\t</br>\n\t</br>\n\n\n\t<div class=\"row\">\n\t\t<div class=\"col-xs-12\">\n\t\t\t<table class=\"table table-bordered table-condensed\">\n\t\t\t\t<thead>\n\t\t\t\t<tr>\n\t\t\t\t\t<th>S.No.</th>\n\t\t\t\t\t<th>Particulars</th>\n\t\t\t\t\t<th>19kg</th>\n\t\t\t\t\t<th>35kg</th>\n\t\t\t\t\t<th>47.5 VOT</th>\n\t\t\t\t\t<th>47.5 LOT</th>\n\t\t\t\t</tr>\n\t\t\t\t</thead>\n\t\t\t\t<tbody>\n\t\t\t\t<tr>\n\t\t\t\t\t<td>1</td>\n\t\t\t\t\t<td>Cylinders Filled</td>\n\t\t\t\t\t<td></td>\n\t\t\t\t\t<td></td>\n\t\t\t\t\t<td></td>\n\t\t\t\t\t<td></td>\n\t\t\t\t</tr>\n\t\t\t\t<tr>\n\t\t\t\t\t<td></td>\n\t\t\t\t\t<td>Cylinder Empty</td>\n\t\t\t\t\t<td></td>\n\t\t\t\t\t<td></td>\n\t\t\t\t\t<td></td>\n\t\t\t\t\t<td></td>\n\t\t\t\t</tr>\n\t\t\t\t\n\t\t\t\t</tbody>\n\t\t\t</table>\n\t\t</div>\n\n\t\t<div class=\"col-xs-12\">\n\t\t\t<strong>Remarks</strong>\n\t\t\t<pre>Test Remarks</pre>\n\t\t\t<p class=\"col-xs-6\">\n\t\t\t\t</br>\n\t\t\t\t<strong>Driver's Signature___________________________</strong></br></br>\n\t\t\t\t<strong>Godown Incharge____________________________</strong></br></br>\n\t\t\t</p>\n\n\t\t\t<p class=\"col-xs-6\">\n\t\t\t\t</br>\n\t\t\t\t<strong>Manager________________________________</strong></br></br>\n\t\t\t\t<strong>Finance Dept.___________________________</strong></br></br>\n\t\t\t</p>\n\n\t\t</div>\n\t</div>\n\n</div>\n", 
+ "modified": "2016-02-23 13:45:49.421689", 
+ "modified_by": "Administrator", 
+ "module": "Flows", 
+ "name": "Local Gatepass", 
+ "owner": "Administrator", 
+ "print_format_type": "Server", 
+ "standard": "Yes"
+}

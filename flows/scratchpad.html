@@ -1,0 +1,209 @@
+<div class="container-fluid">
+	<div align="Right">
+		<h3>Happy new year 2016</h3>
+	</div>
+	<HR/>
+
+	{% if letter_head and not no_letterhead %}
+		<p class="text-left">
+
+		<div class="letter-head">{{ letter_head }}</div>
+		<div class="print-heading">
+			<h3>{{ doc.select_print_heading or (doc.print_heading if doc.print_heading != None
+			else _(doc.doctype)) }}</h3>
+		</div>
+
+		</p>
+		<br/>
+		<br/>
+	{% endif %}
+
+
+	<div class="row clearfix">
+		<div class="col-xs-12 column">
+			<table class="table table-condensed">
+				<thead>
+				<tr>
+					<th>
+						Date
+					</th>
+					<th class="text-center">
+						Aztec Code
+					</th>
+					<th>
+						LR Number
+					</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+					<td>{{ doc.get_formatted("posting_date") }}</td>
+					<td></td>
+					<td>{{ doc.get_formatted("name") }}</td>
+				</tr>
+				</tbody>
+
+			</table>
+
+		</div>
+	</div>
+
+	<div class="row clearfix">
+
+		<div class="col-xs-4 column">
+			<p class="text-left">
+				<strong>CONSIGNEE</strong>
+
+			<div>
+				{{ doc.customer }}
+				{% if doc.address_display %}
+					<br/>{{ doc.get_formatted("address_display") }}
+				{% endif %}
+			</div>
+
+			<div>
+				{% set customer =  frappe.get_doc("Customer", doc.customer) %}
+				{% if customer.tin_number %}
+					TIN No. {{ customer.tin_number }}
+				{% endif %}
+			</div>
+			</p>
+		</div>
+
+		<div class="col-xs-4 column text-left">
+			<img src='http://www.barcode-generator.org/phpqrcode/getCode.php?cht=qr&chs=180x180&choe=UTF-8&chld=L|0&chl={"type":"Consignment Note","id":"{{ doc.get_formatted("name") }}"}'/>
+		</div>
+
+		<div class="col-xs-4 column">
+			<p class="text-left">
+				<strong>CONSIGNOR</strong>
+			</p>
+
+			<div>
+				{{ doc.consignor }}
+				{% set consignor_addr = doc.consignor | get_address_display('Billing') %}
+				{% if consignor_addr %}
+					<br/>{{ consignor_addr }}
+				{% endif %}
+				<div/>
+				<div>
+					{% set consignor = frappe.get_doc("Supplier", doc.consignor) %}
+					{% if consignor.tin_number %}
+						TIN No. {{ consignor.tin_number }}
+					{% endif %}
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+
+	<div class="row clearfix">
+		<div class="col-xs-12 column">
+			<table class="table table-condensed">
+
+				<thead>
+				<tr>
+					<th>#</th>
+					<th>Particulars</th>
+					<th>Qty(Kgs)</th>
+					<th>Rate</th>
+					<th>Charges</th>
+				</tr>
+				</thead>
+
+				<tbody>
+				{% for row in doc.entries %}
+					<tr>
+						<td>{{ row.idx }}</td>
+						<td width="70%">
+							{{ row.get_formatted("item_name") }}
+							{{ row.get_formatted("description") }}
+						</td>
+						<td>
+							<strong> {{ row.get_formatted("qty") }}</strong>
+						</td>
+						<td>
+							<strong>₹{{ row.get_formatted("rate") }}</strong>
+						</td>
+						<td>
+							<strong>₹{{ row.get_formatted("amount") }}</strong>
+						</td>
+					</tr>
+				{% endfor %}
+				</tbody>
+
+			</table>
+
+		</div>
+	</div>
+
+
+	<div class="row clearfix">
+
+		<div class="col-xs-6 column">
+			<div>
+				{{ doc.get_formatted("terms") }}
+			</div>
+
+		</div>
+
+		<div class="col-xs-6 column">
+
+			<table class="table table-condensed">
+				<tbody>
+
+				<tr class="active">
+					<td width="60%">
+						<strong>Net Total</strong>
+					</td>
+					<td>
+						{{ doc.get_formatted("net_total_export") }}
+					</td>
+				</tr>
+
+				{% for row in doc.other_charges %}
+					<tr>
+						<td width="60%">
+							<strong>{{ row.get_formatted("description") }} @ {{ row.get_formatted("rate") }}%</strong>
+						</td>
+						<td>
+							{{ row.get_formatted("tax_amount") }}
+						</td>
+					</tr>
+				{% endfor %}
+
+				<tr class="active">
+					<td width="60%">
+						<strong>Grand Total</strong>
+					</td>
+					<td>
+						{{ doc.get_formatted("grand_total_export") }}
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+
+	</div>
+
+
+	<div class="row clearfix">
+		<div class="col-xs-12 column">
+
+			<p class="text-right">
+				For Arun Logistics
+				</br>
+				</br>
+				Authorised Signatory
+			</p>
+		</div>
+	</div>
+
+</div>
+Refill Selling Price for <strong> ((per 19 kg)) (January,2016) </strong>
+
+
+

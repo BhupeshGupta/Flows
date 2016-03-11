@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import cint
+from frappe.utils import cint, today
 
 
 def journal_voucher_autoname(doc, method=None, *args, **kwargs):
@@ -45,3 +45,43 @@ def validate_imprest_account_gl_entry_date(doc, method=None, *args, **kwargs):
 			frappe.msgprint("FYI. Date for entry in imprest is closed")
 		else:
 			frappe.throw("Date for entry in imprest is closed for amendment/posting")
+
+
+def customer_onload(doc, method=None, *args, **kwargs):
+	rs = []
+
+	omcs = frappe.db.sql('select DISTINCT omc from `tabOMC Customer Registration` where customer="{}"'.format(doc.name))
+	omcs = [x[0] for x in omcs]
+	for omc in omcs:
+		row = frappe.db.sql("""
+		select *
+		from `tabOMC Customer Registration`
+		where customer="{}"
+		and omc="{}"
+		order by with_effect_from desc
+		limit 1
+		""".format(doc.name, omc), as_dict=True)[0]
+		row.setdefault('plants', [])
+		rs.append(row)
+
+		plants = [x[0] for x in frappe.db.sql("""
+		select DISTINCT plant
+		from `tabCustomer Plant Variables`
+		where customer="{}"
+		and plant like "{}%"
+		""".format(doc.name, omc))]
+
+
+		for plant in plants:
+			last_active_entry = frappe.db.sql("""
+			select * from `tabCustomer Plant Variables`
+			where with_effect_from <= "{with_effect_from}"
+			and customer = "{customer}"
+			and plant = "{plant}"
+			and docstatus != 2 order by with_effect_from desc;
+			""".format(with_effect_from=today(), customer=doc.name, plant=plant), as_dict=True)
+
+			if last_active_entry:
+				row['plants'].append(last_active_entry[0])
+
+	doc.get("__onload").omc_customer_variables_list = rs

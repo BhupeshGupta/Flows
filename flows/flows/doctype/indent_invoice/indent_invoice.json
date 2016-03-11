@@ -444,16 +444,6 @@
    "precision": ""
   }, 
   {
-   "fieldname": "amended_from", 
-   "fieldtype": "Link", 
-   "label": "Amended From", 
-   "no_copy": 1, 
-   "options": "Indent Invoice", 
-   "permlevel": 0, 
-   "print_hide": 1, 
-   "read_only": 1
-  }, 
-  {
    "fieldname": "posting_time", 
    "fieldtype": "Time", 
    "hidden": 1, 
@@ -493,6 +483,38 @@
    "permlevel": 0, 
    "precision": "", 
    "read_only": 1
+  }, 
+  {
+   "fieldname": "amended_from", 
+   "fieldtype": "Link", 
+   "label": "Amended From", 
+   "no_copy": 1, 
+   "options": "Indent Invoice", 
+   "permlevel": 0, 
+   "print_hide": 1, 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "column_break_60", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "credit_account", 
+   "fieldtype": "Select", 
+   "label": "Credit Account", 
+   "options": "Payer Code\nCustomer Code", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "service_tax_liability", 
+   "fieldtype": "Select", 
+   "label": "Service Tax Liability", 
+   "options": "Consignee(Customer)\nTransporter", 
+   "permlevel": 0, 
+   "precision": ""
   }, 
   {
    "fieldname": "fold_59", 
@@ -560,16 +582,10 @@
    "precision": ""
   }, 
   {
-   "fieldname": "icc_form", 
+   "fieldname": "omc_customer_registration", 
    "fieldtype": "Link", 
-   "label": "ICC Form", 
-   "options": "ICC Form", 
-   "permlevel": 0, 
-   "precision": ""
-  }, 
-  {
-   "fieldname": "column_break_70", 
-   "fieldtype": "Column Break", 
+   "label": "OMC Customer Registration", 
+   "options": "OMC Customer Registration", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -592,6 +608,14 @@
    "fieldtype": "Link", 
    "label": "Sales Tax", 
    "options": "Indent Invoice Tax", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "icc_form", 
+   "fieldtype": "Link", 
+   "label": "ICC Form", 
+   "options": "ICC Form", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -671,7 +695,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-12-20 13:35:54.106854", 
+ "modified": "2016-03-11 16:43:14.387756", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 
@@ -685,7 +709,7 @@
    "create": 1, 
    "delete": 1, 
    "email": 0, 
-   "export": 0, 
+   "export": 1, 
    "import": 0, 
    "permlevel": 0, 
    "print": 0, 
@@ -706,17 +730,19 @@
    "cancel": 1, 
    "create": 1, 
    "delete": 1, 
+   "export": 1, 
    "permlevel": 0, 
+   "print": 0, 
    "read": 1, 
    "report": 1, 
-   "role": "Purchase Manager", 
+   "role": "Purchase Master Manager", 
    "submit": 1, 
    "write": 1
   }, 
   {
    "permlevel": 1, 
    "read": 1, 
-   "role": "Purchase Manager", 
+   "role": "Purchase Master Manager", 
    "write": 1
   }
  ], 

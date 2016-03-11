@@ -30,7 +30,7 @@ fixtures = [
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/flows/css/flows.css"
+app_include_css = "/assets/flows/css/flows.css"
 app_include_js = "/assets/js/flows.min.js"
 
 # include js, css files in header of web template
@@ -92,6 +92,9 @@ doc_events = {
 	},
 	"GL Entry": {
 		"on_submit": "flows.flows.custom_validation.validate_imprest_account_gl_entry_date",
+	},
+	"Customer": {
+		"onload": "flows.flows.custom_validation.customer_onload"
 	}
 }
 
@@ -123,7 +126,8 @@ scheduler_events = {
 
 doctype_js = {
 "Warehouse": ["asserts/js/warehouse.js"],
-"Journal Voucher": ["c_scripts/journal_voucher.js"]
+"Journal Voucher": ["c_scripts/journal_voucher.js"],
+"Customer": ["c_scripts/customer.js"]
 }
 
 # Overriding Whitelisted Methods
@@ -148,5 +152,7 @@ jenv_filter = [
 	'get_cenvat_status:flows.jinja_filters.get_cenvat_status',
 	'get_address_display:flows.jinja_filters.get_address_display',
 	'report_build_erv_item_map:flows.jinja_filters.report_build_erv_item_map',
-	'get_item_qty_aggr_gatepass:flows.jinja_filters.get_item_qty_aggr_gatepass'
+	'get_item_qty_aggr_gatepass:flows.jinja_filters.get_item_qty_aggr_gatepass',
+	'get_account_code:flows.jinja_filters.get_account_code',
+	'get_address_display_name:flows.jinja_filters.get_address_display_name'
 ]

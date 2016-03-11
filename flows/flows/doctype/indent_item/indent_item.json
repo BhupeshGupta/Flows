@@ -30,6 +30,14 @@
    "set_only_once": 0
   }, 
   {
+   "fieldname": "ship_to", 
+   "fieldtype": "Link", 
+   "label": "Ship To", 
+   "options": "Customer", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "default": "Refill", 
    "fieldname": "load_type", 
    "fieldtype": "Select", 
@@ -56,14 +64,6 @@
    "precision": ""
   }, 
   {
-   "fieldname": "ship_to", 
-   "fieldtype": "Link", 
-   "label": "Ship To", 
-   "options": "Customer", 
-   "permlevel": 0, 
-   "precision": ""
-  }, 
-  {
    "fieldname": "sales_tax", 
    "fieldtype": "Link", 
    "label": "Sales Tax", 
@@ -77,6 +77,15 @@
    "fieldtype": "Select", 
    "label": "Payment Type", 
    "options": "Indirect\nDirect", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
+   "fieldname": "credit_account", 
+   "fieldtype": "Select", 
+   "label": "Credit Account", 
+   "options": "Payer Code\nCustomer Code", 
    "permlevel": 0, 
    "precision": "", 
    "reqd": 1
@@ -293,7 +302,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 1, 
- "modified": "2015-12-16 17:51:21.220590", 
+ "modified": "2016-03-02 18:17:34.984928", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Item", 

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+
+{% set customer = frappe.get_doc("Customer", doc.customer) %}
+{% set contact = frappe.get_list("Contact", {"customer": doc.customer}, "*", order_by="is_primary_contact desc", limit_page_length=1)[0] or {} %}
+
+{% set address = frappe.get_list("Address", {"customer": doc.customer}, "*", order_by="is_primary_address desc", limit_page_length=1)[0] or {} %}
+{% set addr_html = [address.address_line1, address.address_line2, address.city, address.state, address.pincode, address.country] %}
+
+{% set f_officer = frappe.get_doc("Field Officer", doc.field_officer) %}
+
+
+
+<html lang="en">
+   <head>
+      <meta>
+      <title>OMC Customer Registration</title>
+   </head>
+   <body>
+      To,<br>
+      {% if doc.omc == '{{doc.omc}}' %}
+         The Regional Manager,<br>
+      {% elif doc.omc == 'IOCL' %}
+         The Chief Area Manager,<br>
+      {% elif doc.omc == 'BPCL' %}
+         The Territory Manager,<br>
+      {% endif %}
+      {{ f_officer.area_office | get_address_display_name }}
+      <br>
+      <p align="center"><font size="4"><u>SUB:SUPPLY OF PACKED COMMERCIAL LPG IN CYLINDERS</u></font><br></p>
+      <br>
+      Sir,<br>
+      <p>This has reference to the above mentioned subject, we intend to import & buy
+         Commercial LPG directly from the supply source of your company situated anywhere in
+         INDIA keeping in view the logistics & prevailing rules of the land against __(Tax Mode)
+         for our commercial use on EXMI delivered Basis , since our firm is registered under
+         VAT Act & section 7 (1), 7(2) of Central Sale Tax Act 1956 and the item LPG is duly
+         entered in column (B) "for use in Manufacture" of our R.C/ (Form ST-B).
+      </p>
+      <br>
+      <table style="width:100%" class="table-bordered">
+         <tr>
+            <th>Billing Name:</th>
+            <td colspan="3">{{customer.customer_name}}</td>
+         </tr>
+         <tr>
+            <th>Address</th>
+            <td colspan="3">{{ addr_html | join(', ') }}</td>
+         </tr>
+         <tr>
+            <th style="width: 110px">Application:</th>
+            <td colspan="3">not linked yet</td>
+         </tr>
+
+         <tr>
+            <th>Tin No.</th>
+            <td colspan="3">{{ customer.tin_number }}</td>
+         </tr>
+         <tr>
+            <th>Commission Rate:</th>
+            <td>{{customer.excise_commissionerate_code or 'N/A'}} </td>
+            <th>Tax Mode:</th>
+            <td>not linked yet</td>
+         </tr>
+         <tr>
+            <th>Modvat-able</th>
+            {%if customer.cenvat == 1%}
+               <td>Yes</td>
+            {% else %}
+               <td>No</td>
+            {% endif %}
+            <th>Service Tax No.:</th>
+            <td>{{customer.service_tax_number or 'N/A'}}</td>
+         </tr>
+         <tr>
+            <th>ECC Number:</th>
+            <td>{{customer.ecc_number or 'N/A'}}</td>
+            <th>Pan No.:</th>
+            <td>{{ customer.pan_number }}</td>
+         </tr>
+         <tr>
+            <th>Range:</th>
+            <td> {{customer.excise_range_code or 'N/A'}} </td>
+            <th>Divison:</th>
+            <td>{{customer.excise_division_code or 'N/A'}}</td>
+         </tr>
+         <tr>
+            <th>Contact Person:</th>
+            {% if (contact.first_name or contact.last_name) %}
+               <td>{{contact.first_name or '}} {{contact.last_name or '}}</td>
+            {% else %}
+               <td>N/A</td>
+            {% endif %}
+            <th>Designation:</th>
+            <td>{{ contact.designation or 'N/A'}}</td>
+         </tr>
+         <tr>
+            <th>Contact No.:</th>
+            <td>{{contact.phone or 'N/A'}}</td>
+            <th>Email ID:</th>
+            <td>{{contact.email_id or 'N/A'}}</td>
+         </tr>
+         <tr>
+            <th>Industry Type</th>
+            <td>{{customer.industry_type}}</td>
+            <th>Type Of Company</th>
+            <td>{{customer.customer_type}}</td>
+         </tr>
+         <tr>
+            <th>Facilitator(BA / Distributor)</th>
+            <td>{{doc.ba}}</td>
+            <th>Transporter</th>
+            <td>not linked yet</td>
+         </tr>
+         <tr>
+            <th>Cyln Bank Size / Bulk</th>
+            <td>{{customer.cyln_bank_size_or_bulk}}</td>
+            <th>Package / Tank Capacity</th>
+            <td>not linked yet</td>
+         </tr>
+         <tr>
+            <th>Explosive License No.</th>
+            <td>{{customer.explosive_license_no}}</td>
+            <th>Validity</th>
+            <td>{{customer.validity}}</td>
+         </tr>
+         <tr>
+            <th>Furnace Type</th>
+            <td>{{customer.furnace_type}}</td>
+            <th>Burner Type</th>
+            <td>{{customer.burner_type}}</td>
+         </tr>
+         <tr>
+            <th>No. Of Burners</th>
+            <td>{{customer.no_of_burners}}</td>
+            <th>Capacity Of Burners</th>
+            <td>{{customer.capacity_of_burner}}</td>
+         </tr>
+         <tr>
+            <th>Make</th>
+            <td>{{customer.make}}</td>
+            <th>Model</th>
+            <td>{{customer.model}}</td>
+         </tr>
+         <tr>
+            <th>Existing / Present Fuel</th>
+            <td>{{customer.existing_or_present_fuel}}</td>
+            <th>Consumption Per Day</th>
+            <td>{{customer.consumption_per_day}}</td>
+         </tr>
+      </table>
+      <br>
+      <p>
+         Self attested Copies of Above mentioned documents enclosed in order to confirm our bonafide :-
+      <br><br>
+      <p>
+       1. We hereby Appoint & authorize{{doc.ba}} Ludhiana &
+         its authorized representative to do the following activities  on our behalf:-
+         ( {{doc.ba}}) / its authorized Representative / associate
+         is authorized to sign the documents for placing indent with {{doc.omc}} , making
+         payment to {{doc.omc}} on our behalf by cheque / RTGS / NEFT / DD,  receiving the
+         product from {{doc.omc}} supply location , appoint transporter to transport the product
+         from plant  to PESO approved godown / On wheel & supply the same to our
+         premises as per our requirement as bally on delivered basis, negotiate and fix
+         transportation charges with transporter both primary and secondary depending
+         upon the supply location and vary from time to time with price index, change in
+         supply location,  inform the company to incorporate the transportation charges in
+         the invoice for re-imbursement to_( {{doc.ba}})  ,
+         acknowledge the invoices raised by {{doc.omc}}  on our behalf ,  prepare & sign ERV
+         for return of empty cylinders to {{doc.omc}} , bring filled cylinders from {{doc.omc}} , draw
+         supplies against credit facility, either against submission of Bank Guarantee  by
+         Distributor  or by us,  representing us before any Govt. / Semi Govt. Authority
+         during the material in transit from supply location till our premises . Credit the
+         market returns to the account of Distributor, view , download , print detail of
+         financial transaction , equipment transaction & our account statement  with {{doc.omc}}
+         by utilizing user ID & password allotted to us by {{doc.omc}} at the mail id of
+         Distributor  & forwarding the same to us for reconciliation  .
+	      <br><br>
+      </p>
+      <p>
+       2. We also undertake to provide  Form__(Tax Mode) to {{doc.omc}} either through
+         distributor or directly to {{doc.omc}}. In case of non-submission of Form__(Tax Mode)
+         at the end of each quarter, we will be paying the penalty to the {{doc.omc}} as per the
+         Govt. rules. We undertake to incorporate / account for the entire purchase
+         transaction with {{doc.omc}} in our account books and liable for all type of liabilities if
+         any arise out at any later stage
+      <br><br>
+      <p>In the event of discontinuation of availing the service of Delivery agent, we have no
+         objection if the credit balance or security amount, if any appearing in our customer's
+         account in transferring to DA's / Distributors / Service Provider's account
+      </p>
+      <br>
+      <br>
+      <p>
+         Thanking you<br><br>
+         YOURS TRULY
+      </p>
+      <br>
+   </body>
+</html>
