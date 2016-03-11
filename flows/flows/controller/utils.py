@@ -79,7 +79,7 @@ def get_portal_user_password(customer, omc, account_type=None, date=None):
 
 	account_type = account_type if account_type else registration_record.default_credit_account
 
-	valid_account = [account.account for account in accounts if account.type == account_type]
+	valid_account = [account.credit_account for account in accounts if account.type == account_type]
 
 	if len(valid_account) > 1:
 		frappe.throw("Multiple accounts with same account type are linked")
