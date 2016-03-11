@@ -247,7 +247,7 @@ class Indent(Document):
 		month_end = get_last_day(self.posting_date)
 		month_start = get_first_day(self.posting_date)
 
-		for customer in indent_amount:
+		for customer in indent_amount.keys():
 			invoice_sum_value = frappe.db.sql("""
 			select ifnull(sum(actual_amount), 0)
 			from `tabIndent Invoice`
@@ -276,12 +276,12 @@ class Indent(Document):
 
 			available_limit = limit - invoice_sum_value - indent_sum
 
-			diff = abs(round(available_limit - indent_amount.get(customer, 0), 2))
+			diff = round(available_limit - indent_amount.get(customer, 0), 2)
 
-			if diff > 0:
+			if diff < 0:
 				errors.append(
 					"Cross sold limit exceeded for customer `{}` by {}. Get it increased or place indent for other customer"
-						.format(customer, diff)
+						.format(customer, abs(diff))
 				)
 
 		if errors:
