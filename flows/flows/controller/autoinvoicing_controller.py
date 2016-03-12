@@ -29,8 +29,7 @@ def save_and_submit_invoices():
 		'posting_date': today(),
 		'actual_amount': invoice.debit,
 		'indent_item': invoice.indent_item,
-		'cross_sold': invoice.cross_sold,
-		'credit_account': invoice.credit_account
+		'cross_sold': invoice.cross_sold
 		})
 
 
