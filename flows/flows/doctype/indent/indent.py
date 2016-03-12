@@ -239,44 +239,67 @@ class Indent(Document):
 		indent_amount = {}
 		errors = []
 
+		default_aggr_dict = {'amt': 0, 'qty_in_kg': 0}
+
 		for indent_item in self.indent:
 			if indent_item.cross_sold:
-				indent_amount.setdefault(indent_item.customer, 0)
-				indent_amount[indent_item.customer] += indent_item.amount
+				indent_amount.setdefault(indent_item.customer, default_aggr_dict.copy())
+				indent_amount[indent_item.customer]['amt'] += indent_item.amount
+				indent_amount[indent_item.customer]['qty_in_kg'] += float(indent_item.item.replace('FC', '').replace('L', '')) * indent_item.qty
 
 		month_end = get_last_day(self.posting_date)
 		month_start = get_first_day(self.posting_date)
 
 		for customer in indent_amount.keys():
 			invoice_sum_value = frappe.db.sql("""
-			select ifnull(sum(actual_amount), 0)
-			from `tabIndent Invoice`
-			where customer = "{customer}"
-			and docstatus != 2
-			and cross_sold = 1
-			and transaction_date between "{month_start}" and "{month_end}"
+			select ifnull(sum(inv.actual_amount), 0) + ifnull(sum(sal.grand_total_export), 0)
+			from `tabIndent Invoice` inv
+			LEFT JOIN `tabSales Invoice` sal
+			on inv.transportation_invoice = sal.name
+			where inv.customer = "{customer}"
+			and inv.docstatus = 1
+			and inv.cross_sold = 1
+			and inv.transaction_date between "{month_start}" and "{month_end}"
 			""".format(customer=customer, month_end=month_end, month_start=month_start))[0][0]
 
 			indent_sum = frappe.db.sql("""
-			select ifnull(sum(itm.amount), 0)
+			select ifnull(sum(replace(replace(itm.item, 'FC' ,''), 'L', '')*itm.qty), 0) as qty,
+			ifnull(sum(itm.amount), 0) as amount
 			from `tabIndent Item` itm left join `tabIndent` ind
 			on itm.parent = ind.name
 			where itm.name not in (
-				select indent_item
+				select ifnull(indent_item, '')
 				from `tabIndent Invoice`
-				where docstatus != 2
-			) and itm.docstatus != 2
+				where docstatus = 1
+			)
+			and itm.parent != "{self_indent}"
+			and itm.docstatus != 2
 			and itm.customer = "{customer}"
 			and itm.cross_sold = 1
 			and ind.posting_date  between "{month_start}" and "{month_end}"
-			""".format(customer=customer, month_end=month_end, month_start=month_start))[0][0]
+			""".format(customer=customer, month_end=month_end, month_start=month_start, self_indent=self.name), as_dict=True)[0]
+
+			sales_rate = frappe.db.sql(
+				"""
+				SELECT applicable_transport_rate
+				FROM `tabCustomer Sale`
+				WHERE customer="{customer}"
+				AND with_effect_from <= "{invoice_date}"
+				AND ifnull(valid_up_to, "{invoice_date}") <= "{invoice_date}"
+				AND docstatus = 1
+				ORDER BY with_effect_from DESC LIMIT 1
+				""".format(invoice_date=today(), customer=customer)
+			)
+
+			sales_rate = sales_rate[0][0] if sales_rate else 0
 
 			limit = frappe.db.get_value("Customer", {'name': customer}, 'cross_sale_limit')
 			limit = limit if limit else 0
 
-			available_limit = limit - invoice_sum_value - indent_sum
+			available_limit = limit - invoice_sum_value - indent_sum.amount - (float(indent_sum.qty) * float(sales_rate))
 
-			diff = round(available_limit - indent_amount.get(customer, 0), 2)
+			cur_dict = indent_amount.get(customer, default_aggr_dict)
+			diff = round(available_limit - cur_dict['amt'] - cur_dict['qty_in_kg'] * sales_rate, 2)
 
 			if diff < 0:
 				errors.append(
