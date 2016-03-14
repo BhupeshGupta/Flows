@@ -504,7 +504,7 @@
    "fieldname": "credit_account", 
    "fieldtype": "Select", 
    "label": "Credit Account", 
-   "options": "Payer Code\nCustomer Code", 
+   "options": "\nPayer Code\nCustomer Code", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -512,7 +512,7 @@
    "fieldname": "service_tax_liability", 
    "fieldtype": "Select", 
    "label": "Service Tax Liability", 
-   "options": "Consignee(Customer)\nTransporter", 
+   "options": "\nConsignee(Customer)\nTransporter", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -695,7 +695,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2016-03-11 16:43:14.387756", 
+ "modified": "2016-03-14 17:55:55.440723", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 
