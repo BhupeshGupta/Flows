@@ -189,7 +189,7 @@ def compute_grs(raw_data, gr_totals):
 
 def compute_prs(raw_data, pr_total):
 	rows = []
-	pr_total.update({'d': {'FC19': 0}, 'r': {'EC19': 0}})
+	pr_total.update({'d': {item: 0 for item in items}, 'r': {item: 0 for item in items}})
 
 	sr = 0
 	for pr_no, pr_value in raw_data['pr_map'].items():
