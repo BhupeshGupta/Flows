@@ -90,7 +90,7 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 	customer:function (doc, cdt, cdn) {
 		this.populate_payment_type_info(doc, cdt, cdn);
 		this.compute_base_rate(doc, cdt, cdn);
-		this.fetch_balance(doc, cdt, cdn);
+		//this.fetch_balance(doc, cdt, cdn);
 		this.clear_ship_to(doc, cdt, cdn);
 	},
 
@@ -336,11 +336,15 @@ erpnext.flows.IndentController = frappe.ui.form.Controller.extend({
 
 	fetch_balance:function (doc, cdt, cdn) {
 
-        if (doc.doctype != "Indent") {
+        if (doc.doctype == "Indent Item" && cdt == 'Indent Item') {
+	        doc = frappe.get_doc("Indent", doc.parent);
+	        var indent_item = frappe.get_doc(cdt, cdn);
+	    } else if (doc.doctype == "Indent" && cdt == 'Indent Item') {
+	        var indent_item = frappe.get_doc(cdt, cdn);
+        } else {
 	        return;
-	    }
+        }
 
-		var indent_item = frappe.get_doc(cdt, cdn);
 		if (
             (doc.plant.toLowerCase().indexOf("hpcl") > -1 || doc.plant.toLowerCase().indexOf("iocl") > -1)
             && indent_item.customer != ''

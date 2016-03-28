@@ -16,21 +16,26 @@ def save_and_submit_invoices():
 	AND iitm.docstatus != 2
 	""", as_dict=True):
 
-		docstatus = frappe.db.get_value("Indent", invoice.indent, 'docstatus')
-		if cint(docstatus) == 0:
-			indent = frappe.get_doc("Indent", invoice.indent)
-			indent.docstatus = 1
-			indent.workflow_state = indent.state = 'Processed'
-			indent.save()
+		try:
+			docstatus = frappe.db.get_value("Indent", invoice.indent, 'docstatus')
+			if cint(docstatus) == 0:
+				indent = frappe.get_doc("Indent", invoice.indent)
+				indent.docstatus = 1
+				indent.workflow_state = indent.state = 'Processed'
+				indent.save()
 
-		__create_and_save_invoice__({
-		'invoice_number': invoice.document_no,
-		'transaction_date': invoice.date,
-		'posting_date': today(),
-		'actual_amount': invoice.debit,
-		'indent_item': invoice.indent_item,
-		'cross_sold': invoice.cross_sold
-		})
+			__create_and_save_invoice__({
+			'invoice_number': invoice.document_no,
+			'transaction_date': invoice.date,
+			'posting_date': today(),
+			'actual_amount': invoice.debit,
+			'indent_item': invoice.indent_item,
+			'cross_sold': invoice.cross_sold
+			})
+
+		except Exception as e:
+			print(invoice)
+			print(e)
 
 
 def __create_and_save_invoice__(data_dict):

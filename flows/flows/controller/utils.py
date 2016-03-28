@@ -84,14 +84,11 @@ def get_portal_user_password(customer, omc, account_type=None, date=None):
 	if len(valid_account) > 1:
 		frappe.throw("Multiple accounts with same account type are linked")
 
-
 	rs = frappe.db.get_values(
 		"Account",
 		{'name': valid_account[0]},
 		['integration_type', 'username', 'password'],
 		as_dict=True
 	)[0]
-
-	print(rs)
 
 	return (rs.username, rs.password)
