@@ -10,7 +10,6 @@ def execute():
 	where i.posting_date between '2016-03-01' and '2016-03-30'
 	and customer_group not in ('pallav singla', 'BADDI', 'SANGRUR', 'HARIDIYA', 'NOIDA')
 	and grand_total_export != 0
-	and customer like 'REX%'
 	and name like 'SCN%'
 	group by i.customer;
 	""", as_dict=True):
