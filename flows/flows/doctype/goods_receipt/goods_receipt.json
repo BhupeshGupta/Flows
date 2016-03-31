@@ -38,7 +38,7 @@
    "label": "Goods Receipt Number", 
    "permlevel": 0, 
    "precision": "", 
-   "reqd": 1
+   "reqd": 0
   }, 
   {
    "allow_on_submit": 0, 
@@ -496,7 +496,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2016-01-04 00:07:52.457077", 
+ "modified": "2016-03-29 14:51:46.832050", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Goods Receipt", 
