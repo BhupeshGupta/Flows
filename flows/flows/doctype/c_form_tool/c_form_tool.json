@@ -104,6 +104,26 @@
    "precision": ""
   }, 
   {
+   "fieldname": "column_break_9", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "description": "Will Send CC and Reply to given Email ID", 
+   "fieldname": "cc", 
+   "fieldtype": "Data", 
+   "label": "CC", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "section_break_11", 
+   "fieldtype": "Section Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "message_box", 
    "fieldtype": "Text", 
    "label": "Message Box", 
@@ -138,7 +158,7 @@
  "is_submittable": 0, 
  "issingle": 1, 
  "istable": 0, 
- "modified": "2016-01-09 15:28:21.800030", 
+ "modified": "2016-03-31 14:44:33.589526", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "C Form Tool", 

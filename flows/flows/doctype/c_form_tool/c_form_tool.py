@@ -93,8 +93,7 @@ class CFormTool(Document):
 					email = transform(email_content, base_url=frappe.conf.host_name + '/')
 					frappe.msgprint(email)
 
-					send(
-						get_email(
+					email_object = get_email(
 							email_list, sender='',
 							msg='',
 							subject='Submission of Form-C Quarterwise for in favour of {supplier} for {quarter} '
@@ -102,7 +101,12 @@ class CFormTool(Document):
 								**cform),
 							formatted=False, print_html=email
 						)
-					)
+
+					if self.cc:
+						email_object.cc.append(self.cc)
+						email_object.reply_to = self.cc
+
+					send(email_object)
 
 
 def send_sms(receiver_list, msg):
