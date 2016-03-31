@@ -10,10 +10,19 @@ from frappe import _, throw
 from flows import utils
 from frappe.utils import today, now, cint
 from erpnext.accounts.utils import get_fiscal_year
+from frappe.model.naming import make_autoname
 
 
 class GoodsReceipt(Document):
+
+	def autoname(self):
+		if frappe.form_dict.client == "app" and not self.goods_receipt_number:
+			self.name = make_autoname('GR-16-.#')
+
 	def validate_book(self):
+		if not self.goods_receipt_number:
+			return
+
 		verify_book_query = """
 		SELECT * FROM `tabGoods Receipt Book` WHERE serial_start <= {0} AND serial_end >= {0};
 		""".format(self.goods_receipt_number)
