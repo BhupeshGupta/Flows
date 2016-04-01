@@ -271,7 +271,7 @@ class GoodsReceipt(Document):
 		from frappe.utils.data import getdate
 
 		template = """Dear Customer {delivered_quantity} no of {item_delivered} kg cylinders delivered against the GR
-		No {goods_receipt_number} Dt {txn_date} & {received_quantity} no of {item_received} kg empty cylinder received
+		No {name} Dt {txn_date} & {received_quantity} no of {item_received} kg empty cylinder received
 		from your premises."""
 
 		txn_date = getdate(self.transaction_date).strftime("%d/%m/%y")
