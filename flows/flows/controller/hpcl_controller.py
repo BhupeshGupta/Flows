@@ -89,8 +89,9 @@ def fetch_and_record_hpcl_balance(for_date=None):
 
 	customer_list = frappe.db.sql("""
 	SELECT master_name as name, username, password
-	FROM `tabCustomer`
+	FROM `tabAccount`
 	WHERE name like "Hpcl a/c %"
+	and ifnull(password) != ''
 	""", as_dict=True)
 
 	customer_defer_list = []
