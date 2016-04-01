@@ -95,6 +95,12 @@ class GoodsReceipt(Document):
 			)
 		self.transfer_stock()
 
+		if frappe.form_dict.client == "app":
+			try:
+				self.send_sms()
+			except Exception as e:
+				print(e)
+
 	def on_cancel(self):
 		self.validate_date()
 		self.validate_book()
@@ -284,8 +290,11 @@ class GoodsReceipt(Document):
 		receiver_list = [
 			c[0] for c in frappe.db.sql("""
 			SELECT phone FROM `tabContact` WHERE ifnull(sms_optin, 0) = 1 AND customer = "{customer}"
-			""".format(customer=self.customer))
+			""".format(customer=self.customer)) if str(c[0]).strip() != ''
 		]
+
+		if not receiver_list:
+			return
 
 		success, return_value = self.send_sms_via_gateway(receiver_list, msg)
 
