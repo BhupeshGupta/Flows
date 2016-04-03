@@ -8,7 +8,7 @@ from frappe.model.document import Document
 import frappe
 from frappe import _, throw
 from flows import utils
-from frappe.utils import today, now, cint
+from frappe.utils import today, now, cint, nowtime
 from erpnext.accounts.utils import get_fiscal_year
 from frappe.model.naming import make_autoname
 
@@ -51,6 +51,38 @@ class GoodsReceipt(Document):
 		self.sms_status = None
 		self.validate_book()
 		self.validate_unique()
+		self.deduplicate()
+
+	def deduplicate(self):
+		if frappe.form_dict.client == "app":
+			# Get current time - 1 hour
+			vars = self.as_dict()
+			time = nowtime()
+			time = time.split(':')
+			time[0] = str(int(time[0]) - 1)
+			time = ':'.join(time)
+
+			# set creation time to 1 hour back from current time
+			vars['creation'] = time
+
+			voucher = frappe.db.sql(
+				"""
+				select name
+				from `tabGoods Receipt`
+				where creation >= "{creation}"
+				and posting_date = "{posting_date}"
+				and customer = "{customer}"
+				and vehicle = "{vehicle}"
+				and item_delivered = "{item_delivered}"
+				and delivered_quantity = "{delivered_quantity}"
+				and item_received = "{item_received}"
+				and received_quantity = "{received_quantity}"
+				""".format(**vars), as_dict=True
+			)
+
+			if voucher:
+				frappe.throw( "Entry OK. Challan Number {}".format(voucher[0].name))
+
 
 	def validate_date(self):
 		gr_eod = frappe.db.get_single_value("End Of Day", "gr_eod")
@@ -65,6 +97,9 @@ class GoodsReceipt(Document):
 			frappe.throw("Day Closed: {}. Date is disabled for entry, will be allowed when previous day is closed".format(gr_eod))
 
 	def validate_unique(self):
+		if not self.goods_receipt_number:
+			return
+
 		rs = frappe.db.sql("select name from `tabPayment Receipt` where name=\"{0}\" or name like \"{0}-%\"".format(self.goods_receipt_number))
 		if len(rs) > 0:
 			throw("Payment Receipt with this serial already exists {}".format(self.goods_receipt_number))
