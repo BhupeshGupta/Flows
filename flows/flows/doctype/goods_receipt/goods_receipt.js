@@ -6,7 +6,13 @@ erpnext.flows.GoodsReceiptController = frappe.ui.form.Controller.extend({
 	},
 
 	refresh:function (doc, dt, dn) {
-    	this.frm.set_df_property("goods_receipt_number", "reqd", true);
+		if (this.frm.doc.__islocal) {
+    	    this.frm.set_df_property("goods_receipt_number", "reqd", true);
+		}
+		if (this.frm.doc.goods_receipt_number) {
+    	    this.frm.set_df_property("goods_receipt_number", "reqd", true);
+		}
+
 		console.log(doc);
 		if (doc.location_latitude && doc.location_longitude) {
 			var map_html_string = "<img src='https://maps.googleapis.com/maps/api/staticmap?zoom=15&size=600x300&maptype=roadmap&markers=color:blue|" + doc.location_latitude + "," + doc.location_longitude + "'/>";
