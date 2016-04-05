@@ -30,7 +30,7 @@ class IndentInvoice(StockController):
 	def before_submit(self):
 		if not self.posting_date:
 			self.posting_date = today()
-			self.fiscal_year = account_utils.get_fiscal_year(self.get("transaction_date"))[0]
+		self.fiscal_year = account_utils.get_fiscal_year(self.get("transaction_date"))[0]
 
 		self.validate_purchase_rate()
 		self.check_previous_doc()
@@ -609,7 +609,11 @@ class IndentInvoice(StockController):
 
 		registration = frappe.get_doc("OMC Customer Registration", self.omc_customer_registration)
 
-		sales_invoice_conf = get_sales_invoice_config(registration.sales_invoice_company, self.fiscal_year)
+		fiscal_year = account_utils.get_fiscal_year(self.get("posting_date"))[0]
+		sales_invoice_conf = get_sales_invoice_config(registration.sales_invoice_company, fiscal_year)
+		if not sales_invoice_conf:
+			frappe.throw("Sales Invoice Config Not Found For Year {}, Company {}".format(sales_invoice_conf,
+																						 registration.sales_invoice_company))
 
 		customer_object = frappe.get_doc("Customer", self.customer)
 
@@ -775,8 +779,12 @@ def get_landed_rate_for_customer(customer, date):
 def get_sales_invoice_config(company, fiscal_year):
 	config_map = [
 		frappe._dict({
-			'company': 'Arun Logistics', 'fiscal_year': '2015-16', 'naming_series': 'SCN-',
-			'credit_account': 'Service - AL', "cost_center": "Main - AL", "tc_name": "Consignment Note"
+		'company': 'Arun Logistics', 'fiscal_year': '2015-16', 'naming_series': 'SCN-',
+		'credit_account': 'Service - AL', "cost_center": "Main - AL", "tc_name": "Consignment Note"
+		},
+		{
+		'company': 'Arun Logistics', 'fiscal_year': '2016-17', 'naming_series': 'SCN-16-',
+		'credit_account': 'Service - AL', "cost_center": "Main - AL", "tc_name": "Consignment Note"
 		})
 	]
 
