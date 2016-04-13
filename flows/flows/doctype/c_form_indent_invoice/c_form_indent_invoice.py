@@ -36,6 +36,12 @@ class CFormIndentInvoice(Document):
 		self.end_date = end_d.strftime('%Y-%m-%d')
 		return start_d, end_d.strftime('%Y-%m-%d')
 
+	def get_conditions(self):
+		cond = []
+		if str(self.start_date) >= '2016-01-01':
+			cond.append(' sales_tax = "CST" ')
+		if not cond: cond.append(' 1=1 ')
+		return ' and '.join(cond)
 
 	def before_print(self):
 
@@ -53,13 +59,15 @@ class CFormIndentInvoice(Document):
 		AND i.supplier = s.name
 		AND s.tin_number = "{tin_no}"
 		AND i.customer = "{customer}"
-		AND i.transaction_date BETWEEN "{from_date}" AND "{to_date}";
+		AND i.transaction_date BETWEEN "{from_date}" AND "{to_date}"
+		AND {cond};
 		""".format(
 			tin_no=self.tin_no,
 			customer=self.customer,
 			from_date=self.start_date,
-			to_date=self.end_date), as_dict=True
-		)
+			to_date=self.end_date,
+			cond=self.get_conditions()
+		), as_dict=True)
 
 		self.invoices.append({
 		'invoice_number': 'Total',
@@ -79,9 +87,10 @@ class CFormIndentInvoice(Document):
 
 
 
-def get_quarter_start_end(fiscal_start_date, quarter):
+def get_quarter_start_end(fiscal_year, quarter):
 	from frappe.utils.data import add_months, get_last_day
 
+	fiscal_start_date = frappe.db.get_value('Fiscal Year', fiscal_year, 'year_start_date')
 	if quarter == 'I':
 		offset = 0
 	elif quarter == 'II':
@@ -96,8 +105,7 @@ def get_quarter_start_end(fiscal_start_date, quarter):
 
 
 def get_supplier_list(doctype, txt, searchfield, start, page_len, filters):
-	start_date = frappe.db.get_value('Fiscal Year', filters['fiscal_year'], 'year_start_date')
-	start_date, end_date = get_quarter_start_end(start_date, filters['quarter'])
+	start_date, end_date = get_quarter_start_end(filters['fiscal_year'], filters['quarter'])
 
 	return frappe.db.sql(
 		"""
