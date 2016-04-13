@@ -106,7 +106,7 @@ class CFormTool(Document):
 							email_list, sender='',
 							msg='',
 							subject='Submission of Form-C Quarterwise for in favour of {supplier} for {quarter} '
-									'Quarter of F.Y. {fiscal_year}.'.format(
+									'Quarter of F.Y. {fiscal_year}: {customer}'.format(
 								**cform),
 							formatted=False, print_html=email
 						)
