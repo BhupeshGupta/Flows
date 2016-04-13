@@ -6,14 +6,21 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import cint
 
+from flows.flows.doctype.c_form_indent_invoice.c_form_indent_invoice import get_quarter_start_end
+
 
 class CFormTool(Document):
 	def get_conditions(self):
 		cond = []
+		start, end = get_quarter_start_end(self.fiscal_year, self.quarter)
+		cond.append(' transaction_date between "{}" and "{}" '.format(start, end))
+
 		if self.supplier_filter:
 			cond.append('supplier like "{}"'.format(self.supplier_filter))
+
 		if not cond:
 			cond.append('1=1')
+
 		return ' and '.join(cond)
 
 	def generate_c_forms(self):
@@ -22,7 +29,8 @@ class CFormTool(Document):
 		from (
 			select DISTINCT i.customer, s.tin_number
 			from `tabIndent Invoice` i join `tabSupplier` s on i.supplier = s.name
-			where sales_tax='CST' AND {cond}
+			where i.sales_tax='CST' AND {cond}
+			and i.docstatus = 1
 		) t join `tabSupplier` s on s.tin_number=t.tin_number
 		where s.supplier_type='OMC STATE';
 		""".format(cond=self.get_conditions()), as_dict=True):
@@ -38,6 +46,7 @@ class CFormTool(Document):
 				frappe.msgprint("C Form Generated for {customer}".format(**pair))
 			except Exception as e:
 				frappe.msgprint("Failed to create c form for {customer}".format(**pair))
+		frappe.msgprint("Done")
 
 	def send_reminders(self):
 		for cform in frappe.db.sql("""
