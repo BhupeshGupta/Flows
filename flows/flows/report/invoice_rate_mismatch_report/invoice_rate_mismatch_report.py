@@ -23,8 +23,7 @@ def get_data(filters):
 	final_log_set = []
 	for i in frappe.db.sql("""
 	select * from `tabIndent Invoice`
-	where ifnull(sales_tax, '') = ''
-	and docstatus = 1
+	where docstatus = 1
 	and transaction_date > '2015-04-01'
 	and item not like '%BK'
 	and item like 'FC%'
@@ -77,7 +76,6 @@ def get_data(filters):
 
 			rate_diff = round((expected - i.actual_amount) / qty, 2)
 
-			# final_log_set.append(', '.join(['Skipping', i.transaction_date, i.name, i.customer, rate_diff]))
 			if abs(rate_diff) >= .10:
 				final_log_set.append([
 					i.name, i.transaction_date, rate_diff, i.customer, i.supplier, i.qty, i.item, cpv
