@@ -13,7 +13,8 @@ def execute(filters=None):
 		"Customer::250",
 		"Supplier::250",
 		"Item::",
-		"Qty::"
+		"Qty::",
+		'CPV:Link/Customer Plant Variables:100',
 	]
 	return columns, get_data(filters)
 
@@ -79,7 +80,7 @@ def get_data(filters):
 			# final_log_set.append(', '.join(['Skipping', i.transaction_date, i.name, i.customer, rate_diff]))
 			if abs(rate_diff) >= .10:
 				final_log_set.append([
-					i.name, i.transaction_date, rate_diff, i.customer, i.supplier, i.qty, i.item
+					i.name, i.transaction_date, rate_diff, i.customer, i.supplier, i.qty, i.item, cpv
 				])
 
 		except Exception as e:
