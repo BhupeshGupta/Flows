@@ -575,7 +575,7 @@ class IndentInvoice(StockController):
 		if not commercial_invoice.tc_name:
 			return ""
 
-		terms_template = frappe.get_doc('Terms and Conditions', commercial_invoice['tc_name']).terms
+		terms_template = frappe.get_doc('Terms and Conditions', commercial_invoice.tc_name).terms
 
 		if not terms_template:
 			return ""
