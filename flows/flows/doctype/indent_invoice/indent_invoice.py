@@ -572,7 +572,7 @@ class IndentInvoice(StockController):
 		credit_note = kwargs['credit_note'] if 'credit_note' in kwargs else None
 		credit_amount = kwargs['credit_note'].total_credit if 'credit_note' in kwargs and kwargs['credit_note'] else 0
 
-		if not ("tc_name" in commercial_invoice and commercial_invoice['tc_name'] != ''):
+		if not commercial_invoice.tc_name:
 			return ""
 
 		terms_template = frappe.get_doc('Terms and Conditions', commercial_invoice['tc_name']).terms
