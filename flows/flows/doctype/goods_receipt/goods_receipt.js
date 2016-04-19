@@ -6,7 +6,7 @@ erpnext.flows.GoodsReceiptController = frappe.ui.form.Controller.extend({
 	},
 
 	refresh:function (doc, dt, dn) {
-		if (this.frm.doc.__islocal) {
+		if (this.frm.doc.__islocal && this.frm.doc.amended_from == '') {
     	    this.frm.set_df_property("goods_receipt_number", "reqd", true);
 		}
 		if (this.frm.doc.goods_receipt_number) {
