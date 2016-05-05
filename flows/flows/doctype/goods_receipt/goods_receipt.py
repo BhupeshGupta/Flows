@@ -52,6 +52,23 @@ class GoodsReceipt(Document):
 		self.validate_book()
 		self.validate_unique()
 		self.deduplicate()
+		self.update_trip()
+
+	def update_trip(self):
+		if self.trip_id:
+			return
+
+		trip = frappe.db.sql("""
+		select name
+		from `tabVehicle Trip`
+		where vehicle = '{}'
+		and ifnull(in_gatepass, '') = ''
+		""".format(self.vehicle))
+
+		if not trip:
+			return
+
+		self.trip_id = trip[0][0]
 
 	def deduplicate(self):
 		if frappe.form_dict.client == "app":

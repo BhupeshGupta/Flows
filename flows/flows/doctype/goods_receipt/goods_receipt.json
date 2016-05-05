@@ -358,6 +358,7 @@
    "fieldname": "sms_tracker", 
    "fieldtype": "Data", 
    "label": "SMS Tracker", 
+   "no_copy": 1, 
    "permlevel": 0, 
    "precision": "", 
    "read_only": 1
@@ -372,12 +373,28 @@
    "fieldname": "sms_status", 
    "fieldtype": "Data", 
    "label": "SMS Status", 
+   "no_copy": 1, 
    "permlevel": 0, 
    "precision": "", 
    "read_only": 1
   }, 
   {
    "fieldname": "column_break_36", 
+   "fieldtype": "Section Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "trip_id", 
+   "fieldtype": "Link", 
+   "label": "Trip Id", 
+   "no_copy": 1, 
+   "options": "Vehicle Trip", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "column_break_38", 
    "fieldtype": "Column Break", 
    "permlevel": 0, 
    "precision": ""
@@ -496,7 +513,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2016-04-02 12:33:13.332308", 
+ "modified": "2016-04-25 17:17:08.467225", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Goods Receipt", 
