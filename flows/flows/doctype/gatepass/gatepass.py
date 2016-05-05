@@ -31,10 +31,25 @@ class Gatepass(Document):
 	def on_submit(self):
 		self.transfer_stock()
 		self.make_gl_entry()
+		self.update_trip()
 
 	def on_cancel(self):
 		self.transfer_stock()
 		self.make_gl_entry()
+
+	def update_trip(self):
+		if self.amended_from:
+			frappe.db.sql("""
+			update `tabVehicle Trip`
+			set out_gatepass = '{}'
+			where out_gatepass = '{}'
+			""".format(self.name, self.amended_from))
+
+			frappe.db.sql("""
+			update `tabVehicle Trip`
+			set in_gatepass = '{}'
+			where in_gatepass = '{}'
+			""".format(self.name, self.amended_from))
 
 	def transfer_stock(self):
 
