@@ -12,7 +12,7 @@ from frappe.model.document import Document
 from frappe.utils import cstr
 from frappe.utils.csvutils import UnicodeWriter
 
-f = ['enabled', 'customer', 'plant', 'discount_in_invoice', 'discount_via_credit_note', 'incentive', 'transportation',
+f = ['enabled', 'customer', 'plant', 'discount', 'discount_via_credit_note', 'incentive', 'transportation',
 	 'contract_number', 'payment_mode', 'sales_tax']
 
 
@@ -197,7 +197,7 @@ def export_hpcl_file(plant, date):
 	# write out response as a type csv
 	frappe.response['result'] = fp.getvalue()
 	frappe.response['type'] = 'csv'
-	frappe.response['doctype'] = "Customer Plant Variables"
+	frappe.response['doctype'] = "HPCL Discount File"
 
 
 @frappe.whitelist()
