@@ -47,7 +47,7 @@ def get_data(filters):
 	root.debug(invoices)
 
 	for invoice in invoices:
-		incentive_on_investment_per_kg = get_omc_customer_variables(invoice.customer, invoice.transaction_date)
+		incentive_on_investment_per_kg = get_omc_customer_registration(invoice.customer, invoice.transaction_date)
 		incentive_on_investment = incentive_on_investment_per_kg * get_conversion_factor_item(invoice.item) * invoice.qty
 
 		net_incentive = (incentive_per_cylinder[invoice.item] * invoice.qty) + incentive_on_investment
@@ -70,10 +70,10 @@ def get_data(filters):
 	return rows
 
 
-def get_omc_customer_variables(customer, date):
+def get_omc_customer_registration(customer, date):
 	val = frappe.db.sql("""
 	select incentive_on_investment, docstatus
-	from `tabOMC Customer Variables`
+	from `tabOMC Customer Registration`
 	where customer = "{customer}"
 	and omc = "IOCL"
 	and docstatus != 2
@@ -82,14 +82,14 @@ def get_omc_customer_variables(customer, date):
 	""".format(customer=customer, date=date), as_dict=True)
 
 	if not val:
-		frappe.throw("OMC Customer Variable not found for customer `{}`.".format(
+		frappe.throw("OMC Customer Registration not found for customer `{}`.".format(
 			customer
 		))
 
 	val = val[0]
 
 	if cint(val.docstatus) == 0:
-		frappe.throw("OMC Customer Variable for customer `{}` is in pending state. Please get it approved.".format(
+		frappe.throw("OMC Customer Registration for customer `{}` is in pending state. Please get it approved.".format(
 			customer
 		))
 
