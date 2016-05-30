@@ -487,7 +487,7 @@ def validate_c_form(customer, plant, billing_date):
 		if 'iocl' in plant.lower():
 			return 60
 		elif 'hpcl' in plant.lower():
-			return 123
+			return 120
 		elif 'bpcl' in plant.lower():
 			return 365
 
@@ -508,7 +508,7 @@ def validate_c_form(customer, plant, billing_date):
 
 		warn_date = add_days(c_form.end_date, days - 15)
 
-		stop_date = add_days(c_form.end_date, days)
+		stop_date = add_days(c_form.end_date, days + 1)
 
 		if billing_date > stop_date:
 			frappe.throw(
