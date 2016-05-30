@@ -6,6 +6,43 @@ erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
         this.set_fields(this.frm.doc, null, null);
     },
 
+    content_url: function (url) {
+        url = url.split("proxy/alfresco/api/node/");
+        url[1].replace("/", "://");
+        url = url[0] + 'page/site/receiving/document-details?nodeRef=' + url[1];
+        url = url.split("/content/thumbnails/imgpreview");
+        url = url[0];
+        console.log(url);
+        return url;
+    },
+
+    refresh: function () {
+        var doc = this.frm.doc;
+        var map_html_string = '';
+        vm = this;
+        if (doc.receiving_file) {
+            map_html_string +=
+            '<a target="_blank" href="' + this.content_url(doc.receiving_file) + '">'+
+                '<img src="' + doc.receiving_file + '"/><p>Indent Invoice</p>' +
+            '</a>';
+        }
+
+        var dataBank = JSON.parse(doc.data_bank);
+
+        if (dataBank.receivings) {
+            $.each(dataBank.receivings, function(key, value) {
+                map_html_string +='<a target="_blank" href="' + vm.content_url(value) +'">'+'<img src="' + value + '"/><p>' + key + '</p>'+ '</a>';
+                console.log(key, value)
+            });
+        }
+
+        if (map_html_string) {
+			$(this.frm.fields_dict['receiving_image'].wrapper).html('<div class="indentInvoiceReceivingImg">' + map_html_string + '</div>');
+		} else {
+			$(this.frm.fields_dict['receiving_image'].wrapper).html('');
+		}
+    },
+
     set_plant_query: function (field) {
         if (this.frm.fields_dict[field]) {
             this.frm.set_query(field, function () {

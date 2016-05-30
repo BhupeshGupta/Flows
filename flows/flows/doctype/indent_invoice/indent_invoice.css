@@ -1,0 +1,23 @@
+.indentInvoiceReceivingImg {
+    position: fixed;
+    right: 0;
+    width: 120px;
+    height: inherit;
+    border: 1px solid #ccc;
+    padding: 5px;
+    top: 40%;
+}
+
+.indentInvoiceReceivingImg img {
+    width: 100%;
+}
+.indentInvoiceReceivingImg p{
+   text-align: center;
+}
+
+@media screen and (max-width: 767px) {
+    .indentInvoiceReceivingImg {
+        width: 80px;
+        top: 210px;
+    }
+ }
