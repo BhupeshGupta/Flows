@@ -31,7 +31,8 @@ def get_meta(doc):
 		return_doc.update(
 			frappe.db.sql("""
 			select name as `Consignment Name`, posting_date as `Consignment Date`,
-			grand_total_export as `Consignment Amount`, company as `Consignment Company`
+			grand_total_export as `Consignment Amount`, company as `Consignment Company`,
+			amended_from as `$amended_from`
 			from `tab{doctype}`
 			where (
 			name = '{name}'
