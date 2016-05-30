@@ -127,7 +127,8 @@ scheduler_events = {
 doctype_js = {
 "Warehouse": ["asserts/js/warehouse.js"],
 "Journal Voucher": ["c_scripts/journal_voucher.js"],
-"Customer": ["c_scripts/customer.js"]
+"Customer": ["c_scripts/customer.js"],
+"Sales Invoice": ["c_scripts/sales_invoice.js"],
 }
 
 # Overriding Whitelisted Methods
