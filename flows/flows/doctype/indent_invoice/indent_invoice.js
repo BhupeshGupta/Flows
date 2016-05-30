@@ -9,7 +9,7 @@ erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
     content_url: function (url) {
         url = url.split("proxy/alfresco/api/node/");
         url[1].replace("/", "://");
-        url = url[0] + 'page/site/receiving/document-details?nodeRef=' + url[1];
+        url = url[0] + 'page/site/receivings/document-details?nodeRef=' + url[1];
         url = url.split("/content/thumbnails/imgpreview");
         url = url[0];
         console.log(url);
