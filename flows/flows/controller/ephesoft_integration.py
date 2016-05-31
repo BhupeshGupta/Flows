@@ -54,6 +54,9 @@ def get_meta(doc):
 def create_docs_in_review_server(doc, method=None, *args, **kwargs):
 	docs = []
 
+	if doc.transaction_date < '2016-06-01':
+		return
+
 	sales_invoice_amended_from = frappe.db.get_value("Sales Invoice", doc.transportation_invoice, 'amended_from')
 
 	# Normalizations
@@ -73,8 +76,6 @@ def create_docs_in_review_server(doc, method=None, *args, **kwargs):
 
 	for sails_doc in docs:
 		data = requests.post('{}/currentstat/'.format(frappe.conf.document_queue_server), sails_doc)
-		root.debug(data)
-
 
 @frappe.whitelist()
 def get_user():
