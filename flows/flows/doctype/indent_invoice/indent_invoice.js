@@ -27,13 +27,17 @@ erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
             '</a>';
         }
 
-        var dataBank = JSON.parse(doc.data_bank);
+        if (doc.data_bank) {
 
-        if (dataBank.receivings) {
-            $.each(dataBank.receivings, function(key, value) {
-                map_html_string +='<a target="_blank" href="' + vm.content_url(value) +'">'+'<img src="' + value + '"/><p>' + key + '</p>'+ '</a>';
-                console.log(key, value)
-            });
+            var dataBank = JSON.parse(doc.data_bank);
+
+            if (dataBank.receivings) {
+                $.each(dataBank.receivings, function(key, value) {
+                    map_html_string +='<a target="_blank" href="' + vm.content_url(value) +'">'+'<img src="' + value + '"/><p>' + key + '</p>'+ '</a>';
+                    console.log(key, value)
+                });
+            }
+
         }
 
         if (map_html_string) {
