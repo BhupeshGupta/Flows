@@ -677,8 +677,10 @@ class IndentInvoice(StockController):
 			consignment_note_json_doc["taxes_and_charges"] = "Road Transport"
 		elif consignment_note_json_doc['posting_date'] < '2015-11-15':
 			consignment_note_json_doc["taxes_and_charges"] = "Road Transport_June_1_15"
-		else:
+		elif consignment_note_json_doc['posting_date'] < '2016-06-01':
 			consignment_note_json_doc["taxes_and_charges"] = "Road Transport_Nov_15_15"
+		else:
+			consignment_note_json_doc["taxes_and_charges"] = "Road Transport_June_1_16"
 
 		consignment_note_json_doc[
 			"tax_paid_by_supplier"

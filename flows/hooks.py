@@ -95,6 +95,9 @@ doc_events = {
 	},
 	"Customer": {
 		"onload": "flows.flows.custom_validation.customer_onload"
+	},
+	"Indent Invoice": {
+		"on_submit": "flows.flows.controller.ephesoft_integration.create_docs_in_review_server"
 	}
 }
 
