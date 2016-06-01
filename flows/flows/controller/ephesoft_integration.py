@@ -77,6 +77,20 @@ def create_docs_in_review_server(doc, method=None, *args, **kwargs):
 	for sails_doc in docs:
 		data = requests.post('{}/currentstat/'.format(frappe.conf.document_queue_server), sails_doc)
 
+		if (data.status_code != 200):
+			content = json.loads(data.content)
+
+			if 'invalidAttributes' in content and \
+				len(content['invalidAttributes'].keys()) == 1 and \
+				 'unique_notes' in content['invalidAttributes']:
+				continue
+
+			raise Exception(
+				'Document Queue Server returned {} \n {}'.\
+					format(data.status_code, data.content)
+			)
+
+
 @frappe.whitelist()
 def get_user():
 	return json.dumps({'user': frappe.session.user})
