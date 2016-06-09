@@ -41,6 +41,8 @@ class Indent(Document):
 				indent_item.ship_to = indent_item.customer
 			validate_c_form(indent_item.customer, self.plant, self.posting_date)
 
+		for i, indent in  enumerate(sorted(self.indent, key=lambda x: (x.credit_account, x.item))):
+			indent.idx = i + 1
 
 	def on_submit(self):
 		self.process_material_according_to_indent()
