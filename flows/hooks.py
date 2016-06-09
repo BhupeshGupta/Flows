@@ -158,5 +158,6 @@ jenv_filter = [
 	'report_build_erv_item_map:flows.jinja_filters.report_build_erv_item_map',
 	'get_item_qty_aggr_gatepass:flows.jinja_filters.get_item_qty_aggr_gatepass',
 	'get_account_code:flows.jinja_filters.get_account_code',
-	'get_address_display_name:flows.jinja_filters.get_address_display_name'
+	'get_address_display_name:flows.jinja_filters.get_address_display_name',
+	'get_omc_item_mapped:flows.jinja_filters.get_omc_item_mapped'
 ]

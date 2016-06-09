@@ -12,6 +12,14 @@
 		margin-top: 10px;
 		margin-bottom: 5px;
 	}
+
+	.item {
+	    font-size: 11px;
+	}
+
+	.customer {
+		font-size: 11px;
+	}
 </style>
 
 <div>
@@ -74,6 +82,11 @@
 					<th>
 						Cap In KG
 					</th>
+				    {% if doc.naming_series == 'BPC' %}
+                        <th>
+						Item
+					    </th>
+                    {% endif %}
                     {% if one_way_indent %}
                         <th>
                             Oneway
@@ -81,6 +94,9 @@
                     {% endif %}
 					<th>
 						Refill
+					</th>
+				    <th>
+						S.Tax
 					</th>
 					<th>
 						Modvat
@@ -104,7 +120,7 @@
 						<td>
 							{{ indent_item.idx }}
 						</td>
-						<td>
+						<td class="customer">
 							{{ indent_item.customer }}
 						</td>
 						<td>
@@ -118,9 +134,14 @@
 						<td>
 							{{ indent_item.customer | get_customer_tin_number }}
 						</td>
-						<td>
+						<td class="item">
 							{{ frappe.db.get_value("Item", indent_item.item, "description") }}
 						</td>
+                        {% if doc.naming_series == 'BPC' %}
+                            <td>
+                            {{ indent_item.item | get_omc_item_mapped('BPC') }}
+                            </td>
+                        {% endif %}
                         {% if one_way_indent %}
                             <td>
                                 {% if indent_item.load_type == 'Oneway' %}
@@ -132,6 +153,9 @@
 							{% if indent_item.load_type == 'Refill' %}
 								{{ indent_item.qty }}
 							{% endif %}
+						</td>
+					    <td>
+                            {{ indent_item.sales_tax }}
 						</td>
 						<td>
 							{{ indent_item.customer | get_cenvat_status(doc.posting_date, doc.plant) or '' }}
@@ -161,7 +185,10 @@
 						<td></td>
 					{% endif %}
 					<td></td>
-					<td>Total in M.T.</td>
+					<td class="item">Total in M.T.</td>
+				    {% if doc.naming_series == 'BPC' %}
+                             <td></td>
+                    {% endif %}
                     {% if one_way_indent %}
                         <td>{{ doc.indent| indent_oneway_qty }}</td>
                     {% endif %}
@@ -169,6 +196,7 @@
 					{% if doc.naming_series != 'HPC' %}
                         <td></td>
                     {% endif %}
+				    <td></td>
 					<td></td>
 					<td></td>
 					<td>{{ frappe.format_value(doc.grand_total | round(2), {'fieldtype': 'Currency'}) }}</td>

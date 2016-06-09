@@ -117,7 +117,7 @@ def get_cenvat_status(customer_name, date, plant):
     WHERE name = "{customer}"
     """.format(customer=customer_name))
 
-	return "MODVAT" if cint(rs[0][0]) == 1 else "NONMODVAT"
+	return "YES" if cint(rs[0][0]) == 1 else "NO"
 
 
 def get_address_display(address_of, address_type):
@@ -173,3 +173,12 @@ def get_account_code(customer, plant, account_type=None, date=None):
 
 
 
+def get_omc_item_mapped(item, omc):
+	return {
+		'BPC': {
+			'FC19': '5400',
+			'FC35': '5500',
+			'FC47.5': '5600',
+			'FC47.5L': '5690'
+		}
+	}[omc][item]
