@@ -25,6 +25,10 @@
 		font-size: 11px;
 	}
 
+	.amount {
+		text-align: right;
+	}
+
 	.group1 {
 
 	}
@@ -191,10 +195,10 @@
 	                            {{ indent_item.customer | get_account_code(doc.plant, indent_item.credit_account, doc.posting_date) }}
                             </td>
                         {% endif %}
-						<td>
+						<td class="amount">
 							{{ frappe.format_value(indent_item.rate | round(2), {'fieldtype': 'Currency'}) }}
 						</td>
-						<td>
+						<td class="amount">
 							{{ frappe.format_value(indent_item.amount | round(2), {'fieldtype': 'Currency'}) }}
 						</td>
 					</tr>
@@ -223,7 +227,9 @@
 				    <td></td>
 					<td></td>
 					<td></td>
-					<td>{{ frappe.format_value(doc.grand_total | round(2), {'fieldtype': 'Currency'}) }}</td>
+					<td class="amount">
+						{{ frappe.format_value(doc.grand_total | round(2), {'fieldtype': 'Currency'}) }}
+					</td>
 				</tr>
 
 
