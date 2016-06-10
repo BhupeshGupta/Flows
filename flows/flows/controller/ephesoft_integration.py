@@ -68,21 +68,20 @@ def create_docs_in_review_server(doc, method=None, *args, **kwargs):
 	# Consignment note
 	docs.append({'cno': doc.transportation_invoice_number, 'doctype': "Consignment Note", 'date': doc.posting_date})
 
-	if (doc.sales_tax == 'CST'):
+	if doc.sales_tax == 'CST':
 		docs.append({'cno': doc.transportation_invoice_number, 'doctype': "VAT Form XII", 'date': doc.transaction_date})
 
-	if ('hpcl' in doc.supplier.lower() and cint(doc.cenvat) == 1):
+	if 'hpcl' in doc.supplier.lower() and cint(doc.cenvat) == 1:
 		docs.append({'cno': doc.transportation_invoice_number, 'doctype': "Excise Invoice", 'date': doc.transaction_date})
 
 	for sails_doc in docs:
 		data = requests.post('{}/currentstat/'.format(frappe.conf.document_queue_server), sails_doc)
 		root.debug(sails_doc)
 
-		if (data.status_code not in [200, 201]):
+		if data.status_code not in [200, 201]:
+			root.debug((data.status_code, content))
 			content = json.loads(data.content)
 
-			root.debug(content)
-            #
 			if 'invalidAttributes' in content and \
 				len(content['invalidAttributes'].keys()) == 1 and \
 				 'unique_notes' in content['invalidAttributes']:
