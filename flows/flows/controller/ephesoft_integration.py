@@ -52,6 +52,9 @@ def get_meta(doc):
 
 
 def create_docs_in_review_server(doc, method=None, *args, **kwargs):
+	if frappe.conf.document_disabled:
+		return
+	
 	docs = []
 
 	if doc.transaction_date < '2016-06-01':
