@@ -20,6 +20,13 @@
 	.customer {
 		font-size: 11px;
 	}
+
+	.group1 {
+
+	}
+	.group2 {
+        background-color: #ccc !important;
+	}
 </style>
 
 <div>
@@ -55,6 +62,11 @@
 	{% set show_contract = doc.naming_series == 'IOC' %}
 
     {% set one_way_indent = doc.indent|indent_oneway_qty > 0 %}
+
+    {% set payment_group_cycle = cycler('group2', 'group1') %}
+    {% set item_group_cycle = cycler('group2', 'group1') %}
+    {% set last_payment = '' %}
+    {% set last_item = '' %}
 
 
 	<div class="row clearfix">
@@ -116,6 +128,16 @@
 				</thead>
 				<tbody>
 				{% for indent_item in doc.indent %}
+
+					{% if last_payment != indent_item.credit_account %}
+						{% set last_payment = indent_item.credit_account %}
+						<span style="display: none">{{ payment_group_cycle.next() }}</span>
+					{% endif %}
+					{% if last_item != indent_item.item %}
+						{% set last_item = indent_item.item %}
+						<span style="display: none">{{ item_group_cycle.next() }}</span>
+					{% endif %}
+
 					<tr>
 						<td>
 							{{ indent_item.idx }}
@@ -134,11 +156,11 @@
 						<td>
 							{{ indent_item.customer | get_customer_tin_number }}
 						</td>
-						<td class="item">
+						<td class="item {{ item_group_cycle.current }}">
 							{{ frappe.db.get_value("Item", indent_item.item, "description") }}
 						</td>
                         {% if doc.naming_series == 'BPC' %}
-                            <td>
+                            <td class="{{ item_group_cycle.current }}">
                             {{ indent_item.item | get_omc_item_mapped('BPC') }}
                             </td>
                         {% endif %}
@@ -161,9 +183,8 @@
 							{{ indent_item.customer | get_cenvat_status(doc.posting_date, doc.plant) or '' }}
 						</td>
                         {% if doc.naming_series != 'HPC' %}
-                            <td>
+                            <td class="{{ payment_group_cycle.current }}">
 	                            {{ indent_item.customer | get_account_code(doc.plant, indent_item.credit_account, doc.posting_date) }}
-
                             </td>
                         {% endif %}
 						<td>
