@@ -17,8 +17,16 @@
 	    font-size: 11px;
 	}
 
+	.item.lastrow {
+		text-align: right;
+	}
+
 	.customer {
 		font-size: 11px;
+	}
+
+	.amount {
+		text-align: right;
 	}
 
 	.group1 {
@@ -187,10 +195,10 @@
 	                            {{ indent_item.customer | get_account_code(doc.plant, indent_item.credit_account, doc.posting_date) }}
                             </td>
                         {% endif %}
-						<td>
+						<td class="amount">
 							{{ frappe.format_value(indent_item.rate | round(2), {'fieldtype': 'Currency'}) }}
 						</td>
-						<td>
+						<td class="amount">
 							{{ frappe.format_value(indent_item.amount | round(2), {'fieldtype': 'Currency'}) }}
 						</td>
 					</tr>
@@ -205,22 +213,23 @@
 					{% if show_contract %}
 						<td></td>
 					{% endif %}
-					<td></td>
-					<td class="item">Total in M.T.</td>
+					<td colspan="2" class="item lastrow">Total in M.T.</td>
 				    {% if doc.naming_series == 'BPC' %}
                              <td></td>
                     {% endif %}
                     {% if one_way_indent %}
-                        <td>{{ doc.indent| indent_oneway_qty }}</td>
+                        <td>{{ doc.indent| indent_oneway_qty | round(2) }}</td>
                     {% endif %}
-					<td>{{ doc.indent| indent_refill_qty }}</td>
+					<td>{{ doc.indent| indent_refill_qty | round(2) }}</td>
 					{% if doc.naming_series != 'HPC' %}
                         <td></td>
                     {% endif %}
 				    <td></td>
 					<td></td>
 					<td></td>
-					<td>{{ frappe.format_value(doc.grand_total | round(2), {'fieldtype': 'Currency'}) }}</td>
+					<td class="amount">
+						{{ frappe.format_value(doc.grand_total | round(2), {'fieldtype': 'Currency'}) }}
+					</td>
 				</tr>
 
 
