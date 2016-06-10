@@ -79,8 +79,9 @@ def create_docs_in_review_server(doc, method=None, *args, **kwargs):
 		root.debug(sails_doc)
 
 		if data.status_code not in [200, 201]:
+			content = data.content
 			root.debug((data.status_code, content))
-			content = json.loads(data.content)
+			content = json.loads(content)
 
 			if 'invalidAttributes' in content and \
 				len(content['invalidAttributes'].keys()) == 1 and \
