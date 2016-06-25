@@ -42,14 +42,12 @@ erpnext.flows.IndentInvoiceReceiving = frappe.ui.form.Controller.extend({
 	//},
 
 	print_consignment_note:function (doc, cdt, cdn) {
-		console.log("Hello");
 
 		var names = [];
 		$.each(doc.entries, function (index, value) {
-			if (value.printable == 1) {
-				console.log(value);
+			//if (value.printable == 1) {
 				names.push(value.transportation_invoice);
-			}
+			//}
 		});
 
 		var name = '["' + names.join('","') + '"]';
