@@ -100,25 +100,25 @@ def get_data():
 					"type": "report",
 					"is_query_report": True,
 					"name": "Flows Stock Ledger",
-					"doctype": "Item",
+					"doctype": "Goods Receipt",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Flows Stock Balance",
-					"doctype": "Item",
+					"doctype": "Goods Receipt",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Flows Empty Report",
-					"doctype": "Item",
+					"doctype": "Goods Receipt",
 				},
 			    {
 					"type": "report",
 					"is_query_report": True,
 					"name": "Filled Ledger",
-					"doctype": "Item",
+					"doctype": "Indent Invoice",
 				},
 				{
 					"type": "report",
@@ -130,7 +130,7 @@ def get_data():
 					"type": "report",
 					"is_query_report": True,
 					"name": "Purchase Sale",
-					"doctype": "Item",
+					"doctype": "Indent Invoice",
 				}
 			]
 		},
