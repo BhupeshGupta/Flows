@@ -42,6 +42,10 @@ frappe.ui.form.on_change("Sales Invoice", "refresh", function (frm) {
 
 	console.log('Sales Invoice Refresh Event');
 
+	if (!frm.fields_dict['receiving_image']) {
+		return;
+	}
+
 	var doc = frm.doc;
 	var map_html_string = '';
 	if (doc.receiving_file) {
