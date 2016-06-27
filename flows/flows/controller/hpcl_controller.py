@@ -91,7 +91,7 @@ def fetch_and_record_hpcl_balance(for_date=None):
 	SELECT master_name as name, username, password
 	FROM `tabAccount`
 	WHERE name like "Hpcl a/c %"
-	and ifnull(password) != ''
+	and ifnull(password, '') != ''
 	""", as_dict=True)
 
 	customer_defer_list = []
