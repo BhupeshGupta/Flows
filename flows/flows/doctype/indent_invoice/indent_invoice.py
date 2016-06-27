@@ -214,6 +214,23 @@ class IndentInvoice(StockController):
 		if 'Aggarwal' in self.supplier:
 			frappe.throw("Use of Indent Invoice for `Aggarwal Enterprises` bills is deprecated. Please use Subcontracted Invoice from the same.")
 
+		if not cint(self.indent_linked):
+			registration = frappe.db.sql("""
+			select name, default_credit_account, docstatus
+			from `tabOMC Customer Registration`
+			where customer= "{customer}"
+			and omc= "{omc}"
+			and docstatus != 2
+			and with_effect_from <= DATE("{posting_date}")
+			ORDER BY with_effect_from DESC LIMIT 1;
+			""".format(
+				omc=self.supplier.split(' ')[0].capitalize(),
+				customer=self.customer,
+				posting_date=self.transaction_date
+			), as_dict=True)[0]
+
+			self.omc_customer_registration = registration.name
+
 		return super(IndentInvoice, self).validate()
 
 	def validate_purchase_rate(self):
