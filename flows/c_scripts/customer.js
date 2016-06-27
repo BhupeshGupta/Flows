@@ -1,6 +1,6 @@
 cur_frm.cscript.custom_refresh = function (doc, dt, dn) {
 
-	if (!cur_frm.fields_dict['omc_customer_list_html']) {
+	if (!(cur_frm.fields_dict['omc_customer_list_html'] && frappe.templates.omc_customer_variable_list)) {
 		return;
 	}
 
