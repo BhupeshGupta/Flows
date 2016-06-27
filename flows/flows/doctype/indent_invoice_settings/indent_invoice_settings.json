@@ -104,6 +104,15 @@
    "permlevel": 0, 
    "precision": "", 
    "reqd": 1
+  }, 
+  {
+   "default": "1", 
+   "fieldname": "price_check", 
+   "fieldtype": "Check", 
+   "label": "Price Check", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
   }
  ], 
  "hide_heading": 0, 
@@ -113,7 +122,7 @@
  "is_submittable": 0, 
  "issingle": 1, 
  "istable": 0, 
- "modified": "2015-03-24 08:19:11.413255", 
+ "modified": "2016-06-27 15:50:49.224620", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice Settings", 

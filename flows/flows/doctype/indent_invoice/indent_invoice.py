@@ -27,12 +27,17 @@ class IndentInvoice(StockController):
 	def __init__(self, *args, **kwargs):
 		super(IndentInvoice, self).__init__(*args, **kwargs)
 
+		self.indent_invoice_settings = frappe.db.get_values_from_single(
+			'*', None, 'Indent Invoice Settings', as_dict=True)[0]
+
 	def before_submit(self):
 		if not self.posting_date:
 			self.posting_date = today()
 		self.fiscal_year = account_utils.get_fiscal_year(self.get("transaction_date"))[0]
 
-		self.validate_purchase_rate()
+		if cint(self.indent_invoice_settings.price_check):
+			self.validate_purchase_rate()
+
 		self.check_previous_doc()
 		self.make_gl_entries()
 		self.make_stock_refill_entry()
@@ -98,6 +103,9 @@ class IndentInvoice(StockController):
 				frappe.throw("Indent {} not found. check if is canceled, amended or deleted".format(
 					self.indent
 				))
+
+		if not cint(self.indent_invoice_settings.price_check):
+			return
 
 		cpv = frappe.get_doc("Customer Plant Variables", self.customer_plant_variables)
 
@@ -511,8 +519,7 @@ class IndentInvoice(StockController):
 			return
 
 		# Pull out config
-		indent_invoice_settings = frappe.db.get_values_from_single(
-			'*', None, 'Indent Invoice Settings', as_dict=True)[0]
+		indent_invoice_settings = self.indent_invoice_settings
 
 		# Check if we are instructed to raise bills
 		if not indent_invoice_settings.auto_raise_consignment_notes == '1':
