@@ -1,4 +1,9 @@
 cur_frm.cscript.custom_refresh = function (doc, dt, dn) {
+
+	if (!cur_frm.fields_dict['omc_customer_list_html']) {
+		return;
+	}
+
     if(doc.__islocal) {
 		hide_field(['omc_customer_list_html']);
 	} else {
