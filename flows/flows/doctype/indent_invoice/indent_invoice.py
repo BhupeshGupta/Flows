@@ -214,6 +214,23 @@ class IndentInvoice(StockController):
 		if 'Aggarwal' in self.supplier:
 			frappe.throw("Use of Indent Invoice for `Aggarwal Enterprises` bills is deprecated. Please use Subcontracted Invoice from the same.")
 
+		if not cint(self.indent_linked):
+			registration = frappe.db.sql("""
+			select name, default_credit_account, docstatus
+			from `tabOMC Customer Registration`
+			where customer= "{customer}"
+			and omc= "{omc}"
+			and docstatus != 2
+			and with_effect_from <= DATE("{posting_date}")
+			ORDER BY with_effect_from DESC LIMIT 1;
+			""".format(
+				omc=self.supplier.split(' ')[0].capitalize(),
+				customer=self.customer,
+				posting_date=self.transaction_date
+			), as_dict=True)[0]
+
+			self.omc_customer_registration = registration.name
+
 		return super(IndentInvoice, self).validate()
 
 	def validate_purchase_rate(self):
@@ -252,6 +269,28 @@ class IndentInvoice(StockController):
 			)
 
 		self.populate_reports(tax=pricing_detail['tax']+pricing_detail['surcharge'])
+
+	def validate_margin(self, applicable_transport):
+		cpv = frappe.get_doc("Customer Plant Variables", self.customer_plant_variables)
+		customer = frappe.get_doc("Customer", self.customer)
+
+		material_in_kg = self.qty * float(self.item.replace('FC', '').replace('L', ''))
+
+		# Incentive + handling + transport + discount (if ours)
+		margin = cpv.incentive + self.handling_charges/material_in_kg + applicable_transport
+		if cint(cpv.dcn_ba_benefit):
+			margin += cpv.discount_via_credit_note
+
+		expected_margin = customer.margin_per_kg
+
+		if not expected_margin:
+			frappe.throw("Margin not set in Customer Master!")
+
+		margin_diff = round(margin - expected_margin, 2)
+
+		if round(margin_diff, 2) <= -0.05:
+			frappe.throw("Margin Erosion of {}".format(margin_diff))
+
 
 	def make_gl_entries(self, repost_future_gle=True):
 		gl_entries = self.get_gl_entries()
@@ -546,6 +585,9 @@ class IndentInvoice(StockController):
 				logistics_company_object.name, credit_note_per_kg * qty_in_kg, indent_invoice_settings
 			)
 
+		if self.transaction_date >= '2016-07-01':
+			self.validate_margin(transportation_rate - discount)
+
 		transportation_invoice = self.raise_consignment_note(
 			qty_in_kg, transportation_rate, indent_invoice_settings, discount_per_kg=discount
 		)
@@ -798,6 +840,10 @@ def get_sales_invoice_config(company, fiscal_year):
 		frappe._dict({
 		'company': 'Mosaic Enterprises Ltd.', 'fiscal_year': '2016-17', 'naming_series': 'SCN-MO-16-',
 		'credit_account': 'Service - MO', "cost_center": "Main - MO", "tc_name": "Consignment Note Mosaic"
+		}),
+		frappe._dict({
+		'company': 'G.L. Logistics', 'fiscal_year': '2016-17', 'naming_series': 'CN-16-',
+		'credit_account': 'Service - GL', "cost_center": "Main - GL", "tc_name": "Consignment Note GL"
 		})
 	]
 
