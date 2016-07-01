@@ -107,6 +107,16 @@
   }, 
   {
    "default": "0", 
+   "description": "Discount via credit note credited to us? Shall we include it in our margine?", 
+   "fieldname": "dcn_ba_benefit", 
+   "fieldtype": "Check", 
+   "label": "Discount Via CN Benificery", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
+   "default": "0", 
    "fieldname": "incentive", 
    "fieldtype": "Currency", 
    "label": "Incentive", 
@@ -187,7 +197,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2016-01-09 18:45:27.524354", 
+ "modified": "2016-07-01 10:53:13.953957", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Customer Plant Variables", 
@@ -195,11 +205,11 @@
  "owner": "Administrator", 
  "permissions": [
   {
-   "amend": 1, 
+   "amend": 0, 
    "apply_user_permissions": 0, 
-   "cancel": 1, 
+   "cancel": 0, 
    "create": 1, 
-   "delete": 1, 
+   "delete": 0, 
    "email": 0, 
    "export": 0, 
    "import": 0, 
@@ -209,6 +219,20 @@
    "report": 1, 
    "role": "All", 
    "set_user_permissions": 0, 
+   "submit": 0, 
+   "write": 1
+  }, 
+  {
+   "amend": 1, 
+   "cancel": 1, 
+   "create": 1, 
+   "delete": 1, 
+   "export": 1, 
+   "import": 1, 
+   "permlevel": 0, 
+   "read": 1, 
+   "report": 1, 
+   "role": "Purchase Master Manager", 
    "submit": 1, 
    "write": 1
   }

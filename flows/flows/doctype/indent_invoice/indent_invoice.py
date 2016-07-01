@@ -270,6 +270,28 @@ class IndentInvoice(StockController):
 
 		self.populate_reports(tax=pricing_detail['tax']+pricing_detail['surcharge'])
 
+	def validate_margin(self, applicable_transport):
+		cpv = frappe.get_doc("Customer Plant Variables", self.customer_plant_variables)
+		customer = frappe.get_doc("Customer", self.customer)
+
+		material_in_kg = self.qty * float(self.item.replace('FC', '').replace('L', ''))
+
+		# Incentive + handling + transport + discount (if ours)
+		margin = cpv.incentive + self.handling_charges/material_in_kg + applicable_transport
+		if cint(cpv.dcn_ba_benefit):
+			margin += cpv.discount_via_credit_note
+
+		expected_margin = customer.margin_per_kg
+
+		if not expected_margin:
+			frappe.throw("Margin not set in Customer Master!")
+
+		margin_diff = round(margin - expected_margin, 2)
+
+		if round(margin_diff, 2) <= -0.05:
+			frappe.throw("Margin Erosion of {}".format(margin_diff))
+
+
 	def make_gl_entries(self, repost_future_gle=True):
 		gl_entries = self.get_gl_entries()
 
@@ -562,6 +584,9 @@ class IndentInvoice(StockController):
 			credit_note = self.raise_credit_note(
 				logistics_company_object.name, credit_note_per_kg * qty_in_kg, indent_invoice_settings
 			)
+
+		if self.transaction_date >= '2016-07-01':
+			self.validate_margin(transportation_rate - discount)
 
 		transportation_invoice = self.raise_consignment_note(
 			qty_in_kg, transportation_rate, indent_invoice_settings, discount_per_kg=discount
