@@ -490,8 +490,9 @@ def validate_c_form(customer, plant, billing_date):
 			return 60
 		elif 'hpcl' in plant.lower():
 			return 120
+		# BPCL lease of 90 days from fy 2017
 		elif 'bpcl' in plant.lower():
-			return 365
+			return 395
 
 	c_form_name = frappe.db.sql("""
 	SELECT name FROM `tabC Form Indent Invoice`
