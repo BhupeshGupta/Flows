@@ -17,6 +17,9 @@ class CFormIndentInvoice(Document):
 		self.cst = self.amount * 0.02
 		self.amount_with_tax = self.amount * 1.02
 
+		if self.amount <= 0:
+			frappe.throw("C Form Is of zero value")
+
 
 	def load_quarter_start_end(self):
 		from frappe.utils.data import add_months, get_last_day
@@ -54,9 +57,9 @@ class CFormIndentInvoice(Document):
 		self.invoices = frappe.db.sql("""
 		SELECT i.transaction_date, i.invoice_number, i.qty, i.actual_amount * 100 / 102 AS actual_amount,
 		i.actual_amount AS amount_with_tax
-		FROM `tabIndent Invoice` i, `tabSupplier` s
+		FROM `tabIndent Invoice` i left join `tabSupplier` s
+		on i.supplier = s.name
 		WHERE i.docstatus=1
-		AND i.supplier = s.name
 		AND s.tin_number = "{tin_no}"
 		AND i.customer = "{customer}"
 		AND i.transaction_date BETWEEN "{from_date}" AND "{to_date}"
