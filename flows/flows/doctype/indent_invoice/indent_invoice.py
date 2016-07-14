@@ -271,6 +271,9 @@ class IndentInvoice(StockController):
 		self.populate_reports(tax=pricing_detail['tax']+pricing_detail['surcharge'])
 
 	def validate_margin(self, applicable_transport):
+		if 'BK' in self.item:
+			return
+
 		cpv = frappe.get_doc("Customer Plant Variables", self.customer_plant_variables)
 		customer = frappe.get_doc("Customer", self.customer)
 
