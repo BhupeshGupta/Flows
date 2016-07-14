@@ -13,18 +13,29 @@ def execute(filters=None):
 def get_columns(filters):
 	return [
 		"C Form:Link/C Form Indent Invoice:100",
-		"Supplier:Link/Supplier:200",
+		"Supplier:Link/Supplier:120",
 		"Customer:Link/Customer:200",
+		"FY::80",
 		"Quarter:Data:50",
-		"C Form Number:Data:150",
+		"C Form Number:Data:120",
 		"Amount:Currency:100",
-		"Amount With Tax:Currency:100"
+		"Amount With Tax:Currency:100",
+		"Status::80"
 	]
 
 
 def get_data(filters):
 	return frappe.db.sql("""
-	SELECT name, supplier, customer, quarter, c_form_number, amount, amount_with_tax
-	FROM `tabC Form Indent Invoice`
-	WHERE docstatus != 2
+		SELECT name,
+		supplier, customer,
+		fiscal_year, quarter,
+		c_form_number, amount,
+		amount_with_tax,
+		CASE docstatus
+			WHEN 0 THEN 'Pending'
+			ELSE 'Done'
+		END
+
+		FROM `tabC Form Indent Invoice`
+		WHERE docstatus != 2
 	""")
