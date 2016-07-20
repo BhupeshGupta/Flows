@@ -41,8 +41,8 @@ class CFormIndentInvoice(Document):
 
 	def get_conditions(self):
 		cond = []
-		if str(self.start_date) >= '2016-01-01':
-			cond.append(' sales_tax = "CST" ')
+		# if str(self.start_date) >= '2016-01-01':
+		# 	cond.append(' sales_tax = "CST" ')
 		if not cond: cond.append(' 1=1 ')
 		return ' and '.join(cond)
 
