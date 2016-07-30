@@ -16,7 +16,7 @@ from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.stock.stock_ledger import make_sl_entries
 from frappe.utils import today
 from frappe.utils import cint, now
-from frappe.utils import get_first_day
+from frappe.utils import get_first_day, getdate
 from flows.flows.doctype.indent.indent import validate_bill_to_ship_to
 from flows.flows.pricing_controller import compute_base_rate_for_a_customer, get_customer_payment_info
 from frappe.utils.formatters import format_value
@@ -725,11 +725,11 @@ class IndentInvoice(StockController):
 		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
 			consignment_note_json_doc["customer_address"] = "{}-Billing".format(self.customer.strip())
 
-		if consignment_note_json_doc['posting_date'] < '2015-06-01':
+		if getdate(consignment_note_json_doc['posting_date']) < getdate('2015-06-01'):
 			consignment_note_json_doc["taxes_and_charges"] = "Road Transport"
-		elif consignment_note_json_doc['posting_date'] < '2015-11-15':
+		elif getdate(consignment_note_json_doc['posting_date']) < getdate('2015-11-15'):
 			consignment_note_json_doc["taxes_and_charges"] = "Road Transport_June_1_15"
-		elif consignment_note_json_doc['posting_date'] < '2016-06-01':
+		elif getdate(consignment_note_json_doc['posting_date']) < getdate('2016-06-01'):
 			consignment_note_json_doc["taxes_and_charges"] = "Road Transport_Nov_15_15"
 		else:
 			consignment_note_json_doc["taxes_and_charges"] = "Road Transport_June_1_16"
