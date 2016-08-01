@@ -38,6 +38,8 @@ class IndentInvoice(StockController):
 		if cint(self.indent_invoice_settings.price_check):
 			self.validate_purchase_rate()
 
+		self.validate_territory()
+
 		self.check_previous_doc()
 		self.make_gl_entries()
 		self.make_stock_refill_entry()
@@ -782,6 +784,32 @@ class IndentInvoice(StockController):
 		if not acc:
 			acc = get_party_account(company, account, "Customer")
 		return acc
+
+
+	def validate_territory(self):
+
+		if self.transaction_date < getdate('2016-08-01'):
+			return 
+
+		territory = frappe.db.get_value("Customer", self.customer, "territory")
+		if territory in ['All Territories', 'NA', None, '']:
+			frappe.throw("{}'s territory not set".format(self.customer))
+
+		rsp = frappe.db.sql("""
+		select with_effect_from
+		from `tabRSP`
+		where with_effect_from <= "{}"
+		and territory = "{}"
+		order by with_effect_from desc
+		limit 1
+		""".format(self.transaction_date, territory), as_dict=True)
+
+		if not rsp:
+			frappe.throw("RSP not set for {}".format(territory))
+
+		if not(rsp[0].with_effect_from.split("-")[0] == self.transaction_date.split("-")[0] and \
+		rsp[0].with_effect_from.split("-")[1] == self.transaction_date.split("-")[1]):
+			frappe.throw("RSP not set for {} for the month of {}".format( territory, "-".join( reversed(self.transaction_date.split("-")[:-1]) ) ))
 
 def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
 	indent_items_sql = """

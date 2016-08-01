@@ -182,3 +182,18 @@ def get_omc_item_mapped(item, omc):
 			'FC47.5L': '5690'
 		}
 	}[omc][item]
+
+def get_rsp(date, territory):
+	rsp = frappe.db.sql("""
+	select *
+	from `tabRSP`
+	where with_effect_from <= "{}"
+	and territory = "{}"
+	order by with_effect_from desc
+	limit 1
+	""".format(date, territory), as_dict=True)
+
+	if not rsp:
+		return None
+
+	return rsp[0].rsp_per_cylinder
