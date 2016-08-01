@@ -159,5 +159,6 @@ jenv_filter = [
 	'get_item_qty_aggr_gatepass:flows.jinja_filters.get_item_qty_aggr_gatepass',
 	'get_account_code:flows.jinja_filters.get_account_code',
 	'get_address_display_name:flows.jinja_filters.get_address_display_name',
-	'get_omc_item_mapped:flows.jinja_filters.get_omc_item_mapped'
+	'get_omc_item_mapped:flows.jinja_filters.get_omc_item_mapped',
+	'get_rsp:flows.jinja_filters.get_rsp'
 ]
