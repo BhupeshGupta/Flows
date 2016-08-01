@@ -17,7 +17,7 @@
    "precision": ""
   }, 
   {
-   "allow_on_submit": 0, 
+   "allow_on_submit": 1, 
    "default": "1", 
    "fieldname": "enabled", 
    "fieldtype": "Check", 
@@ -27,7 +27,7 @@
    "in_list_view": 0, 
    "label": "Enabled", 
    "no_copy": 0, 
-   "permlevel": 0, 
+   "permlevel": 1, 
    "precision": "", 
    "print_hide": 0, 
    "read_only": 0, 
@@ -335,7 +335,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2016-03-11 17:21:18.529881", 
+ "modified": "2016-08-01 18:33:01.018830", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "OMC Customer Registration", 
@@ -361,6 +361,11 @@
    "write": 1
   }, 
   {
+   "permlevel": 1, 
+   "read": 1, 
+   "role": "All"
+  }, 
+  {
    "amend": 1, 
    "cancel": 1, 
    "create": 1, 
@@ -372,6 +377,12 @@
    "report": 1, 
    "role": "Purchase Master Manager", 
    "submit": 1, 
+   "write": 1
+  }, 
+  {
+   "permlevel": 1, 
+   "read": 1, 
+   "role": "Purchase Master Manager", 
    "write": 1
   }
  ], 

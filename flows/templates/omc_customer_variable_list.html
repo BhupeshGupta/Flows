@@ -20,8 +20,10 @@
             args: {data: JSON.stringify({enabled: elem.checked?1:0})},
 			freeze: true,
 			show_spinner: true,
-			progress_bar: true,
 			forceMethod: "PUT"
+		})
+        .fail(function(xhr, textStatus) {
+			cur_frm.refresh();
 		});
     }
 	function handleOmcToggle(elem) {
@@ -34,7 +36,7 @@
 		})
 		.fail(function(xhr, textStatus) {
 			cur_frm.refresh();
-		})
+		});
     }
 </script>
 
