@@ -689,7 +689,7 @@ class IndentInvoice(StockController):
 		"doctype": "Sales Invoice",
 		"customer": self.customer,
 		"customer_name": self.customer.strip(),
-		"posting_date": self.transaction_date if today() < '2015-06-01' else self.posting_date,
+		"posting_date": self.transaction_date if getdate(today()) < getdate('2015-06-01') else self.posting_date,
 		"posting_time": self.posting_time,
 		"fiscal_year": self.fiscal_year,
 		"entries": [
@@ -788,8 +788,8 @@ class IndentInvoice(StockController):
 
 	def validate_territory(self):
 
-		if self.transaction_date < getdate('2016-08-01'):
-			return 
+		if getdate(self.transaction_date) < getdate('2016-08-01'):
+			return
 
 		territory = frappe.db.get_value("Customer", self.customer, "territory")
 		if territory in ['All Territories', 'NA', None, '']:
