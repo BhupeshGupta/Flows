@@ -13,6 +13,31 @@
 	.omc input{ margin-right:10px;}
 </style>
 
+<script>
+	function handleCpvToggle(elem) {
+		frappe.request.call({
+            url: encodeURIComponent("/api/resource/Customer Plant Variables/" + elem.dataset.name),
+            args: {data: JSON.stringify({enabled: elem.checked?1:0})},
+			freeze: true,
+			show_spinner: true,
+			progress_bar: true,
+			forceMethod: "PUT"
+		});
+    }
+	function handleOmcToggle(elem) {
+        frappe.request.call({
+            url: encodeURIComponent("/api/resource/OMC Customer Registration/" + elem.dataset.name),
+            args: {data: JSON.stringify({enabled: elem.checked?1:0})},
+			freeze: true,
+			show_spinner: true,
+			forceMethod: "PUT"
+		})
+		.fail(function(xhr, textStatus) {
+			cur_frm.refresh();
+		})
+    }
+</script>
+
 <p>
 	<button id="omccr" class="btn btn-sm btn-default btn-address">
 		<i class="icon-plus"></i> New OMC Customer Registration
@@ -29,7 +54,14 @@
 		    <table class="table" style="">
 		        <tr>
 			        <th>
-				        <input type="checkbox" />
+				        <input
+						        type="checkbox"
+						        onchange="handleOmcToggle(this);"
+						        data-name="{%= omc_customer_variables_list[i].name %}"
+						        {% if (omc_customer_variables_list[i].enabled == 1) { %}
+						            checked
+                                {% } %}
+                        />
 
 				        {%= omc_customer_variables_list[i].omc %}
 
@@ -47,9 +79,9 @@
 
 		        </tr>
                 <tr>
-			        <th>Debit A/c</th>
+			        <th>Credit A/c</th>
 
-		             <td>{%= omc_customer_variables_list[i].debit_account %}</td>
+		             <td>{%= omc_customer_variables_list[i].credit_account %}</td>
 
                 </tr>
 			    <tr>
@@ -74,7 +106,14 @@
 					        <table class="table">
 					            <tr>
 						            <th>
-							            <input type="checkbox"/>
+							            <input
+									            type="checkbox"
+									            data-name="{%= omc_customer_variables_list[i].plants[pIndex].name %}"
+									            onchange="handleCpvToggle(this);"
+							                    {% if (omc_customer_variables_list[i].plants[pIndex].enabled == 1) { %}
+                                                    checked
+                                                {% } %}
+                                        />
 							            {%= omc_customer_variables_list[i].plants[pIndex].plant %}
 						            </th>
 						            <td>

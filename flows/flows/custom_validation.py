@@ -85,4 +85,24 @@ def customer_onload(doc, method=None, *args, **kwargs):
 			if last_active_entry:
 				row['plants'].append(last_active_entry[0])
 
+		passwd = frappe.db.sql(
+			"""
+			select a.password, a.username, a.name
+				from `tabAccount` a
+					join
+				(
+					select credit_account
+					from `tabOMC Customer Registration Credit Account`
+					where parent = "{}"
+					and type = "{}"
+				) l
+			on l.credit_account = a.name
+			""".format(row.name, row.default_credit_account), as_dict=True
+		)
+
+		if passwd:
+			passwd = passwd[0]
+			row['portal_password'] = passwd['password']
+			row['credit_account'] = "{} ({})".format(passwd.name, passwd.username)
+
 	doc.get("__onload").omc_customer_variables_list = rs
