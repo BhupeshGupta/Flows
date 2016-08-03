@@ -333,51 +333,51 @@ class Indent(Document):
 	def validate_registration_and_customer_plant_variables(self):
 		errors = []
 
-		all_customer_set = set([i.customer for i in self.indent])
-		customer_list = ', '.join(['"{}"'.format(i.customer) for i in self.indent])
-		omc = self.plant.split(" ")[0].lower()
-
-		valid_omc_reg = frappe.db.sql("""
-		select customer, docstatus, enabled from `tabOMC Customer Registration`
-		where customer in ({})
-		and docstatus != 2
-		and omc = "{}"
-		""".format(customer_list, omc), as_dict=True)
-
-		approved_omc_customer = set([x.customer for x in valid_omc_reg if x.docstatus == 1])
-		draft_omc_customer = set([x.customer for x in valid_omc_reg if x.docstatus == 0])
-		disabled_omc_customer = set([x.customer for x in valid_omc_reg if x.enabled == 0])
-
-		non_existing_regs = all_customer_set - approved_omc_customer - draft_omc_customer
-		non_approved_regs = draft_omc_customer
-
-		for x in non_existing_regs:
-			errors.append("Customer Registration Missing. {}".format(x))
-
-		for x in non_approved_regs:
-			errors.append("Customer Registration Approval Pending. {}".format(x))
-
-		for x in disabled_omc_customer:
-			errors.append("Customer Registration Disabled. {}".format(x))
-
-
-		cpv_ok_for_indent = set(
-			[
-				x[0] for x in frappe.db.sql(
-				"""
-				select customer
-				from `tabCustomer Plant Variables`
-				where docstatus != 2
-				and plant = "{}"
-				and customer in ({})
-				""".format(self.plant, customer_list))
-			]
-		)
-
-		missing_or_drafted_cpv = all_customer_set - cpv_ok_for_indent
-
-		for x in missing_or_drafted_cpv:
-			errors.append("Customer Plant Variables not drafted/submitted. {}".format(x))
+		# all_customer_set = set([i.customer for i in self.indent])
+		# customer_list = ', '.join(['"{}"'.format(i.customer) for i in self.indent])
+		# omc = self.plant.split(" ")[0].lower()
+		#
+		# valid_omc_reg = frappe.db.sql("""
+		# select customer, docstatus, enabled from `tabOMC Customer Registration`
+		# where customer in ({})
+		# and docstatus != 2
+		# and omc = "{}"
+		# """.format(customer_list, omc), as_dict=True)
+		#
+		# approved_omc_customer = set([x.customer for x in valid_omc_reg if x.docstatus == 1])
+		# draft_omc_customer = set([x.customer for x in valid_omc_reg if x.docstatus == 0])
+		# disabled_omc_customer = set([x.customer for x in valid_omc_reg if x.enabled == 0])
+		#
+		# non_existing_regs = all_customer_set - approved_omc_customer - draft_omc_customer
+		# non_approved_regs = draft_omc_customer
+		#
+		# for x in non_existing_regs:
+		# 	errors.append("Customer Registration Missing. {}".format(x))
+		#
+		# for x in non_approved_regs:
+		# 	errors.append("Customer Registration Approval Pending. {}".format(x))
+		#
+		# for x in disabled_omc_customer:
+		# 	errors.append("Customer Registration Disabled. {}".format(x))
+		#
+		#
+		# cpv_ok_for_indent = set(
+		# 	[
+		# 		x[0] for x in frappe.db.sql(
+		# 		"""
+		# 		select customer
+		# 		from `tabCustomer Plant Variables`
+		# 		where docstatus != 2
+		# 		and plant = "{}"
+		# 		and customer in ({})
+		# 		""".format(self.plant, customer_list))
+		# 	]
+		# )
+		#
+		# missing_or_drafted_cpv = all_customer_set - cpv_ok_for_indent
+		#
+		# for x in missing_or_drafted_cpv:
+		# 	errors.append("Customer Plant Variables not drafted/submitted. {}".format(x))
 
 
 		# disabled = set(
