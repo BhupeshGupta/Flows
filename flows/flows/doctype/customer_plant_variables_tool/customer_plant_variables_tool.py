@@ -55,20 +55,30 @@ class CustomerPlantVariablesTool(Document):
 			""".format(**row), as_dict=True)
 
 			if last_active_entry:
-				if get_hash(last_active_entry[0]) == get_hash(row):
+				last_active_entry = last_active_entry[0]
+				if get_hash(last_active_entry) == get_hash(row):
 					frappe.msgprint("No change found.\n{} skipped.".format(row_hash))
 					return
 
+				last_active_entry.pop('name')
+				last_active_entry.pop('amended_from')
+			else:
+				last_active_entry = frappe._dict({})
+
 			row.update({'doctype': 'Customer Plant Variables', 'docstatus': 1})
+			last_active_entry.update(row)
+
+
 			try:
-				doc = frappe.get_doc(row)
+				doc = frappe.get_doc(last_active_entry)
 				doc.save()
 			except Exception as e:
 				return '{}: {}'.format(row_hash, e)
 
 		json_file = json.loads(self.cpv_json)
-		json_file = [frappe._dict({json_file[0][index]: value for index, value in enumerate(x)}) for x in json_file[
-																										  1:]]
+		json_file = [
+			frappe._dict({json_file[0][index]: value for index, value in enumerate(x)}) for x in json_file[1:]
+		]
 
 		error_list = []
 		for row in json_file:
