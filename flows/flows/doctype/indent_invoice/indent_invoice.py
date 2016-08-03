@@ -252,10 +252,9 @@ class IndentInvoice(StockController):
 
 		expected = compute_base_rate_for_a_customer(
 			self.customer, self.supplier,
-			self.item, self.sales_tax,
-			self.transaction_date, extra_precision=1,
-			adjustment=adjustment,
-			details=pricing_detail,
+			self.item, self.transaction_date,
+			sales_tax=self.sales_tax, extra_precision=1,
+			adjustment=adjustment, details=pricing_detail,
 			force_check_for_this_month_plant_rate=True
 		) / float(self.item.replace('FC', '').replace('L', ''))
 

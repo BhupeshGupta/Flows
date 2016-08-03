@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import frappe
 from flows.stdlogger import root
+from frappe.exceptions import ValidationError
 
 
 @frappe.whitelist()
@@ -28,8 +29,8 @@ def get_landed_rate(customer, posting_date, item):
 
 @frappe.whitelist()
 def compute_base_rate_for_a_customer(
-		customer, plant, item, sales_tax, posting_date, extra_precision=1, adjustment=None,
-		details={}, force_check_for_this_month_plant_rate=False
+		customer, plant, item, posting_date, sales_tax=None, extra_precision=1, adjustment=None,
+		details={}, force_check_for_this_month_plant_rate=False, raise_error=ValidationError
 ):
 
 	context = {
@@ -48,30 +49,35 @@ def compute_base_rate_for_a_customer(
     ORDER BY with_effect_from DESC LIMIT 1;
     """.format(**context), as_dict=True)
 
-	if not (rs and len(rs)) > 0:
-		frappe.throw("Unable to find basic rate for plant {plant}".format(**context))
+	if not (rs and len(rs) > 0):
+		frappe.msgprint("Unable to find basic rate for plant {plant}".format(**context), raise_exception=raise_error)
+		return
 
 	if force_check_for_this_month_plant_rate:
 		expected_date = '-'.join(posting_date.split('-')[:2])
 		plant_rate_date = '-'.join(rs[0].wef.split('-')[:2])
 
 		if plant_rate_date != expected_date:
-			frappe.throw("Rate for plant {plant} {date} not found".format(date=expected_date, **context))
+			frappe.msgprint("Rate for plant {plant} {date} not found".format(date=expected_date, **context), raise_exception=raise_error)
+			return
 
 	plant_rate_name = rs[0].name
 
 	# Guess CPV Name
 	rs = frappe.db.sql("""
-	SELECT name
+	SELECT name, sales_tax
 	FROM `tabCustomer Plant Variables` cpv
 	WHERE cpv.plant="{plant}" AND cpv.with_effect_from <= DATE("{posting_date}") AND cpv.customer="{customer}"
 	AND cpv.docstatus != 2 ORDER BY with_effect_from DESC LIMIT 1;
     """.format(**context), as_dict=True)
 
 	if not (rs and len(rs) > 0):
-		frappe.throw("Unable to find Customer Purchase Variables")
+		frappe.msgprint("Unable to find Customer Purchase Variables {customer} {plant}".format(**context), raise_exception=raise_error)
+		return
 
 	cpv_name = rs[0].name
+
+	sales_tax = sales_tax if sales_tax else rs[0].sales_tax
 
 
 	return compute_base_rate_for_a_customer_from_cpv_and_plant_rate(
@@ -95,7 +101,7 @@ def compute_base_rate_for_a_customer_from_cpv_and_plant_rate(
 	purchase_variables = rs[0]
 
 	rs = frappe.db.sql("""
-	SELECT cpv.transportation, cpv.discount
+	SELECT cpv.transportation, cpv.discount, cpv.applicable_secondary_transport
 	FROM `tabCustomer Plant Variables` cpv
 	WHERE name = "{}";
     """.format(cpv), as_dict=True)
@@ -123,10 +129,14 @@ def compute_base_rate_for_a_customer_from_cpv_and_plant_rate(
     """.format(item))[0][0]
 
 	details.update({
+	'plant_rate': purchase_variables['base_rate_for_plant'],
+	'invoice_handling': purchase_variables['transportation'],
+	'invoice_discount': purchase_variables['discount'],
 	'base_rate_for_customer_before_tax': base_rate_for_customer_before_tax,
 	'tax': tax,
 	'surcharge': surcharge,
 	'base_rate_for_customer': base_rate_for_customer,
+	'applicable_transportation': purchase_variables['applicable_secondary_transport'],
 	'conversion_factor': conversion_factor
 	})
 
