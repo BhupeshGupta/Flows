@@ -180,6 +180,29 @@
    "reqd": 1
   }, 
   {
+   "fieldname": "display_secondary_transport", 
+   "fieldtype": "Currency", 
+   "label": "Display Secondary Transport", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
+   "fieldname": "applicable_secondary_transport", 
+   "fieldtype": "Currency", 
+   "label": "Applicable Secondary Transport", 
+   "permlevel": 0, 
+   "precision": "", 
+   "reqd": 1
+  }, 
+  {
+   "fieldname": "terms_and_conditions", 
+   "fieldtype": "Small Text", 
+   "label": "Terms and Conditions", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "amended_from", 
    "fieldtype": "Link", 
    "label": "Amended From", 
@@ -197,7 +220,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2016-07-01 10:53:13.953957", 
+ "modified": "2016-08-02 16:28:34.736202", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Customer Plant Variables", 

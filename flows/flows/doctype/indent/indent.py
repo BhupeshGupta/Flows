@@ -25,6 +25,7 @@ class Indent(Document):
 		self.load_gatepasses()
 
 	def validate(self):
+		self.validate_customer()
 		self.validate_registration_and_customer_plant_variables()
 		self.validate_cross_sale_limit()
 
@@ -313,6 +314,22 @@ class Indent(Document):
 			errors.insert(0, 'Did not save')
 			frappe.throw('\n'.join(errors))
 
+	def validate_customer(self):
+		errors = []
+		customer_list = ', '.join(['"{}"'.format(i.customer) for i in self.indent])
+
+		disabled_customers = [x.name for x in frappe.db.sql("""
+		select name from `tabCustomer`
+		where name in ({})
+		and (enabled = 0 or purchase_enabled = 0)
+		""".format(customer_list), as_dict=True)]
+
+		for x in disabled_customers:
+			errors.append("Customer Purchase Disabled. {}".format(x))
+
+		if errors:
+			frappe.throw('\n'.join(errors))
+
 	def validate_registration_and_customer_plant_variables(self):
 		errors = []
 
@@ -506,18 +523,16 @@ def validate_bill_to_ship_to(bill_to, ship_to, date):
 
 	raise_error()
 
+def get_lease_date(plant):
+	if 'iocl' in plant.lower():
+		return 60
+	elif 'hpcl' in plant.lower():
+		return 120
+	# BPCL lease of 90 days from fy 2017
+	elif 'bpcl' in plant.lower():
+		return 395
 
 def validate_c_form(customer, plant, billing_date):
-
-	def get_lease_date(plant):
-		if 'iocl' in plant.lower():
-			return 60
-		elif 'hpcl' in plant.lower():
-			return 120
-		# BPCL lease of 90 days from fy 2017
-		elif 'bpcl' in plant.lower():
-			return 395
-
 	c_form_name = frappe.db.sql("""
 	SELECT name FROM `tabC Form Indent Invoice`
 	WHERE customer="{customer}"
