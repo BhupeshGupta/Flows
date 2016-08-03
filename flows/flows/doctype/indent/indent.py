@@ -380,22 +380,22 @@ class Indent(Document):
 			errors.append("Customer Plant Variables not drafted/submitted. {}".format(x))
 
 
-		disabled = set(
-			[
-				x[0] for x in frappe.db.sql(
-				"""
-				select customer
-				from `tabCustomer Plant Variables`
-				where docstatus != 2
-				and enabled = 0
-				and plant = "{}"
-				and customer in ({})
-				""".format(self.plant, customer_list))
-			]
-		)
-
-		for x in disabled:
-			errors.append("Customer Plant Variables disabled. {}".format(x))
+		# disabled = set(
+		# 	[
+		# 		x[0] for x in frappe.db.sql(
+		# 		"""
+		# 		select customer
+		# 		from `tabCustomer Plant Variables`
+		# 		where docstatus != 2
+		# 		and enabled = 0
+		# 		and plant = "{}"
+		# 		and customer in ({})
+		# 		""".format(self.plant, customer_list))
+		# 	]
+		# )
+		#
+		# for x in disabled:
+		# 	errors.append("Customer Plant Variables disabled. {}".format(x))
 
 
 
