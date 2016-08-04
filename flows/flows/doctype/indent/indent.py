@@ -13,7 +13,7 @@ from frappe.utils import today, now, add_days, get_first_day, get_last_day
 from flows.flows.hpcl_interface import HPCLCustomerPortal
 from flows.flows.iocl_interface import IOCLPortal
 from flows.flows.controller.utils import get_portal_user_password
-
+from frappe.utils import cint
 
 class Indent(Document):
 	def __init__(self, *args, **kwargs):
@@ -333,71 +333,27 @@ class Indent(Document):
 	def validate_registration_and_customer_plant_variables(self):
 		errors = []
 
-		# all_customer_set = set([i.customer for i in self.indent])
-		# customer_list = ', '.join(['"{}"'.format(i.customer) for i in self.indent])
-		# omc = self.plant.split(" ")[0].lower()
-		#
-		# valid_omc_reg = frappe.db.sql("""
-		# select customer, docstatus, enabled from `tabOMC Customer Registration`
-		# where customer in ({})
-		# and docstatus != 2
-		# and omc = "{}"
-		# """.format(customer_list, omc), as_dict=True)
-		#
-		# approved_omc_customer = set([x.customer for x in valid_omc_reg if x.docstatus == 1])
-		# draft_omc_customer = set([x.customer for x in valid_omc_reg if x.docstatus == 0])
-		# disabled_omc_customer = set([x.customer for x in valid_omc_reg if x.enabled == 0])
-		#
-		# non_existing_regs = all_customer_set - approved_omc_customer - draft_omc_customer
-		# non_approved_regs = draft_omc_customer
-		#
-		# for x in non_existing_regs:
-		# 	errors.append("Customer Registration Missing. {}".format(x))
-		#
-		# for x in non_approved_regs:
-		# 	errors.append("Customer Registration Approval Pending. {}".format(x))
-		#
-		# for x in disabled_omc_customer:
-		# 	errors.append("Customer Registration Disabled. {}".format(x))
-		#
-		#
-		# cpv_ok_for_indent = set(
-		# 	[
-		# 		x[0] for x in frappe.db.sql(
-		# 		"""
-		# 		select customer
-		# 		from `tabCustomer Plant Variables`
-		# 		where docstatus != 2
-		# 		and plant = "{}"
-		# 		and customer in ({})
-		# 		""".format(self.plant, customer_list))
-		# 	]
-		# )
-		#
-		# missing_or_drafted_cpv = all_customer_set - cpv_ok_for_indent
-		#
-		# for x in missing_or_drafted_cpv:
-		# 	errors.append("Customer Plant Variables not drafted/submitted. {}".format(x))
+		all_customer_set = set([i.customer for i in self.indent])
+		omc = self.plant.split(" ")[0].lower()
 
+		for customer in all_customer_set:
+			omc_registration = get_applicable_omc_registration(omc, customer, self.posting_date)
 
-		# disabled = set(
-		# 	[
-		# 		x[0] for x in frappe.db.sql(
-		# 		"""
-		# 		select customer
-		# 		from `tabCustomer Plant Variables`
-		# 		where docstatus != 2
-		# 		and enabled = 0
-		# 		and plant = "{}"
-		# 		and customer in ({})
-		# 		""".format(self.plant, customer_list))
-		# 	]
-		# )
-		#
-		# for x in disabled:
-		# 	errors.append("Customer Plant Variables disabled. {}".format(x))
+			if not omc_registration:
+				errors.append("{}'s Registration is missing.".format(customer))
+			else:
+				if omc_registration.docstatus == 0:
+					errors.append("{}'s Registration is pending for approval.".format(customer))
+				if cint(omc_registration.enabled) == 0:
+					errors.append("{}'s Registration is disabled.".format(customer))
 
+			cpv = get_applicable_customer_plant_variable(self.plant, customer, self.posting_date)
 
+			if not cpv:
+				errors.append("{}'s Plant Variables are missing.".format(customer))
+			else:
+				if cint(cpv.enabled) == 0:
+					errors.append("{}'s Plant Variables are disabled.".format(customer))
 
 		if errors:
 			errors.insert(0, 'Did not save')
@@ -591,3 +547,36 @@ def fetch_account_balance_with_omc(plant, customer, credit_account):
 		return {'status': 'OK', 'balance': portal.get_current_balance_as_on_date('C002')['balance']}
 
 	return {'status': 'Not Implemented', 'balance': 0}
+
+
+def get_applicable_omc_registration(omc, customer, date):
+	reg = frappe.db.sql(
+		"""
+		select * from `tabOMC Customer Registration`
+		where customer = "{}"
+		and omc= "{}"
+		and with_effect_from <= "{}"
+		and docstatus != 2
+		order by with_effect_from desc
+		limit 1
+		""".format(customer, omc, date), as_dict=True
+	)
+
+	if reg:
+		return reg[0]
+
+def get_applicable_customer_plant_variable(plant, customer, date):
+	cpv = frappe.db.sql(
+		"""
+		select * from `tabCustomer Plant Variables`
+		where customer = "{}"
+		and plant= "{}"
+		and with_effect_from <= "{}"
+		and docstatus != 2
+		order by with_effect_from desc
+		limit 1
+		""".format(customer, plant, date), as_dict=True
+	)
+
+	if cpv:
+		return cpv[0]
