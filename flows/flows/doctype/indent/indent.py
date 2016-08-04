@@ -530,7 +530,7 @@ def get_lease_date(plant):
 		return 120
 	# BPCL lease of 90 days from fy 2017
 	elif 'bpcl' in plant.lower():
-		return 395
+		return 425
 
 def validate_c_form(customer, plant, billing_date):
 	c_form_name = frappe.db.sql("""
