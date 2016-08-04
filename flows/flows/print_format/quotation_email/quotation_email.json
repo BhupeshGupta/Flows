@@ -1,0 +1,15 @@
+{
+ "creation": "2016-08-03 18:05:27.912948", 
+ "disabled": 0, 
+ "doc_type": "Quotation Tool", 
+ "docstatus": 0, 
+ "doctype": "Print Format", 
+ "html": "", 
+ "modified": "2016-08-03 18:05:58.983710", 
+ "modified_by": "Administrator", 
+ "module": "Flows", 
+ "name": "Quotation Email", 
+ "owner": "Administrator", 
+ "print_format_type": "Server", 
+ "standard": "Yes"
+}

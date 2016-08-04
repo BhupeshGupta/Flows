@@ -532,20 +532,32 @@ class IndentInvoice(StockController):
 
 	def load_transport_bill_variables(self):
 		if not hasattr(self, 'transport_vars'):
+			# self.transport_vars = frappe.db.sql(
+			# 	"""
+			# 	SELECT *
+			# 	FROM `tabCustomer Sale`
+			# 	WHERE customer="{customer}"
+			# 	AND with_effect_from <= "{invoice_date}"
+			# 	AND ifnull(valid_up_to, "{invoice_date}") <= "{invoice_date}"
+			# 	AND docstatus = 1
+			# 	ORDER BY with_effect_from DESC LIMIT 1
+			# 	""".format(invoice_date=self.transaction_date, customer=self.customer),
+			# 	as_dict=True
+			# )
+			# if not self.transport_vars:
+			# 	frappe.throw("Customer Sale Variables Not Found")
+
 			self.transport_vars = frappe.db.sql(
 				"""
-				SELECT *
-				FROM `tabCustomer Sale`
-				WHERE customer="{customer}"
-				AND with_effect_from <= "{invoice_date}"
-				AND ifnull(valid_up_to, "{invoice_date}") <= "{invoice_date}"
-				AND docstatus = 1
-				ORDER BY with_effect_from DESC LIMIT 1
-				""".format(invoice_date=self.transaction_date, customer=self.customer),
-				as_dict=True
+				select
+				display_secondary_transport as display_rate,
+				applicable_secondary_transport as applicable_transport_rate,
+				terms_and_conditions as terms
+				from `tabCustomer Plant Variables`
+				where name = "{}"
+				""".format(self.customer_plant_variables), as_dict=True
 			)
-			if not self.transport_vars:
-				frappe.throw("Customer Sale Variables Not Found")
+
 			self.transport_vars = self.transport_vars[0]
 
 	def transport_bill_variables(self):
