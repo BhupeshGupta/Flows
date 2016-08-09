@@ -794,6 +794,14 @@ class IndentInvoice(StockController):
 		acc = get_party_account(company, account, "Supplier")
 		if not acc:
 			acc = get_party_account(company, account, "Customer")
+		if not acc:
+			abbr = frappe.db.get_value("Company", company, "abbr")
+			if frappe.db.exists("Account", "{} - {}".format(account, abbr)):
+				acc = "{} - {}".format(account, abbr)
+
+		if not acc:
+			frappe.throw("Account not found for {} in {}".format(account, abbr))
+
 		return acc
 
 
