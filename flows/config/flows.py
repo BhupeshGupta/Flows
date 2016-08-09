@@ -87,7 +87,7 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
-					"name": "OMC Customer Variables",
+					"name": "OMC Customer Registration",
 					"description": _("")
 				}
 			]
