@@ -33,10 +33,6 @@ class CPVReplacementTool(Document):
 				'discount': i.discount,
 			})
 
-			frappe.get_list()
-
-
-
 	def replace(self):
 		cpv = frappe.get_doc("Customer Plant Variables", self.cpv)
 		cpv.ignore_invoice_check = True
