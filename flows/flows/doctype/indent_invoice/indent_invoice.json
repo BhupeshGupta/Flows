@@ -582,11 +582,11 @@
    "precision": ""
   }, 
   {
-   "default": "Do Not Adjust Rate", 
+   "default": "Review Pending", 
    "fieldname": "consignment_note_adjustment", 
    "fieldtype": "Select", 
    "label": "Consignment Note Adjustment", 
-   "options": "Do Not Adjust Rate\nAdjust Rate", 
+   "options": "Review Pending\nAdjust Discount\nAdjust Handling\nAdjust Discount & Handling\nDo Not Adjust Rate", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -711,7 +711,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2016-05-23 13:42:06.834265", 
+ "modified": "2016-08-12 17:29:28.667148", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 
@@ -724,16 +724,41 @@
    "cancel": 1, 
    "create": 1, 
    "delete": 1, 
-   "email": 1, 
+   "email": 0, 
    "export": 1, 
    "import": 0, 
    "permlevel": 0, 
-   "print": 1, 
+   "print": 0, 
    "read": 1, 
    "report": 1, 
    "role": "All", 
    "set_user_permissions": 0, 
    "submit": 1, 
+   "write": 1
+  }, 
+  {
+   "permlevel": 1, 
+   "read": 1, 
+   "role": "All"
+  }, 
+  {
+   "amend": 1, 
+   "cancel": 1, 
+   "create": 1, 
+   "delete": 1, 
+   "export": 1, 
+   "permlevel": 0, 
+   "print": 0, 
+   "read": 1, 
+   "report": 1, 
+   "role": "Purchase Master Manager", 
+   "submit": 1, 
+   "write": 1
+  }, 
+  {
+   "permlevel": 1, 
+   "read": 1, 
+   "role": "Purchase Master Manager", 
    "write": 1
   }
  ], 

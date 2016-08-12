@@ -10,6 +10,7 @@ erpnext.flows.OmcPoliciesController = frappe.ui.form.Controller.extend({
 	},
 
 	refresh:function (doc, dt, dn) {
+		doc.description_html = '';
 		if (doc.description_markdown) {
 			$(this.frm.fields_dict['description_html'].wrapper).html(
 				doc.description_html = frappe.markdown(doc.description_markdown)
