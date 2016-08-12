@@ -22,3 +22,8 @@ erpnext.flows.CustomerPlantVariables = frappe.ui.form.Controller.extend({
 });
 
 $.extend(cur_frm.cscript, new erpnext.flows.CustomerPlantVariables({frm: cur_frm}));
+
+cur_frm.add_fetch('omc_policy', 'discount', 'discount');
+cur_frm.add_fetch('omc_policy', 'discount_via_credit_note', 'discount_via_credit_note');
+cur_frm.add_fetch('omc_policy', 'incentive', 'incentive');
+cur_frm.add_fetch('omc_policy', 'dcn_ba_benefit', 'dcn_ba_benefit');
