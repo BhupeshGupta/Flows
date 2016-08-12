@@ -67,6 +67,11 @@ def get_data():
 					"type": "doctype",
 					"name": "Payment Mode Change Tool",
 					"description": _("")
+				},
+				{
+					"type": "doctype",
+					"name": "CPV Replacement Tool",
+					"description": _("")
 				}
 			]
 		},
@@ -195,19 +200,31 @@ def get_data():
 				{
 					"type": "report",
 					"is_query_report": True,
+					"name": "IOCL Incentive V2",
+					"doctype": "Indent Invoice",
+				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"name": "IOCL Discount V2",
+					"doctype": "Indent Invoice",
+				},
+				{
+					"type": "report",
+					"is_query_report": True,
 					"name": "HPCL Incentive",
 					"doctype": "Indent Invoice",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
-					"name": "IOCL Incentive",
+					"name": "HPCL Discount",
 					"doctype": "Indent Invoice",
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
-					"name": "IOCL Discount",
+					"name": "BPCL Claim",
 					"doctype": "Indent Invoice",
 				},
 				{
