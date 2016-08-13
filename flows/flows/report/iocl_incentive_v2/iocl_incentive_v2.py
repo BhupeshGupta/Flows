@@ -22,6 +22,7 @@ def get_columns(filters):
 		"Qty 47.5Kg::",
 		"Incentive per cyl.:Currency:",
 		"Net Incentive Claim:Currency:",
+		"Field Officer:Link/Field Officer:"
 	]
 
 
@@ -44,7 +45,8 @@ def get_data(filters):
 			invoice.qty if 'FC19' in invoice.item else "",
 			invoice.qty if 'FC47.5' in invoice.item else "",
 			per_cyl,
-			per_cyl * invoice.qty
+			per_cyl * invoice.qty,
+			invoice.field_officer
 		])
 
 	return rows
@@ -56,7 +58,8 @@ def get_invoices(filters):
 	if filters.field_officer else ''
 
 	return frappe.db.sql("""
-	Select i.*, r.customer_code from `tabIndent Invoice` i
+	Select i.*, r.customer_code, r.field_officer
+	from `tabIndent Invoice` i
 	left join `tabOMC Customer Registration` r
 	on i.omc_customer_registration = r.name
 	where i.docstatus = 1

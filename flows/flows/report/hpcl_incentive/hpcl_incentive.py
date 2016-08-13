@@ -32,7 +32,8 @@ def get_columns(filters):
 		"FC47.5::",
 		"Qty in Kg:Float:",
 		"LPG Handling Charges:Currency:",
-		"Incentive Amt.:Currency:"
+		"Incentive Amt.:Currency:",
+		"Field Officer:Link/Field Officer:"
 	]
 
 
@@ -46,7 +47,7 @@ def get_data(filters):
 
 		rows.append([
 			invoice.customer,
-			get_sap_code(invoice.customer),
+			invoice.customer_code,
 			invoice.transaction_date,
 			invoice.invoice_number,
 			invoice.actual_amount,
@@ -58,6 +59,7 @@ def get_data(filters):
 			qty_in_kg,
 			invoice.handling_charges,
 			net_incentive,
+			invoice.field_officer
 		])
 
 	return rows
@@ -65,26 +67,19 @@ def get_data(filters):
 
 def get_invoices(filters):
 
-	cond = ' and customer in (select customer from `tabOMC Customer Registration` where field_officer = "{}" and docstatus = 1)'.format(filters.field_officer) \
+	cond = ' and r.field_officer = "{}" '.format(filters.field_officer) \
 	if filters.field_officer else ''
 
 	sql = """
-	Select * from `tabIndent Invoice`
-	where docstatus = 1
-	and supplier like '%hpc%'
-	and item != 'FCBK'
-	and transaction_date between "{from_date}" and "{to_date}"
+	Select i.*, r.field_officer, r.customer_code
+	from `tabIndent Invoice` i left join `tabOMC Customer Registration` r
+	on i.omc_customer_registration = r.name
+	where i.docstatus = 1
+	and i.supplier like '%hpc%'
+	and i.item != 'FCBK'
+	and i.transaction_date between "{from_date}" and "{to_date}"
 	{cond}
-	order by customer, transaction_date, invoice_number
+	order by i.customer, i.transaction_date, i.invoice_number
 	""".format(cond=cond, **filters)
 
 	return frappe.db.sql(sql, as_dict=True)
-
-
-sap_code_map = {}
-
-
-def get_sap_code(customer):
-	if customer not in sap_code_map:
-		sap_code_map[customer] = frappe.db.get_value("Customer", customer, fieldname="hpcl_erp_number")
-	return sap_code_map[customer]

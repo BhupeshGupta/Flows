@@ -25,6 +25,6 @@ frappe.query_reports["HPCL Incentive"] = {
 			"fieldtype": "Link",
 			"options": "Field Officer",
 			"reqd":0
-		},
+		}
 	]
 };

@@ -16,7 +16,7 @@ def get_columns(filters):
 		"Customer:Link/Customer:250",
 		"SAP:Data:",
 		"Date:Date:",
-		"Bill No.:Link/Indent Invoice:",
+		"Bill No.:Data:",
 		"Bill Amount:Currency:",
 		"Qty 19Kg:Int:",
 		"Qty 35Kg:Int:",
@@ -27,6 +27,7 @@ def get_columns(filters):
 		"Credit Note to be given in customer A/c:Currency:",
 		"Total Amount of Credit Note:Currency:",
 		"Total Amount of Incentive:Currency:",
+		"II:Link/Indent Invoice:",
 	]
 
 
@@ -56,6 +57,7 @@ def get_data(filters):
 			rs['additional_discount'],
 			rs['additional_discount'] * c_factor * invoice.qty,
 			rs['incentive'] * c_factor * invoice.qty,
+			invoice.name
 		])
 
 	return rows

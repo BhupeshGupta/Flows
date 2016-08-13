@@ -13,17 +13,21 @@ def execute(filters=None):
 def get_data(filters):
 	rows = []
 
+	cond = ' and r.field_officer = "{}" '.format(filters.field_officer) \
+	if filters.field_officer else ''
+
 	for invoice in frappe.db.sql(
 		"""
-		select i.*, r.customer_code from `tabIndent Invoice` i
-		left join `tabOMC Customer Registration` r
+		select i.*, r.customer_code, r.field_officer
+		from `tabIndent Invoice` i left join `tabOMC Customer Registration` r
 		on i.omc_customer_registration = r.name
 		where i.docstatus = 1
 		and i.supplier like 'HPCL%'
 		and i.transaction_date between "{from_date}" and "{to_date}"
 		and ifnull(i.discount, 0) != 0
+		{cond}
 		order by i.customer, i.transaction_date
-		""".format(**filters), as_dict=True
+		""".format(cond=cond, **filters), as_dict=True
 	):
 
 		policy_name = frappe.db.get_value("Customer Plant Variables", invoice.customer_plant_variables, "omc_policy")
@@ -42,7 +46,8 @@ def get_data(filters):
 			rs['discount_in_invoice'],
 			rs['additional_discount'],
 			rs['additional_discount'] * invoice.qty * itm,
-			invoice.name
+			invoice.name,
+			invoice.field_officer
 		])
 
 	return rows
@@ -60,7 +65,8 @@ def get_columns(filters):
 		"Discount In Invoice:Currency:",
 		"Discount To Be Claimed:Currency:",
 		"Claim Amount:Currency:",
-		"II:Link/Indent Invoice:"
+		"II:Link/Indent Invoice:",
+		"Field Officer:Link/Field Officer:"
 	]
 
 policies = {}

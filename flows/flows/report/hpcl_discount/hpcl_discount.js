@@ -18,6 +18,13 @@ frappe.query_reports["HPCL Discount"] = {
 			"width":"80",
 			"default":frappe.datetime.month_end(),
 			"reqd":1
+		},
+		{
+			"fieldname":"field_officer",
+			"label":__("Field Officer"),
+			"fieldtype": "Link",
+			"options": "Field Officer",
+			"reqd":0
 		}
 	]
 };

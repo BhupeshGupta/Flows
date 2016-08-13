@@ -23,7 +23,8 @@ def get_columns(filters):
 		"Discount Per KG.:Currency:",
 		"Total Discount:Currency:",
 		"Policy::",
-		"Supplier"
+		"Supplier::",
+		"Field Officer:Link/Field Officer:"
 	]
 
 
@@ -49,7 +50,8 @@ def get_data(filters):
 			rs['additional_discount'],
 			rs['additional_discount'] * invoice.qty * flt(invoice.item.replace('FC', '').replace('L', '')),
 			policy_name,
-			invoice.supplier
+			invoice.supplier,
+			invoice.field_officer
 		])
 
 	return rows
@@ -64,7 +66,7 @@ def get_policy(policy):
 
 def get_invoices(filters):
 
-	cond = ' and r.field_officer = "{}")'.format(filters.field_officer) \
+	cond = ' and r.field_officer = "{}"'.format(filters.field_officer) \
 	if filters.field_officer else ''
 
 	return frappe.db.sql("""
