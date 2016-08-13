@@ -181,7 +181,7 @@
   {
    "fieldname": "fiscal_year", 
    "fieldtype": "Link", 
-   "hidden": 1, 
+   "hidden": 0, 
    "label": "fiscal year", 
    "options": "Fiscal Year", 
    "permlevel": 0, 
@@ -196,7 +196,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2016-01-13 13:08:12.520772", 
+ "modified": "2016-04-04 17:17:15.753413", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Subcontracted Invoice", 

@@ -549,21 +549,21 @@
    "fieldname": "adjusted", 
    "fieldtype": "Check", 
    "label": "Adjusted", 
-   "permlevel": 0, 
+   "permlevel": 1, 
    "precision": ""
   }, 
   {
    "fieldname": "discount", 
    "fieldtype": "Currency", 
    "label": "Discount", 
-   "permlevel": 0, 
+   "permlevel": 1, 
    "precision": ""
   }, 
   {
    "fieldname": "handling", 
    "fieldtype": "Currency", 
    "label": "Handling", 
-   "permlevel": 0, 
+   "permlevel": 1, 
    "precision": ""
   }, 
   {
@@ -578,7 +578,7 @@
    "fieldtype": "Link", 
    "label": "Journal Voucher", 
    "options": "Journal Voucher", 
-   "permlevel": 0, 
+   "permlevel": 1, 
    "precision": ""
   }, 
   {
@@ -711,7 +711,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2016-08-12 17:29:28.667148", 
+ "modified": "2016-08-12 18:29:28.667148", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 
@@ -731,7 +731,7 @@
    "print": 0, 
    "read": 1, 
    "report": 1, 
-   "role": "All", 
+   "role": "Purchase User", 
    "set_user_permissions": 0, 
    "submit": 1, 
    "write": 1
@@ -739,7 +739,7 @@
   {
    "permlevel": 1, 
    "read": 1, 
-   "role": "All"
+   "role": "Purchase User"
   }, 
   {
    "amend": 1, 
