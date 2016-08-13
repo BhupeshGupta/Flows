@@ -40,7 +40,7 @@ def get_data(filters):
 	ifnull(excise, 0) as excise,
 	ifnull(transportation_invoice_amount, 0) as transportation_invoice_amount
 	FROM `tabIndent Invoice`
-	WHERE transaction_Date BETWEEN "{from_date}" AND "{to_date}"
+	WHERE transaction_date BETWEEN "{from_date}" AND "{to_date}"
 	AND docstatus = 1
 	AND item like 'FC%' and item not like '%BK%'
 	order by customer, supplier, transaction_date;

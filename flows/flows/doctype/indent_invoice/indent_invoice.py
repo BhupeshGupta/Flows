@@ -584,10 +584,19 @@ class IndentInvoice(StockController):
 
 		transportation_rate, discount, credit_note_per_kg = self.transport_bill_variables()
 
-		if cint(self.adjusted) == 1 and self.handling != 0 and self.consignment_note_adjustment == 'Adjust Rate':
-			adjustment_value = -1 * self.handling * (1 + self.cst / (self.actual_amount - self.cst))
-			transportation_rate += adjustment_value
-			transportation_rate = round(transportation_rate, 2)
+		if cint(self.adjusted) == 1:
+			if self.consignment_note_adjustment == "Review Pending":
+				frappe.throw("Consignment Note Adjustment method missing")
+
+			if self.consignment_note_adjustment in ('Adjust Handling', 'Adjust Discount & Handling') and self.handling != 0:
+				adjustment_value = -1 * self.handling * (1 + self.cst / (self.actual_amount - self.cst))
+				transportation_rate += adjustment_value
+				transportation_rate = round(transportation_rate, 2)
+
+			if self.consignment_note_adjustment in ('Adjust Discount', 'Adjust Discount & Handling') and self.discount != 0:
+				adjustment_value = self.discount * (1 + self.cst / (self.actual_amount - self.cst))
+				transportation_rate += adjustment_value
+				transportation_rate = round(transportation_rate, 2)
 
 		logistics_company_object = frappe.get_doc("Company", self.logistics_partner)
 
