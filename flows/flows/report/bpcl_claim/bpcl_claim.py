@@ -54,8 +54,8 @@ def get_data(filters):
 			rs['total_discount_passed'],
 			rs['incentive'],
 			rs['additional_discount'],
-			c_factor * rs['additional_discount'],
-			c_factor * rs['incentive'],
+			rs['additional_discount'] * c_factor * invoice.qty,
+			rs['incentive'] * c_factor * invoice.qty,
 		])
 
 	return rows
