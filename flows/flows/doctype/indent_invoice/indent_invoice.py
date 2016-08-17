@@ -843,9 +843,18 @@ def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
 	indent_items_sql = """
         SELECT name, customer
         FROM `tabIndent Item`
-		WHERE parent IN (SELECT name FROM tabIndent WHERE vehicle = "{vehicle}" AND docstatus = 1)
+		WHERE parent IN (
+			SELECT name
+			FROM tabIndent
+			WHERE vehicle = "{vehicle}"
+			AND docstatus = 1
+		)
 		AND {search_key} LIKE "{search_val}%"
-		AND name NOT IN (SELECT ifnull(indent_item, '') FROM `tabIndent Invoice` WHERE docstatus = 1)
+		AND name NOT IN (
+			SELECT ifnull(indent_item, '')
+			FROM `tabIndent Invoice`
+			WHERE docstatus != 2
+		)
 		ORDER BY customer ASC limit {start}, {page_len}
 		""".format(
 		vehicle=filters.get("vehicle"),
