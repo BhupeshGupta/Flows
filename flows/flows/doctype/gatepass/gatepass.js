@@ -7,6 +7,10 @@ erpnext.flows.GatepassController = frappe.ui.form.Controller.extend({
 		this.setup_queries();
 	},
 
+	refresh: function (doc) {
+		me.frm.set_df_property("id", "hidden", cur_frm.doc.amended_from);
+	},
+
 	set_plant_query:function (field) {
 		if (this.frm.fields_dict[field]) {
 			this.frm.set_query(field, function () {

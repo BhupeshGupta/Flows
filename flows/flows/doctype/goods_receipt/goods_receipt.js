@@ -22,6 +22,8 @@ erpnext.flows.GoodsReceiptController = frappe.ui.form.Controller.extend({
 		}
 
 		this.cancelled(doc);
+
+		me.frm.set_df_property("goods_receipt_number", "hidden", cur_frm.doc.amended_from);
 	},
 
 	setup_queries:function () {

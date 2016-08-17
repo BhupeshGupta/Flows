@@ -21,6 +21,10 @@ erpnext.flows.CashReceiptController = frappe.ui.form.Controller.extend({
 
 	},
 
+	refresh: function (doc) {
+		me.frm.set_df_property("id", "hidden", cur_frm.doc.amended_from);
+	},
+
 	cancelled:function (doc, dt, dn) {
 		this.frm.set_df_property("stock_owner", "reqd", !doc.cancelled);
 		this.frm.set_df_property("item", "reqd", !doc.cancelled);

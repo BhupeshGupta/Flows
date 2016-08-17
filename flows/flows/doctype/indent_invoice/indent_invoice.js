@@ -45,6 +45,9 @@ erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
 		} else {
 			$(this.frm.fields_dict['receiving_image'].wrapper).html('');
 		}
+
+	    me.frm.set_df_property("invoice_number", "hidden", cur_frm.doc.amended_from);
+
     },
 
     set_plant_query: function (field) {
@@ -170,7 +173,27 @@ erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
             this.frm.set_value("sub_contracted", 1);
             this.frm.set_value("payment_type", "Direct");
         }
-    }
+    },
+
+	validate: function (doc, cdt, cdn) {
+		if (doc.invoice_number.match(/-/gi)) {
+			frappe.throw("Invoice Number can not contain dash (-).");
+		}
+
+		// HPCL -> 08
+		// IOCL -> 09
+		// BPCL -> 10
+		var invoice_no_len = doc.invoice_number.split("/")[0].length;
+
+		if (doc.supplier.match(/hpcl/gi) && invoice_no_len != 8) {
+			frappe.throw("Please check invoice number. HPCL invoice numbers length should be 8.");
+		} else if (doc.supplier.match(/iocl/gi) && invoice_no_len != 9) {
+			frappe.throw("Please check invoice number. IOCL invoice numbers length should be 9.");
+		} else if (doc.supplier.match(/bpcl/gi) && invoice_no_len != 10) {
+			frappe.throw("Please check invoice number. BPCL invoice numbers length should be 10.");
+		}
+
+	}
 
 });
 
