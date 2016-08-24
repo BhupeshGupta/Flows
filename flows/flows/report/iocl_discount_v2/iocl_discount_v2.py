@@ -7,12 +7,13 @@ from frappe.utils import flt
 
 
 def execute(filters=None):
+	filters.setdefault('handling', False)
 	data = get_data(filters)
 	return get_columns(filters), data
 
 
 def get_columns(filters):
-	return [
+	cols = [
 		"Customer::200",
 		"SAP::",
 		"Date:Date:",
@@ -22,10 +23,19 @@ def get_columns(filters):
 		"Uplift In M.T:Float:",
 		"Discount Per KG.:Currency:",
 		"Total Discount:Currency:",
+
+	]
+
+	if filters['handling']:
+		cols.append("Handling:Currency:")
+
+	cols.extend([
 		"Policy::",
 		"Supplier::",
 		"Field Officer:Link/Field Officer:"
-	]
+	])
+
+	return cols
 
 
 def get_data(filters):
@@ -33,13 +43,17 @@ def get_data(filters):
 	uplift = get_uplift_in_mt(filters)
 	rows = []
 
-	for invoice in invoices:
 
+	for invoice in invoices:
+		if invoice.handling_charges:
+			filters['handling'] = True
+
+	for invoice in invoices:
 		policy_name = frappe.db.get_value("Customer Plant Variables", invoice.customer_plant_variables, "omc_policy")
 		policy = get_policy(policy_name)
 		rs = policy.execute(invoice.name)
 
-		rows.append([
+		row = [
 			invoice.customer,
 			invoice.customer_code,
 			invoice.transaction_date,
@@ -49,10 +63,18 @@ def get_data(filters):
 			uplift[invoice.customer],
 			rs['additional_discount'],
 			rs['additional_discount'] * invoice.qty * flt(invoice.item.replace('FC', '').replace('L', '')),
+		]
+
+		if filters['handling']:
+			row.append(invoice.handling_charges)
+
+		row.extend([
 			policy_name,
 			invoice.supplier,
 			invoice.field_officer
 		])
+
+		rows.append(row)
 
 	return rows
 
