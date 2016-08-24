@@ -88,11 +88,11 @@ def fetch_and_record_hpcl_balance(for_date=None):
 	# from frappe.utils import now_datetime
 
 	customer_list = frappe.db.sql("""
-	select cr.customer as name, a.username, a.password
-	from `tabAccount` a left join `tabOMC Customer Registration` cr
+	select DISTINCT cr.customer as name, cr.customer_code as username, ifnull(a.password, '') as password
+	from `tabOMC Customer Registration` cr left join `tabAccount` a
 	on a.username = cr.customer_code
-	where ifnull(a.password, '') != ''
-	and a.name like "Hpcl a/c %";
+	where cr.omc = 'HPCL'
+	and cr.docstatus != 2;
 	""", as_dict=True)
 
 	customer_defer_list = []
