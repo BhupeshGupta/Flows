@@ -258,6 +258,7 @@ def get_indents_and_invoices(filters):
 		SELECT i.name, i.posting_date, it.customer, it.item, it.qty FROM `tabIndent` i, `tabIndent Item` it
 		WHERE cross_sold = 1 AND it.parent = i.name
 		AND it.name NOT IN (SELECT ifnull(indent_item, '') FROM `tabIndent Invoice` WHERE docstatus = 1)
+		AND it.docstatus != 2
 		""", as_dict=True)
 	else:
 		indents = []
