@@ -8,9 +8,10 @@ from frappe.utils import flt
 def execute(filters=None):
 	def row_mapper(row):
 		def row_status(row):
-			match = (flt(row.hpcl_debit_balance) + flt(row.balance) +
+			diff = (flt(row.hpcl_debit_balance) + flt(row.balance) +
 			2*(flt(row.hpcl_debit) - flt(row.total_credit)) +
-			3*(flt(row.hpcl_credit) - flt(row.total_debit))) == 0
+			3*(flt(row.hpcl_credit) - flt(row.total_debit)))
+			match = abs(diff) < 1
 			if match: return 'Ok'
 			if row.error_type != 'None': return 'Suspicion'
 			return 'Mismatch'
