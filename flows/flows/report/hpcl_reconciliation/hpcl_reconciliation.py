@@ -13,7 +13,9 @@ def execute(filters=None):
 			3*(flt(row.hpcl_credit) - flt(row.total_debit)))
 			match = abs(diff) < 1
 			if match: return 'Ok'
-			if row.error_type != 'None': return 'Suspicion'
+			if row.error_type != 'None':
+				if abs(flt(row.total_debit) + flt(row.hpcl_debit_balance)) < 1:  return 'Ok'
+				return 'Suspicion'
 			return 'Mismatch'
 
 		return [
