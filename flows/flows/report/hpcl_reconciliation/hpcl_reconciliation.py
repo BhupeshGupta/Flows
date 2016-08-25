@@ -14,7 +14,7 @@ def execute(filters=None):
 				2*(flt(row.hpcl_debit) - flt(row.total_credit)) +
 				3*(flt(row.hpcl_credit) - flt(row.total_debit)))
 			else:
-				diff = flt(row.hpcl_debit_balance) + flt(row.total_debit)
+				diff = flt(row.hpcl_debit_balance) + flt(row.balance)
 
 			match = abs(diff) < 1
 
