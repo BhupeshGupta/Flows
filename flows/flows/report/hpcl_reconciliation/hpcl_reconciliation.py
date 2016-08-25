@@ -14,7 +14,7 @@ def execute(filters=None):
 			match = abs(diff) < 1
 			if match: return 'Ok'
 			if row.error_type != 'None':
-				if abs(flt(row.total_debit) + flt(row.hpcl_debit_balance)) < 1:  return 'Ok'
+				if abs(flt(row.total_debit) + flt(row.hpcl_debit_balance)) < 1:  return 'Maybe'
 				return 'Suspicion'
 			return 'Mismatch'
 
