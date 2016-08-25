@@ -8,15 +8,20 @@ from frappe.utils import flt
 def execute(filters=None):
 	def row_mapper(row):
 		def row_status(row):
-			diff = (flt(row.hpcl_debit_balance) + flt(row.balance) +
-			2*(flt(row.hpcl_debit) - flt(row.total_credit)) +
-			3*(flt(row.hpcl_credit) - flt(row.total_debit)))
+			diff = 1000
+			if row.error_type == 'None':
+				diff = (flt(row.hpcl_debit_balance) + flt(row.balance) +
+				2*(flt(row.hpcl_debit) - flt(row.total_credit)) +
+				3*(flt(row.hpcl_credit) - flt(row.total_debit)))
+			else:
+				diff = flt(row.hpcl_debit_balance) + flt(row.total_debit)
+
 			match = abs(diff) < 1
-			if match: return 'Ok'
-			if row.error_type != 'None':
-				if abs(flt(row.total_debit) + flt(row.hpcl_debit_balance)) < 1:  return 'Maybe'
-				return 'Suspicion'
-			return 'Mismatch'
+
+			if match and row.error_type == 'None': return 'Ok'
+			if match and row.error_type != 'None': return 'Maybe'
+			if not match and row.error_type == 'None': return 'Mismatch'
+			if not match and row.error_type != 'None': return 'Suspicion'
 
 		return [
 			row.customer,
@@ -26,7 +31,8 @@ def execute(filters=None):
 			row.balance,
 			row.total_debit,
 			row.total_credit,
-			row_status(row)
+			row_status(row),
+			row.balance_link
 		]
 	data_map = get_data(filters)
 
@@ -62,7 +68,8 @@ def get_data(filters):
 	balance AS `hpcl_debit_balance`,
 	total_debit AS `hpcl_debit`,
 	total_credit AS `hpcl_credit`,
-	error_type
+	error_type,
+	name as balance_link
 	FROM `tabHPCL Customer Balance`
 	WHERE date between '{date}' and '{date}'
 	""".format(**filters), as_dict=True)
@@ -87,5 +94,6 @@ def get_columns():
 		"Our Dr Bal:Currency:100",
 		"Our Dr:Currency:100",
 		"Our Cr:Currency:100",
-		"Status:Data:"
+		"Status:Data:",
+		"Balance:HPCL Customer Balance:100"
 	]
