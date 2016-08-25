@@ -18,11 +18,13 @@ def execute(filters=None):
 
 			match = abs(diff) < 1
 
-			if match and row.error_type == 'None': return 'Ok'
-			if match and row.error_type != 'None': return 'Maybe'
-			if not match and row.error_type == 'None': return 'Mismatch'
-			if not match and row.error_type != 'None': return 'Suspicion'
+			if match and row.error_type == 'None': return 'Ok', abs(diff)
+			if match and row.error_type != 'None': return 'Maybe', abs(diff)
+			if not match and row.error_type == 'None': return 'Mismatch', abs(diff)
+			if not match and row.error_type != 'None': return 'Suspicion', abs(diff)
 
+
+		status, diff = row_status(row)
 		return [
 			row.customer,
 			row.hpcl_debit_balance,
@@ -31,7 +33,8 @@ def execute(filters=None):
 			row.balance,
 			row.total_debit,
 			row.total_credit,
-			row_status(row),
+			status,
+			diff,
 			row.balance_link
 		]
 	data_map = get_data(filters)
@@ -95,5 +98,6 @@ def get_columns():
 		"Our Dr:Currency:100",
 		"Our Cr:Currency:100",
 		"Status:Data:",
-		"Balance:HPCL Customer Balance:100"
+		"Diff:Currency:",
+		"Balance:Link/HPCL Customer Balance:100"
 	]
