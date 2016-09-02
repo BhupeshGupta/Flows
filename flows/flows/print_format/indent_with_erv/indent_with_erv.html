@@ -243,9 +243,9 @@
 
 		<div class="col-xs-12 column">
 			<p>
-				We are sending vehicle no. {{ doc.vehicle }} &amp; we hear by authorise Mr. {{ doc.driver|capitalize }}
-				as driver (whose driving licence number is
-				{{ frappe.db.get_value("Driver", doc.driver, "dl_number") or "N/A" }}) to the above mentioned vehicle.
+				We are sending vehicle no. {{ doc.vehicle }}. We hear by authorise Mr. {{ doc.driver|capitalize }}
+				to sign indent, erv, invoice and to drive the said vehicle. The DL number of {{ doc.driver|capitalize }} is
+				{{ frappe.db.get_value("Driver", doc.driver, "dl_number") or "N/A" }}).
 			</p>
 		</div>
 	</div>
