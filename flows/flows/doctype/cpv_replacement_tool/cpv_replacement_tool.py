@@ -42,13 +42,13 @@ class CPVReplacementTool(Document):
 			frappe.msgprint(i.indent_invoice)
 			doc = frappe.get_doc("Indent Invoice", i.indent_invoice)
 
-			if doc.docstatus == 1:
-				doc.cancel()
-
-			if doc.docstatus == 2:
-				doc.amended_from = doc.name
-				doc.name = ""
-				doc.docstatus = 0
+			# if doc.docstatus == 1:
+			# 	doc.cancel()
+			#
+			# if doc.docstatus == 2:
+			# 	doc.amended_from = doc.name
+			# 	doc.name = ""
+			# 	doc.docstatus = 0
 
 			# doc.docstatus == 0
 			doc.customer_plant_variables = self.cpv
@@ -56,7 +56,11 @@ class CPVReplacementTool(Document):
 			doc.handling = i.handling
 			doc.discount = i.discount
 
+			doc.ignore_validate_update_after_submit = True
+
+			doc.validate_purchase_rate()
+
 			doc.save()
-			doc.submit()
+			# doc.submit()
 
 		self.get_invoices()
