@@ -94,7 +94,7 @@ class QuotationTool(Document):
 			email_object = get_email(
 				email_list, sender='',
 				msg='',
-				subject='LPG price for Aug-2016: {Customer}'.format(**row),
+				subject='LPG price for SEP*-2016: {Customer}'.format(**row),
 				formatted=False, print_html=email
 			)
 
