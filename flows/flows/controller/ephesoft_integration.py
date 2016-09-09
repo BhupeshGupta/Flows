@@ -102,16 +102,43 @@ def get_user():
 	return json.dumps({'user': frappe.session.user})
 
 
-# @frappe.whitelist()
-# def attach_doc():
-# 	frappe.form_dict.docname = frappe.db.sql("""
-# 		select name
-# 		from `tab{doctype}`
-# 		where (
-# 			name = '{docname}'
-# 			or name like '{docname}-%'
-# 		)
-# 		and docstatus = 1
-# 	""".format(**frappe.form_dict), as_dict=True)[0].name
-#
-# 	upload()
+@frappe.whitelist()
+def push_remaining():
+	remaining = frappe.db.sql("""
+	 select r.name
+	 from `tabIndent Invoice` r, (
+		  select distinct m.transportation_invoice
+		  from (
+			select s.transportation_invoice
+			from `tabIndent Invoice` s
+			where s.name in (
+				select SUBSTRING_INDEX(
+					  (
+						case
+						   when (l.amended_from is null) then l.name
+						   else l.amended_from
+						end
+					  ),
+					  '-', 1
+				  ) as bill_number
+				from `tabIndent Invoice` l
+				where posting_date between '2016-09-01' and current_date()
+				and docstatus = 1
+			)
+		  ) as m
+		  where m.transportation_invoice not in
+		  (select distinct p.cno from documentqueue.currentstat p)
+	 ) a
+	 where r.transportation_invoice = a.transportation_invoice;
+	 """)
+
+	r = []
+
+	for i in remaining:
+		print i[0]
+		print len(remaining)
+		doc = frappe.get_doc("Indent Invoice", i[0])
+		create_docs_in_review_server(doc)
+		r.append(i[0])
+
+	print r
