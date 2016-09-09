@@ -176,8 +176,12 @@ erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
     },
 
 	validate: function (doc, cdt, cdn) {
+		var lease = 0;
 		if (doc.invoice_number.match(/-/gi)) {
 			frappe.throw("Invoice Number can not contain dash (-).");
+		}
+		if (doc.invoice_number.match(/\//gi)) {
+			lease += 2;
 		}
 
 		// HPCL -> 08
@@ -185,12 +189,12 @@ erpnext.flows.IndentInvoice = frappe.ui.form.Controller.extend({
 		// BPCL -> 10
 		var invoice_no_len = doc.invoice_number.split("/")[0].length;
 
-		if (doc.supplier.match(/hpcl/gi) && invoice_no_len != 8) {
-			frappe.throw("Please check invoice number. HPCL invoice numbers length should be 8.");
-		} else if (doc.supplier.match(/iocl/gi) && invoice_no_len != 9) {
-			frappe.throw("Please check invoice number. IOCL invoice numbers length should be 9.");
-		} else if (doc.supplier.match(/bpcl/gi) && invoice_no_len != 10) {
-			frappe.throw("Please check invoice number. BPCL invoice numbers length should be 10.");
+		if (doc.supplier.match(/hpcl/gi) && invoice_no_len != 8 + lease) {
+			frappe.throw("Please check invoice number. HPCL invoice numbers length should be 8 or 10.");
+		} else if (doc.supplier.match(/iocl/gi) && invoice_no_len != 9 + lease) {
+			frappe.throw("Please check invoice number. IOCL invoice numbers length should be 9 or 11.");
+		} else if (doc.supplier.match(/bpcl/gi) && invoice_no_len != 10 + lease) {
+			frappe.throw("Please check invoice number. BPCL invoice numbers length should be 10 or 12.");
 		}
 
 	}

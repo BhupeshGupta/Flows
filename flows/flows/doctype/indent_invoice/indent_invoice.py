@@ -135,6 +135,10 @@ class IndentInvoice(StockController):
 
 	def cancel(self):
 		super(IndentInvoice, self).cancel()
+
+		if getdate(self.posting_date) < getdate('2016-06-01'):
+			frappe.throw("Tax Changed! Cant cancel/submit invoice")
+
 		self.set_missing_values()
 		self.make_gl_entries()
 		self.make_stock_refill_entry()
@@ -532,20 +536,6 @@ class IndentInvoice(StockController):
 
 	def load_transport_bill_variables(self):
 		if not hasattr(self, 'transport_vars'):
-			# self.transport_vars = frappe.db.sql(
-			# 	"""
-			# 	SELECT *
-			# 	FROM `tabCustomer Sale`
-			# 	WHERE customer="{customer}"
-			# 	AND with_effect_from <= "{invoice_date}"
-			# 	AND ifnull(valid_up_to, "{invoice_date}") <= "{invoice_date}"
-			# 	AND docstatus = 1
-			# 	ORDER BY with_effect_from DESC LIMIT 1
-			# 	""".format(invoice_date=self.transaction_date, customer=self.customer),
-			# 	as_dict=True
-			# )
-			# if not self.transport_vars:
-			# 	frappe.throw("Customer Sale Variables Not Found")
 
 			self.transport_vars = frappe.db.sql(
 				"""
@@ -709,7 +699,7 @@ class IndentInvoice(StockController):
 		"doctype": "Sales Invoice",
 		"customer": self.customer,
 		"customer_name": self.customer.strip(),
-		"posting_date": self.transaction_date if getdate(today()) < getdate('2015-06-01') else self.posting_date,
+		"posting_date": self.posting_date,
 		"posting_time": self.posting_time,
 		"fiscal_year": self.fiscal_year,
 		"entries": [
@@ -747,14 +737,17 @@ class IndentInvoice(StockController):
 		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
 			consignment_note_json_doc["customer_address"] = "{}-Billing".format(self.customer.strip())
 
-		if getdate(consignment_note_json_doc['posting_date']) < getdate('2015-06-01'):
-			consignment_note_json_doc["taxes_and_charges"] = "Road Transport"
-		elif getdate(consignment_note_json_doc['posting_date']) < getdate('2015-11-15'):
-			consignment_note_json_doc["taxes_and_charges"] = "Road Transport_June_1_15"
-		elif getdate(consignment_note_json_doc['posting_date']) < getdate('2016-06-01'):
-			consignment_note_json_doc["taxes_and_charges"] = "Road Transport_Nov_15_15"
-		else:
-			consignment_note_json_doc["taxes_and_charges"] = "Road Transport_June_1_16"
+		# if getdate(consignment_note_json_doc['posting_date']) < getdate('2015-06-01'):
+		# 	consignment_note_json_doc["taxes_and_charges"] = "Road Transport"
+		# elif getdate(consignment_note_json_doc['posting_date']) < getdate('2015-11-15'):
+		# 	consignment_note_json_doc["taxes_and_charges"] = "Road Transport_June_1_15"
+		# elif getdate(consignment_note_json_doc['posting_date']) < getdate('2016-06-01'):
+		# 	consignment_note_json_doc["taxes_and_charges"] = "Road Transport_Nov_15_15"
+		# else:
+		consignment_note_json_doc["taxes_and_charges"] = "Road Transport_June_1_16"
+
+		if getdate(consignment_note_json_doc['posting_date']) < getdate('2016-06-01'):
+			frappe.throw("Tax Changed! Cant cancel/submit invoice")
 
 		consignment_note_json_doc[
 			"tax_paid_by_supplier"
