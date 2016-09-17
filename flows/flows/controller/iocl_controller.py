@@ -36,9 +36,9 @@ def fetch_and_record_iocl_transactions(customer_list, for_date=None, force_run=F
 			return "IOCL NABHA"
 		if plant_code == "1277":
 			return "IOCL UNA"
+		if plant_code == "1171":
+			return "IOCL TIKRI"
 		return plant_code
-
-	for_date = for_date if for_date else today()
 
 	for customer in customer_list:
 		portal = IOCLPortal(customer.id, customer.passwd)
@@ -99,7 +99,7 @@ def fetch_and_record_iocl_transactions_controller(date=None):
 		if passwd and user not in iocl_account_map:
 			iocl_account_map[user] = frappe._dict({'id': user, 'passwd': passwd})
 
-	fetch_and_record_iocl_transactions(iocl_account_map.values(), for_date=date)
+	fetch_and_record_iocl_transactions(iocl_account_map.values())
 	reconcile_omc_txns_with_indents()
 
 	print(iocl_account_map.values())
