@@ -61,7 +61,7 @@ def fetch_and_record_iocl_transactions(customer_list, for_date=None, force_run=F
 
 			doc = frappe.get_doc({
 				'customer': registration.customer if registration else '',
-				'date': for_date,
+				'date': '-'.join(reversed(txn['Tran. Date'].split('.'))),
 				'doctype': 'OMC Transactions',
 				'document_no': int(txn['Doc. No']),
 				'debit': txn['Bill Amt'] if txn['Db/Cr'] == 'D' else 0,
