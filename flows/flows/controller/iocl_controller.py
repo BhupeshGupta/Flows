@@ -38,6 +38,8 @@ def fetch_and_record_iocl_transactions(customer_list, for_date=None, force_run=F
 			return "IOCL UNA"
 		if plant_code == "1171":
 			return "IOCL TIKRI"
+		if plant_code == "3148":
+			return "IOCL Dahej"
 		return plant_code
 
 	for customer in customer_list:
