@@ -230,7 +230,7 @@ def get_data():
 				{
 					"type": "report",
 					"is_query_report": True,
-					"name": "BPCL Claim",
+					"name": "BPCL Claim V2",
 					"doctype": "Indent Invoice",
 				},
 				{
