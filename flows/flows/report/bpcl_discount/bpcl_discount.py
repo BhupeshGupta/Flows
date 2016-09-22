@@ -15,9 +15,10 @@ def execute(filters=None):
 def get_columns(filters):
 	return [
 		"DATE:Date:",
-		"CUSTOMER:Link/Customer:",
+		"CUSTOMER:Link/Customer:250",
 		"INVOICE NO.:Data:",
 		"CC NO:Int:",
+		"Package:Data:",
 		"CYL:Int:",
 		"QTY:Int:",
 		"DISC:Currency:",
@@ -36,6 +37,9 @@ def get_data(filters):
 		policy = get_policy(policy_name)
 		rs = policy.execute(invoice.name)
 
+		if rs['discount_mismatch'] == 0:
+			continue
+
 		c_factor = get_conversion_factor_item(invoice.item)
 
 		rows.append([
@@ -43,6 +47,7 @@ def get_data(filters):
 			invoice.customer,
 			invoice.invoice_number,
 			invoice.customer_code,
+			c_factor,
 			invoice.qty,
 			c_factor * invoice.qty,
 			rs['discount_mismatch'],
@@ -68,6 +73,7 @@ def get_invoices(filters):
 	and i.item != 'FCBK'
 	and i.transaction_date between "{from_date}" and "{to_date}"
 	{cond}
+	and discount != 0
 	order by i.customer, i.transaction_date asc
 	""".format(cond=cond, **filters), as_dict=True)
 
