@@ -112,3 +112,7 @@ def create_trip_return(gatepass):
 	trip.save()
 
 	return get_trip_page(name=trip.name)
+
+
+def validate_gr():
+	pass

@@ -1,0 +1,12 @@
+{
+  "ba":"ARUN ENERGIES LTD",
+  "customer":"",
+  "credit_accounts":[{"credit_account":"7 dez (Ready Pizza) - AGE","credit_account_company":"Aggarwal Enterprises","debit_account":"Salary - LE","doctype":"OMC Customer Registration Credit Account","debit_account_company":"Ludhiana Enterprises Ltd.","payment_type":"Direct","type":"Payer Code"}],
+  "default_credit_account":"Payer Code",
+  "doctype":"OMC Customer Registration",
+  "field_officer":"Japjeev Chawla",
+  "omc":"HPCL",
+  "sales_invoice_account":"Accounts Payable - bpc",
+  "sales_invoice_company":"Bpcl",
+  "with_effect_from":""
+}

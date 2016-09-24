@@ -43,7 +43,6 @@ class CbecEasiestPortal:
 			'submit': 'Get Details',
 			'captchaText': self.captcha,
 			'assesseeCode': excise_no
-
 		}, headers=self.headers, verify=False).text
 
 		success = ('validation error' not in content.lower())
