@@ -14,6 +14,8 @@ import frappe
 from frappe.utils.email_lib.email_body import get_email
 from frappe.utils.email_lib.smtp import send
 from flows.flows.doctype.quotation_tool.quotation_tool import get_print_format
+import re
+import os
 
 
 if not frappe.conf.document_queue_server:
@@ -251,9 +253,9 @@ def make_tracking_table():
 
 def get_customer():
 
-	def render(doc):
+	def render(doc, format='Invoice Receiving Email'):
 		jenv = frappe.get_jenv()
-		template = jenv.from_string(get_print_format('Invoice Receiving Email Tool', 'Invoice Receiving Email'))
+		template = jenv.from_string(get_print_format('Invoice Receiving Email Tool', format))
 		return template.render(**doc)
 
 	scn_documents_map = frappe.db.sql("""
@@ -293,13 +295,14 @@ def get_customer():
 
 		for scn, scn_docs in docs.items():
 			links, rows = get_links_and_metadata(scn, scn_docs)
-			meta_rows.append(rows)
+			meta_rows.extend(rows)
 
 			for key, value in links.items():
 				print key, value
 				links[key] = url_formatter(value)
 
-			data = download_images(links)
+			rs_links = get_local_links(links)
+			data = render({'doc': {'links': rs_links}}, format='Invoice Receiving PDF')
 			pdf_pages.append(data)
 
 		email = render({'doc': {'invoices': meta_rows}})
@@ -327,37 +330,35 @@ def get_customer():
 		send(email_object)
 
 
-def download_images(links):
-	images_html = ""
+def get_local_links(links):
+
+	rs_links = []
+	directory = os.path.join(frappe.local.site_path, "public/files/temp")
+	if not os.path.exists(directory):
+		os.makedirs(directory)
+
 	for key, value in links.items():
-		print key, value
 		response = requests.get(value, stream=True, auth=(frappe.conf.alfresco_user, frappe.conf.alfresco_password))
-		path = "/home/erpnext/frappe-bench/sites/erpnext.erpnext-vm/public/files/temp/{}.jpg".format(uuid.uuid4())
-		with open(path, 'wb+') as out_file:
+		file_name = "{}.jpg".format(uuid.uuid4())
+
+		with open(os.path.join(directory, file_name), 'wb+') as out_file:
 			shutil.copyfileobj(response.raw, out_file)
 		del response
-		temp_path = path.split("/home/erpnext/frappe-bench/sites/erpnext.erpnext-vm/public")
-		links[key] = frappe.conf.host_name + temp_path[1]
-	print "Local Links "
-	print links
-	for link in links.items():
-		images_html = images_html + link[0] + """<br><img src = "{}" style = "max-height:260mm;max-width:210mm"><br>""".format(
-			link[1])
-	return images_html
+
+		rs_links.append('{}/files/temp/{}'.format(frappe.conf.host_name, file_name))
+
+	return rs_links
 
 
 def url_formatter(url):
-	url = url.split("proxy/alfresco/api/node/")
-	temp = url[1].replace("/", "://", 1)
-	url = url[0] + 'page/site/receivings/document-details?nodeRef=' + temp
-	url = url.split("/content/thumbnails/imgpreview")
-	url = url[0]
-	url = url.split("/share/page/site/{}/document-details?nodeRef=".format(frappe.conf.alfresco_site))
-	print url
-	temp = url[1].replace("://", "/", 1)
-	temp = temp.split("/")
-	url = url[0] + "/alfresco/s/api/node/content/{}/{}/{}".format(temp[0], temp[1], temp[2])
-	return url
+	"""
+	Input: http://docs.arungas.com:8080/share/proxy/alfresco/api/node/workspace/SpacesStore/0459abf1-38bd-45a5-97cd-f579a2ca7e8e/content/thumbnails/imgpreview
+	Output: http://docs.arungas.com:8080/alfresco/s/api/node/content/workspace/SpacesStore/0459abf1-38bd-45a5-97cd-f579a2ca7e8e
+	:param url:
+	:return:
+	"""
+	link = re.findall("(.*)/share/proxy/alfresco/api/node/(.*)/content/.*", url)[0]
+	return "{}/alfresco/s/api/node/content/{}".format(*link)
 
 
 def get_links_and_metadata(scn, docs_array):
@@ -372,7 +373,7 @@ def get_links_and_metadata(scn, docs_array):
 			grand_total as amount,
 			receiving_file
 			from `tabSales Invoice`
-			where name='{}' or name like '{}-%'
+			where name='{0}' or name like '{0}-%'
 		""".format(scn), as_dict=True)[0]
 		links['Consignment Note'] = consignment_meta.receiving_file
 
@@ -385,9 +386,9 @@ def get_links_and_metadata(scn, docs_array):
 	receiving_file,
 	data_bank
 	from `tabIndent Invoice`
-	where transportation_invoice = '{}' or transportation_invoice like '{}-%'
+	where transportation_invoice = '{0}' or transportation_invoice like '{0}-%'
 	and docstatus = 1
-	""".format(scn), as_dict=True)
+	""".format(scn), as_dict=True)[0]
 
 	if 'Indent Invoice' in docs_array:
 		links['Indent Invoice'] = indent_meta.receiving_file
@@ -395,11 +396,9 @@ def get_links_and_metadata(scn, docs_array):
 
 	data_bank = json.loads(indent_meta.data_bank)
 
-	receivings = data_bank['receivings']
-
 	if "VAT Form XII" in docs_array:
-		links['VAT Form XII'] = receivings['VAT Form XII']
+		links['VAT Form XII'] = data_bank['receivings']['VAT Form XII']
 	if "Excise_Invoice" in docs_array:
-		links['Excise_Invoice'] = receivings['Excise_Invoice']
+		links['Excise_Invoice'] = data_bank['receivings']['Excise_Invoice']
 
 	return links, rows

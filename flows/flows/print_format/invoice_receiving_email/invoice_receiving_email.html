@@ -1,4 +1,3 @@
-
 	<div class="row clearfix">
 		<div class="col-xs-12 column">
 			<table class="table table-bordered table-striped">
@@ -16,20 +15,19 @@
 				</tr>
 				</thead>
 				<tbody>
-				{% for invoice in doc.invoices %}
 
+				{% for invoice in doc.invoices %}
 					<tr>
-						<td>
-							{{ invoice.date }}
+						<td class="">
+							{{ frappe.format_value(invoice.date, {'fieldtype': 'Date'}) }}
 						</td>
-						<td class="customer">
+						<td class="">
 							{{ invoice.name }}
 						</td>
-						<td class="amount">
-							{{ frappe.format_value(indent_item.amount | round(2), {'fieldtype': 'Currency'}) }}
+						<td class="">
+							₹{{ frappe.format_value(invoice.amount | round(2), {'fieldtype': 'Currency'}) }}
 						</td>
 					</tr>
-
 				{% endfor %}
 
 				</tbody>
