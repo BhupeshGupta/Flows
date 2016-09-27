@@ -171,6 +171,8 @@ def item_map(item):
 		return 'FC35'
 	if item == '0948042':
 		return 'FC47.5'
+	if item == '0948450':
+		return 'FC450'
 
 
 def deduplicate_and_save_invoice_txns(txns, customer_obj_db):
