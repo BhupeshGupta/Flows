@@ -1,15 +1,20 @@
 import json
+import shutil
+import uuid
+
 import frappe
 import requests
 from frappe.utils import cint
 from flows.stdlogger import root
-import shutil
-import uuid
 from frappe.utils.pdf import get_pdf
 from frappe.utils.email_lib.email_body import get_email
 from frappe.utils.email_lib.smtp import send
 from frappe.utils import today, add_months, getdate
-from premailer import transform
+import frappe
+from frappe.utils.email_lib.email_body import get_email
+from frappe.utils.email_lib.smtp import send
+from flows.flows.doctype.quotation_tool.quotation_tool import get_print_format
+
 
 if not frappe.conf.document_queue_server:
 	raise Exception('document_queue_server not found in config')
@@ -245,8 +250,11 @@ def make_tracking_table():
 
 
 def get_customer():
-	table_data = ""
-	pdf_data = ""
+
+	def render(doc):
+		jenv = frappe.get_jenv()
+		template = jenv.from_string(get_print_format('Invoice Receiving Email Tool', 'Invoice Receiving Email'))
+		return template.render(**doc)
 
 	scn_documents_map = frappe.db.sql("""
 	select q.sales_invoice_number, group_concat(q.document_type) as docs
@@ -277,37 +285,44 @@ def get_customer():
 
 	customer_scn_map = {x[0]: {y: scn_documents_map[y] for y in x[1].split(',')} for x in customer_scn_map}
 
-	print customer_scn_map
+	# from premailer import transform
 
 	for customer, docs in customer_scn_map.items():
+		pdf_pages = []
+		meta_rows = []
 
 		for scn, scn_docs in docs.items():
-			links, table = generate_links_for_these_docs(scn, scn_docs)
-			table_data = table_data + "<h1>{}</h1><br>{}<br>".format(scn, table)
+			links, rows = get_links_and_metadata(scn, scn_docs)
+			meta_rows.append(rows)
+
 			for key, value in links.items():
 				print key, value
 				links[key] = url_formatter(value)
 
 			data = download_images(links)
-			pdf_data = pdf_data + data
-	# 	# GENEATE EMAIL TEMPLTE HERE FROM HTML
-	# 	# email_content = self.render({'doc': {'row': row}})
-	# 	# email = transform(email_content, base_url=frappe.conf.host_name + '/')
+			pdf_pages.append(data)
 
-		pdf = get_pdf(pdf_data)
+		email = render({'doc': {'invoices': meta_rows}})
+		# email = transform(email, base_url=frappe.conf.host_name + '/')
+		pdf = get_pdf(''.join(pdf_pages))
 
-		email_list = [
-			c[0] for c in frappe.db.sql("""
-						SELECT email_id FROM `tabContact` WHERE ifnull(email_id, '') != '' AND customer = "{}"
-						""".format(customer))
-			]
+		# email_list = [
+		# 	c[0] for c in frappe.db.sql("""
+		# 	SELECT email_id FROM `tabContact` WHERE ifnull(email_id, '') != '' AND customer = "{}"
+		# 	""".format(customer))
+		# ]
+
+		email_list = 'bhupesh00gupta@gmail.com'
 
 		frappe.msgprint("sending email to {}".format(email_list))
 		email_object = get_email(
-			email_list, sender='',
-			msg="One pdf per customer is done. Find the attachment to know how it look",
+			email_list,
+			sender='',
+			msg="",
 			subject='Right one',
-			formatted=False, attachments=[{'fname': 'Weekly_Report.pdf', 'fcontent': pdf}]
+			formatted=False,
+			print_html=email,
+			attachments=[{'fname': 'Weekly_Report.pdf', 'fcontent': pdf}]
 		)
 		send(email_object)
 
@@ -344,101 +359,47 @@ def url_formatter(url):
 	url = url[0] + "/alfresco/s/api/node/content/{}/{}/{}".format(temp[0], temp[1], temp[2])
 	return url
 
-def generate_links_for_these_docs(scn, docs_array):
+
+def get_links_and_metadata(scn, docs_array):
 	links = {}
-	total_rows = ""
-	print scn, docs_array
-	consignment_note_row = ""
+	rows = []
 
 	if 'Consignment Note' in docs_array:
-		consignment_meta = frappe.db.sql(
-			"""select p.customer, p.posting_date,
-				p.grand_total, p.receiving_file
-				from `tabSales Invoice` p where '{}' = p.name;
-			""".format(scn)
-		)
-		links['Consignment Note'] = consignment_meta[0][3]
-		consignment_note_row = """
-		<tr>
-			<th style = "background:#222; color:#fff;text-align:left;text-transform:uppercase;font-size:13px;">Customer</th>
-			<th style = "background:#222; color:#fff;text-align:left;text-transform:uppercase;font-size:13px;">Date</th>
-			<th style = "background:#222; color:#fff;text-align:left;text-transform:uppercase;font-size:13px;">Amount</th>
-		</tr>
-		<tr>
-			<td style = "color:#666; font-size:13px;">{}</td>
-			<td style = "color:#666; font-size:13px;">{}</td>
-			<td style = "color:#666; font-size:13px;">{}</td>
-		</tr>""".format(consignment_meta[0][0], consignment_meta[0][1],
-							consignment_meta[0][2])
+		consignment_meta = frappe.db.sql("""
+			select customer,
+			name,
+			posting_date as date,
+			grand_total as amount,
+			receiving_file
+			from `tabSales Invoice`
+			where name='{}' or name like '{}-%'
+		""".format(scn), as_dict=True)[0]
+		links['Consignment Note'] = consignment_meta.receiving_file
 
+		rows.append(consignment_meta)
 
-		links['Consignment Note'] = consignment_meta[0][3]
-
-
+	indent_meta = frappe.db.sql("""
+	select invoice_number as name,
+	transaction_date as date,
+	actual_amount as amount,
+	receiving_file,
+	data_bank
+	from `tabIndent Invoice`
+	where transportation_invoice = '{}' or transportation_invoice like '{}-%'
+	and docstatus = 1
+	""".format(scn), as_dict=True)
 
 	if 'Indent Invoice' in docs_array:
-		indent_meta = frappe.db.sql("""select p.invoice_number,p.transaction_date, p.actual_amount, p.receiving_file, p.data_bank
-								from `tabIndent Invoice` p
-								where p.transportation_invoice= '{}';""".format(scn)
-									)
-		indent_meta_row = """
-		<tr>
-			<th style = "background:#222; color:#fff;text-align:left;text-transform:uppercase;font-size:13px;">Invoice Number</th>
-			<th style =" background:#222; color:#fff;text-align:left;text-transform:uppercase;font-size:13px;">Date</th>
-			<th style = "background:#222; color:#fff;text-align:left;text-transform:uppercase;font-size:13px;">Amount</th>
-		</tr>
-		<tr>
-			<td style = "color:#666; font-size:12px;">{}</td>
-			<td style = "color:#666; font-size:12px;">{}</td>
-			<td style = "color:#666; font-size:12px;">{}</td>
-		</tr>""".format(indent_meta[0][0], indent_meta[0][1], indent_meta[0][2])
+		links['Indent Invoice'] = indent_meta.receiving_file
+		rows.append(indent_meta)
 
-		links['Indent Invoice'] = indent_meta[0][3]
+	data_bank = json.loads(indent_meta.data_bank)
 
-		data_bank = indent_meta[0][4]
-		print data_bank
+	receivings = data_bank['receivings']
 
-		data_bank = json.loads(data_bank)
-		print data_bank
-		if 'receivings' in data_bank:
-			print "true"
-			receivings = data_bank['receivings']
-			if "VAT Form XII" in docs_array:
-				links['VAT Form XII'] = receivings['VAT Form XII']
-			if "Excise_Invoice" in docs_array:
-				links['Excise_Invoice'] = receivings['Excise_Invoice']
+	if "VAT Form XII" in docs_array:
+		links['VAT Form XII'] = receivings['VAT Form XII']
+	if "Excise_Invoice" in docs_array:
+		links['Excise_Invoice'] = receivings['Excise_Invoice']
 
-
-
-
-
-	if consignment_note_row:
-		total_rows = total_rows + consignment_note_row
-	if indent_meta_row:
-		total_rows = total_rows + indent_meta_row
-
-	template_table = """
-	<table style = "width: 100%;border:0; background:#efefef;cellspacing:0; cellpadding:0;">
-		{}
-	</table>""".format(total_rows)
-
-	return links, template_table
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	return links, rows
