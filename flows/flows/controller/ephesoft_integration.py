@@ -1,5 +1,4 @@
 import json
-from frappe.utils.file_manager import upload
 import frappe
 import requests
 from frappe.utils import cint
@@ -9,7 +8,8 @@ import uuid
 from frappe.utils.pdf import get_pdf
 from frappe.utils.email_lib.email_body import get_email
 from frappe.utils.email_lib.smtp import send
-
+from frappe.utils import today, add_months, getdate
+from premailer import transform
 
 if not frappe.conf.document_queue_server:
 	raise Exception('document_queue_server not found in config')
@@ -111,32 +111,41 @@ def push_remaining():
 	remaining = {}
 	r = []
 	remaining = frappe.db.sql("""
-    			select r.name
-    			from `tabIndent Invoice` r,
-    				(select distinct m.transportation_invoice
-    				from
-    					(select s.transportation_invoice from
-    					`tabIndent Invoice` s where s.name in
-    							(select SUBSTRING_INDEX((
-    								case
-    									when
-    					 					( l.amended_from is null)
-    									then
-    					 					l.name
-    									else
-    										l.amended_from
-    								end),'-',1) as bill_number from `tabIndent Invoice` l
-    								where
-    								posting_date between '2016-09-01' and current_date()
-    								and docstatus = 1
-    							)
-    				) as m where m.transportation_invoice
-    				not in
-    					(select distinct p.cno from documentqueue.currentstat p)
-    			) a
-    			where
-    			r.transportation_invoice = a.transportation_invoice;
-    			""")
+	select r.name
+	from `tabIndent Invoice` r,
+	(
+		select distinct m.transportation_invoice
+		from (
+				select s.transportation_invoice from
+				`tabIndent Invoice` s
+				where s.name in
+				(
+					select SUBSTRING_INDEX(
+						(
+							case
+								when
+									(l.amended_from is null)
+									then l.name
+									else l.amended_from
+								end
+						),
+						'-',
+						1
+					) as bill_number
+					from `tabIndent Invoice` l
+					where posting_date between '2016-09-01' and current_date() and
+						docstatus = 1
+				)
+		) as m
+		where
+			m.transportation_invoice not in
+			(
+				select distinct cno
+				from documentqueue.currentstat
+			)
+	) a
+	where r.transportation_invoice = a.transportation_invoice;
+	""")
 
 	for i in remaining:
 		print i[0]
@@ -148,12 +157,220 @@ def push_remaining():
 	print r
 
 
+
+def make_tracking_table():
+	end_date = today()
+	start_date = add_months(end_date, -1)
+	if getdate(start_date) < getdate('2016-09-01'):
+		start_date = '2016-09-23'
+
+	scn_numbers = frappe.db.sql("""
+	select m.name as sales_invoice,
+	m.amended_from as sales_invoice_amended_from,
+	q.name as indent_invoice
+	from (
+		select si.name, si.posting_date, si.amended_from
+		from `tabSales Invoice` si left join `tabSales Invoice Email Tracking` t
+		on t.sales_invoice_number = IF(
+			ifnull(si.amended_from, '') = '',
+			si.name,
+			REPLACE(si.name, CONCAT('-', SUBSTRING_INDEX(si.name, '-', -1)), '')
+		)
+		where t.sales_invoice_number is null and
+			si.posting_date between "{start_date}" and "{end_date}"
+			and si.docstatus = 1
+	) m	left join `tabIndent Invoice` q
+	on q.transportation_invoice = m.name
+	""".format(start_date=start_date, end_date=end_date),
+	as_dict=True)
+
+
+	for scn_tupple in scn_numbers:
+		print scn_tupple
+		sales_invoice = scn_tupple['sales_invoice']
+		if scn_tupple['sales_invoice_amended_from']:
+			sales_invoice = sales_invoice.rsplit("-",1)[0]
+		else :
+			sales_invoice = scn_tupple['sales_invoice']
+
+			doc = frappe.get_doc({
+				"doctype": "Sales Invoice Email Tracking",
+				"document_type": "Consignment Note",
+				"sales_invoice_number": "{}".format(sales_invoice),
+				"email": "0",
+			})
+			doc.save()
+
+		if scn_tupple['indent_invoice']:
+			doc = frappe.get_doc({
+				"doctype": "Sales Invoice Email Tracking",
+				"document_type": "Indent Invoice",
+				"sales_invoice_number": "{}".format(sales_invoice),
+				"email": "0",
+			})
+			doc.save()
+
+			q = frappe.db.get_values("Indent Invoice",
+									 {"transportation_invoice": sales_invoice},
+									 "*"
+									 )
+			data = q[0]
+
+			if data["sales_tax"] == 'CST':
+				doc = frappe.get_doc({
+					"doctype": "Sales Invoice Email Tracking",
+					"document_type": "VAT Form XII",
+					"sales_invoice_number": "{}".format(sales_invoice),
+					"email": "0"
+				})
+				doc.save()
+
+			if 'hpcl' in data["supplier"].lower() and cint(data["cenvat"]) == 1:
+				doc = frappe.get_doc({
+					"doctype": "Sales Invoice Email Tracking",
+					"document_type": "Excise_Invoice",
+					"sales_invoice_number": "{}".format(sales_invoice),
+					"email": "0",
+				})
+				doc.save()
+
+		else:
+			doc = frappe.get_doc({
+				"doctype": "Sales Invoice Email Tracking",
+				"document_type": "Sales Invoice",
+				"sales_invoice_number": "{}".format(sales_invoice),
+				"email": "0",
+			})
+			doc.save()
+
+
+
+
+
+def get_customer():
+	email_list = {}
+	table_data = ""
+	email_template = ""
+	pdf_data = ""
+
+	list_of_scn = frappe.db.sql("""
+	select group_concat(sales_invoice_number separator ",")	as list
+	from (
+		  select distinct q.sales_invoice_number,
+		  group_concat(q.document_type) as docs
+		  from documentqueue.currentstat p join
+		  `tabSales Invoice Email Tracking` q
+		  on p.cno = q.sales_invoice_number and
+		  p.doctype = q.document_type where p.status = 1 and
+		  q.email = 0 group by sales_invoice_number
+		 ) as p;""", as_dict=True)
+
+	scn_list = list_of_scn[0]
+	scn_list = scn_list['list']
+	scn_list = scn_list.split(",")
+	condition = ""
+
+	for index, scn in enumerate(scn_list):
+		if (index == (len(scn_list) -1)):
+			condition = condition + "(name = '{}' or name like '{}-%')".format(scn, scn)
+		else:
+			condition = condition + "(name = '{}' or name like '{}-%') or ".format(scn, scn)
+
+	customers = frappe.db.sql("""
+	select customer, group_concat(
+		  IF(
+			ifnull(si.amended_from, '') = '',
+			si.name,
+			REPLACE(si.name, CONCAT('-', SUBSTRING_INDEX(si.name, '-', -1)), '')
+		  )
+		) as doc
+	from `tabSales Invoice` si
+	where {}
+	and docstatus = 1 group by customer;""".format(condition),as_dict=True
+							  )
+	print "customers"
+	print customers
+	for alone_customer in customers:
+		print alone_customer
+		print "alone customer printed"
+
+		customer_name = alone_customer['customer']
+		scn = alone_customer['doc']
+		print customer_name
+		scn = scn.split(",")
+
+		for each_scn in scn:
+			print each_scn
+			p = frappe.db.sql("""select
+			distinct group_concat(q.document_type) as docs
+			from documentqueue.currentstat p join `tabSales Invoice Email Tracking` q
+			on p.cno = q.sales_invoice_number and p.doctype = q.document_type
+			where p.status = 1 and
+			q.email = 0 and p.cno = "{}"
+			group by sales_invoice_number;
+			""".format(each_scn),as_dict=True)
+
+			p = p[0]
+			docs = p['docs'].split(",")
+			links, table = generate_links_for_these_docs(each_scn,docs)
+			table_data = table_data + "<h1>{}</h1><br>{}<br>".format(each_scn, table)
+			for key,value in links.items():
+				print key,value
+				links[key] = url_formatter(value)
+
+			data = download_images(links)
+			pdf_data = pdf_data + data
+
+
+		# GENEATE EMAIL TEMPLTE HERE FROM HTML
+		# email_content = self.render({'doc': {'row': row}})
+		# email = transform(email_content, base_url=frappe.conf.host_name + '/')
+
+		pdf = get_pdf(pdf_data)
+		print "hello"
+		print customer_name
+
+		email_list = [
+			c[0] for c in frappe.db.sql("""
+						SELECT email_id FROM `tabContact` WHERE ifnull(email_id, '') != '' AND customer = "{}"
+						""".format(customer_name))
+			]
+
+		frappe.msgprint("sending email to {}".format(email_list))
+		email_object = get_email(
+			email_list, sender='',
+			msg="One pdf per customer is done. Find the attachment to know how it look",
+			subject='Right one',
+			formatted=False, attachments=[{'fname': 'Weekly_Report.pdf', 'fcontent': pdf}]
+		)
+		send(email_object)
+
+
+def download_images(links):
+	images_html = ""
+	for key, value in links.items():
+		print key, value
+		response = requests.get(value, stream=True, auth=(frappe.conf.alfresco_user, frappe.conf.alfresco_password))
+		path = "/home/erpnext/frappe-bench/sites/erpnext.erpnext-vm/public/files/temp/{}.jpg".format(uuid.uuid4())
+		with open(path, 'wb+') as out_file:
+			shutil.copyfileobj(response.raw, out_file)
+		del response
+		temp_path = path.split("/home/erpnext/frappe-bench/sites/erpnext.erpnext-vm/public")
+		links[key] = frappe.conf.host_name + temp_path[1]
+	print "Local Links "
+	print links
+	for link in links.items():
+		images_html = images_html + link[0] + """<br><img src = "{}" style = "max-height:260mm;max-width:210mm"><br>""".format(
+			link[1])
+	return images_html
+
+
 def url_formatter(url):
-	url = url.split("proxy/alfresco/api/node/");
-	temp = url[1].replace("/", "://", 1);
+	url = url.split("proxy/alfresco/api/node/")
+	temp = url[1].replace("/", "://", 1)
 	url = url[0] + 'page/site/receivings/document-details?nodeRef=' + temp;
-	url = url.split("/content/thumbnails/imgpreview");
-	url = url[0];
+	url = url.split("/content/thumbnails/imgpreview")
+	url = url[0]
 	url = url.split("/share/page/site/{}/document-details?nodeRef=".format(frappe.conf.alfresco_site));
 	print url
 	temp = url[1].replace("://", "/", 1)
@@ -164,102 +381,110 @@ def url_formatter(url):
 
 
 
-def generate_link_array(docs):
-	link_array = []
-	individual_array= {}
 
-	for key,value in docs.items():
-		print key,value
-		if 'Consignment Note' in value:
-			print key,value
-			print "true"
-			consignment_meta = frappe.db.sql("""select p.customer, p.posting_date, p.grand_total, p.receiving_file
-								 from `tabSales Invoice` p
-								 where '{}' = p.name;""".format(key)
-								 )
-			consignment_note_row = """<tr>
-										<th style = "background:#222; color:#fff;text-align:left;text-transform:uppercase;font-size:13px;">Customer</th>
-										<th style = "background:#222; color:#fff;text-align:left;text-transform:uppercase;font-size:13px;">Date</th>
-										<th style = "background:#222; color:#fff;text-align:left;text-transform:uppercase;font-size:13px;">Amount</th>
-										</tr><tr>
-										<td style = "color:#666; font-size:13px;">{}</td>
-										<td style = "color:#666; font-size:13px;">{}</td>
-										<td style = "color:#666; font-size:13px;">{}</td>
-										</tr>""".format(consignment_meta[0][0],consignment_meta[0][1],consignment_meta[0][2])
-		if 'Indent Invoice' in value:
-			indent_meta = frappe.db.sql("""select p.invoice_number,p.transaction_date, p.actual_amount, p.receiving_file, p.data_bank
-									from `tabIndent Invoice` p
-									where p.transportation_invoice= '{}';""".format(key)
-								 )
-			indent_meta_row = """<tr>
-									<th style = "background:#222; color:#fff;text-align:left;text-transform:uppercase;font-size:13px;">Invoice Number</th>
-									<th style =" background:#222; color:#fff;text-align:left;text-transform:uppercase;font-size:13px;">Date</th>
-									<th style = "background:#222; color:#fff;text-align:left;text-transform:uppercase;font-size:13px;">Amount</th>
-								</tr><tr>
-									<td style = "color:#666; font-size:12px;">{}</td>
-									<td style = "color:#666; font-size:12px;">{}</td>
-									<td style = "color:#666; font-size:12px;">{}</td>
-								</tr>""".format(indent_meta[0][0],indent_meta[0][1],indent_meta[0][2])
 
-		total_rows = ""
-		if consignment_note_row:
-			total_rows = total_rows + consignment_note_row
-		if indent_meta_row:
-			total_rows = total_rows + indent_meta_row
 
-		email_template_table = """<table style = "width: 100%;border:0; background:#efefef;cellspacing:0; cellpadding:0;">{}</table>""".format(total_rows)
+
+
+
+
+
+
+def generate_links_for_these_docs(scn, docs_array):
+	links = {}
+	total_rows = ""
+	print scn,docs_array
+	consignment_note_row = ""
+
+	if 'Consignment Note' in docs_array:
+		consignment_meta = frappe.db.sql(
+			"""select p.customer, p.posting_date,
+				p.grand_total, p.receiving_file
+				from `tabSales Invoice` p where '{}' = p.name;
+			""".format(scn)
+		)
+		links['Consignment Note'] = consignment_meta[0][3]
+		consignment_note_row = """
+		<tr>
+			<th style = "background:#222; color:#fff;text-align:left;text-transform:uppercase;font-size:13px;">Customer</th>
+			<th style = "background:#222; color:#fff;text-align:left;text-transform:uppercase;font-size:13px;">Date</th>
+			<th style = "background:#222; color:#fff;text-align:left;text-transform:uppercase;font-size:13px;">Amount</th>
+		</tr>
+		<tr>
+			<td style = "color:#666; font-size:13px;">{}</td>
+			<td style = "color:#666; font-size:13px;">{}</td>
+			<td style = "color:#666; font-size:13px;">{}</td>
+		</tr>""".format(consignment_meta[0][0], consignment_meta[0][1],
+							consignment_meta[0][2])
+
+
+		links['Consignment Note'] = consignment_meta[0][3]
+
+
+
+	if 'Indent Invoice' in docs_array:
+		indent_meta = frappe.db.sql("""select p.invoice_number,p.transaction_date, p.actual_amount, p.receiving_file, p.data_bank
+								from `tabIndent Invoice` p
+								where p.transportation_invoice= '{}';""".format(scn)
+									)
+		indent_meta_row = """
+		<tr>
+			<th style = "background:#222; color:#fff;text-align:left;text-transform:uppercase;font-size:13px;">Invoice Number</th>
+			<th style =" background:#222; color:#fff;text-align:left;text-transform:uppercase;font-size:13px;">Date</th>
+			<th style = "background:#222; color:#fff;text-align:left;text-transform:uppercase;font-size:13px;">Amount</th>
+		</tr>
+		<tr>
+			<td style = "color:#666; font-size:12px;">{}</td>
+			<td style = "color:#666; font-size:12px;">{}</td>
+			<td style = "color:#666; font-size:12px;">{}</td>
+		</tr>""".format(indent_meta[0][0], indent_meta[0][1], indent_meta[0][2])
+
+		links['Indent Invoice'] = indent_meta[0][3]
+
 		data_bank = indent_meta[0][4]
+		print data_bank
+
 		data_bank = json.loads(data_bank)
 		print data_bank
-		receivings = data_bank['receivings']
-		print receivings
-		if "VAT Form XII" in value:
-			individual_array['VAT Form XII'] = receivings['VAT Form XII']
-
-		if "Consignment Note" in value:
-			individual_array['Consignment Note'] = consignment_meta[0][3]
-
-		if "Indent Invoice" in value:
-			individual_array['Indent Invoice'] = indent_meta[0][3]
-
-		if "Excise_Invoice" in value:
-			individual_array['Excise_Invoice'] = receivings['Excise_Invoice']
-
-		link_array.append(individual_array)
-
-	download_images(link_array,email_template_table)
+		if 'receivings' in data_bank:
+			print "true"
+			receivings = data_bank['receivings']
+			if "VAT Form XII" in docs_array:
+				links['VAT Form XII'] = receivings['VAT Form XII']
+			if "Excise_Invoice" in docs_array:
+				links['Excise_Invoice'] = receivings['Excise_Invoice']
 
 
 
-def download_images(link_array,email_table):
-	local_links = {}
-	html = "<style></style>"
 
-	for each_link in link_array:
-		print each_link
-		for key, value in each_link.items():
-			url = url_formatter(value)
-			response = requests.get(url, stream=True, auth=(frappe.conf.alfresco_user, frappe.conf.alfresco_password))
-			path = "/home/erpnext/frappe-bench/sites/erpnext.erpnext-vm/public/files/temp/{}.jpg".format(uuid.uuid4())
-			with open(path, 'wb+') as out_file:
-				shutil.copyfileobj(response.raw, out_file)
-			del response
-			temp_path = path.split("/home/erpnext/frappe-bench/sites/erpnext.erpnext-vm/public")
-			local_links[key] = frappe.conf.host_name + temp_path[1]
-		print local_links
 
-		for link in local_links.items():
-			html = html + link[0] + """<br><img src = "{}" style = "max-height:260mm;max-width:210mm"><br>""".format(
-				link[1])
-		pdf = get_pdf(html)
-		email_list = "ankitadhimaan27@gmail.com"
-		frappe.msgprint("sending email to {}".format(email_list))
+	if consignment_note_row:
+		total_rows = total_rows + consignment_note_row
+	if indent_meta_row:
+		total_rows = total_rows + indent_meta_row
 
-		email_object = get_email(
-			email_list, sender='',
-			msg=email_table,
-			subject='This Is The Subject Of the email',
-			formatted=False, attachments=[{'fname': 'Weekly_Report.pdf', 'fcontent': pdf}]
-		)
+	template_table = """
+	<table style = "width: 100%;border:0; background:#efefef;cellspacing:0; cellpadding:0;">
+		{}
+	</table>""".format(total_rows)
 
-		send(email_object)
+	return links, template_table
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
