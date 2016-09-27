@@ -307,7 +307,12 @@ def get_customer():
 
 		email = render({'doc': {'invoices': meta_rows}})
 		# email = transform(email, base_url=frappe.conf.host_name + '/')
-		pdf = get_pdf(''.join(pdf_pages))
+		pdf = get_pdf(''.join(pdf_pages), {
+			'margin-top': '0mm',
+			'margin-right': '0mm',
+			'margin-bottom': '0mm',
+			'margin-left': '0mm'
+		})
 
 		# email_list = [
 		# 	c[0] for c in frappe.db.sql("""
@@ -322,10 +327,10 @@ def get_customer():
 			email_list,
 			sender='',
 			msg="",
-			subject='Right one',
+			subject='Scanned Invoice Receivings: {}'.format(customer),
 			formatted=False,
 			print_html=email,
-			attachments=[{'fname': 'Weekly_Report.pdf', 'fcontent': pdf}]
+			attachments=[{'fname': 'invoices.pdf', 'fcontent': pdf}]
 		)
 		send(email_object)
 
@@ -373,7 +378,9 @@ def get_links_and_metadata(scn, docs_array):
 			grand_total as amount,
 			receiving_file
 			from `tabSales Invoice`
-			where name='{0}' or name like '{0}-%'
+			where name='{0}' or
+			name like '{0}-%' and
+			docstatus = 1
 		""".format(scn), as_dict=True)[0]
 		links['Consignment Note'] = consignment_meta.receiving_file
 
