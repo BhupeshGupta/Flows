@@ -1,8 +1,8 @@
 import json
+
 import requests
 from frappe.utils import cint
 from flows.stdlogger import root
-from frappe.utils import today, add_months, getdate
 import frappe
 
 
@@ -150,92 +150,3 @@ def push_remaining():
 		r.append(i[0])
 
 	print r
-
-
-
-def make_tracking_table():
-	end_date = today()
-	start_date = add_months(end_date, -1)
-	if getdate(start_date) < getdate('2016-09-01'):
-		start_date = '2016-09-23'
-
-	scn_numbers = frappe.db.sql("""
-	select m.name as sales_invoice,
-	m.amended_from as sales_invoice_amended_from,
-	q.name as indent_invoice
-	from (
-		select si.name, si.posting_date, si.amended_from
-		from `tabSales Invoice` si left join `tabSales Invoice Email Tracking` t
-		on t.sales_invoice_number = IF(
-			ifnull(si.amended_from, '') = '',
-			si.name,
-			REPLACE(si.name, CONCAT('-', SUBSTRING_INDEX(si.name, '-', -1)), '')
-		)
-		where t.sales_invoice_number is null and
-			si.posting_date between "{start_date}" and "{end_date}"
-			and si.docstatus = 1
-	) m	left join `tabIndent Invoice` q
-	on q.transportation_invoice = m.name
-	""".format(start_date=start_date, end_date=end_date),
-	as_dict=True)
-
-
-	for scn_tupple in scn_numbers:
-		print scn_tupple
-		sales_invoice = scn_tupple['sales_invoice']
-		if scn_tupple['sales_invoice_amended_from']:
-			sales_invoice = sales_invoice.rsplit("-",1)[0]
-		else :
-			sales_invoice = scn_tupple['sales_invoice']
-
-			doc = frappe.get_doc({
-				"doctype": "Sales Invoice Email Tracking",
-				"document_type": "Consignment Note",
-				"sales_invoice_number": "{}".format(sales_invoice),
-				"email": "0",
-			})
-			doc.save()
-
-		if scn_tupple['indent_invoice']:
-			doc = frappe.get_doc({
-				"doctype": "Sales Invoice Email Tracking",
-				"document_type": "Indent Invoice",
-				"sales_invoice_number": "{}".format(sales_invoice),
-				"email": "0",
-			})
-			doc.save()
-
-			q = frappe.db.get_values("Indent Invoice",
-									 {"transportation_invoice": sales_invoice},
-									 "*"
-									 )
-			data = q[0]
-
-			if data["sales_tax"] == 'CST':
-				doc = frappe.get_doc({
-					"doctype": "Sales Invoice Email Tracking",
-					"document_type": "VAT Form XII",
-					"sales_invoice_number": "{}".format(sales_invoice),
-					"email": "0"
-				})
-				doc.save()
-
-			if 'hpcl' in data["supplier"].lower() and cint(data["cenvat"]) == 1:
-				doc = frappe.get_doc({
-					"doctype": "Sales Invoice Email Tracking",
-					"document_type": "Excise_Invoice",
-					"sales_invoice_number": "{}".format(sales_invoice),
-					"email": "0",
-				})
-				doc.save()
-
-		else:
-			doc = frappe.get_doc({
-				"doctype": "Sales Invoice Email Tracking",
-				"document_type": "Sales Invoice",
-				"sales_invoice_number": "{}".format(sales_invoice),
-				"email": "0",
-			})
-			doc.save()
-
-

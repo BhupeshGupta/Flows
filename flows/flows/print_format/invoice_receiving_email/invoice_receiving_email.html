@@ -1,324 +1,56 @@
+{% extends 'templates/arun_logistics_email.html' %}
 
-
-
-
-
-
-
-
-
-
-
-
-<html>
-
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LPG rates against form C</title>
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700,800" rel="stylesheet" type="text/css" />
+{% block head %}
     <style type="text/css">
-        /* Client-specific Styles */
-
-        div,
-        p,
-        a,
-        li,
-        td {
-            -webkit-text-size-adjust: none;
-        }
-
-        #outlook a {
-            padding: 0;
-        }
-        /* Force Outlook to provide a "view in browser" menu link. */
-
-        html {
-            width: 100%;
-        }
-
-        body {
-            width: 100% !important;
-            -webkit-text-size-adjust: 100%;
-            -ms-text-size-adjust: 100%;
-            margin: 0;
-            padding: 0;
-        }
-        /* Prevent Webkit and Windows Mobile platforms from changing default font sizes, while not breaking desktop design. */
-
-        .ExternalClass {
-            width: 100%;
-        }
-        /* Force Hotmail to display emails at full width */
-
-        .ExternalClass,
-        .ExternalClass p,
-        .ExternalClass span,
-        .ExternalClass font,
-        .ExternalClass td,
-        .ExternalClass div {
-            line-height: 100%;
-        }
-        /* Force Hotmail to display normal line spacing. */
-
-        #backgroundTable {
-            margin: 0;
-            padding: 0;
-            width: 100% !important;
-            line-height: 100% !important;
-        }
-
-        img {
-            outline: none;
-            text-decoration: none;
-            border: none;
-            -ms-interpolation-mode: bicubic;
-        }
-
-        a img {
-            border: none;
-        }
-
-        .image_fix {
-            display: block;
-        }
-
-        p {
-            margin: 0px 0px !important;
-        }
-
-        table td {
-            border-collapse: collapse;
-        }
-
-        table {
-            border-collapse: collapse;
-            mso-table-lspace: 0pt;
-            mso-table-rspace: 0pt;
-        }
-
-        a {
-            color: #33b9ff;
-            text-decoration: none;
-            text-decoration: none!important;
-        }
-        /*STYLES*/
-
-        table[class=full] {
-            width: 100%;
-            clear: both;
-        }
-        /*IPAD STYLES*/
-
-        @media only screen and (max-width: 640px) {
-            a[href^="tel"],
-            a[href^="sms"] {
-                text-decoration: none;
-                color: #33b9ff;
-                /* or whatever your want */
-                pointer-events: none;
-                cursor: default;
-            }
-            .mobile_link a[href^="tel"],
-            .mobile_link a[href^="sms"] {
-                text-decoration: default;
-                color: #33b9ff !important;
-                pointer-events: auto;
-                cursor: default;
-            }
-            table[class=devicewidth] {
-                width: 440px!important;
-                text-align: center!important;
-            }
-            table[class=devicewidthinner] {
-                width: 420px!important;
-                text-align: center!important;
-            }
-            img[class=banner] {
-                width: 440px!important;
-                height: 220px!important;
-            }
-            img[class=col2img] {
-                width: 440px!important;
-                height: 220px!important;
-            }
-        }
-        /*IPHONE STYLES*/
-
-        @media only screen and (max-width: 480px) {
-            a[href^="tel"],
-            a[href^="sms"] {
-                text-decoration: none;
-                color: #33b9ff;
-                /* or whatever your want */
-                pointer-events: none;
-                cursor: default;
-            }
-            .mobile_link a[href^="tel"],
-            .mobile_link a[href^="sms"] {
-                text-decoration: default;
-                color: #33b9ff !important;
-                pointer-events: auto;
-                cursor: default;
-            }
-            table[class=devicewidth] {
-                width: 280px!important;
-                text-align: center!important;
-            }
-            table[class=devicewidthinner] {
-                width: 260px!important;
-                text-align: center!important;
-            }
-            img[class=banner] {
-                width: 280px!important;
-                height: 140px!important;
-            }
-            img[class=col2img] {
-                width: 280px!important;
-                height: 140px!important;
-            }
-        }
+        .content_table{ padding: 0 20px 20px; color:#222;}
+        .content_table table { border:1px solid #ddd; }
+        .content_table tr td { font-size:13px; color:#222; padding:10px;}
+        .content_table tr th { padding:10px 0;}
+        .content_table p { padding-bottom: 20px; color:#222; line-height:20px;}
     </style>
-</head>
+{% endblock %}
 
-<body>
-    <table>
-        <tbody>
+{% block content %}
+	<div style="display: none">uuid: {{ doc.uuid }}</div>
+	<div class="content_table">
+
+        <p>
+        Dear Customer,<br>
+        Please find enclosed hear with the scanned copy of following invoices in PDF format.
+        </p>
+
+        <table align="center" border="1">
+            <thead>
             <tr>
-                <!-- Start of header -->
+                <th>
+                    Date
+                </th>
+                <th>
+                    Invoice Number
+                </th>
+                <th>
+                    Amount
+                </th>
             </tr>
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
 
-    <table bgcolor="#fff" border="0" cellpadding="0" cellspacing="0" id="backgroundTable" st-sortable="header" width="100%">
-        <tbody>
-            <tr>
-                <td>
-                    <table align="center" border="0" cellpadding="0" cellspacing="0" class="devicewidth" style="border-top:3px solid #f36e23;border-left:1px solid #ccc; border-right:1px solid #ccc;" width="600">
-                        <tbody>
-                            <!-- logo section start here -->
-                            <tr align="left" bgcolor="#fff" border="0" cellpadding="0" cellspacing="0" class="devicewidth" width="600">
-                                <td align="center" height="50" width="600">
-                                    <div class="imgpop" style="padding:10px 0;"><span class="sg-image" data-imagelibrary="%7B%22width%22%3A%22140%22%2C%22height%22%3A%2250%22%2C%22alt_text%22%3A%22%22%2C%22alignment%22%3A%22%22%2C%22border%22%3A0%2C%22src%22%3A%22https%3A//marketing-image-production.s3.amazonaws.com/uploads/17dc44d2101b1ced57f8c74f5d4e751318e33d1f2ace7b486c26905e13b45e30463bd7da0e9b23a1e7b968eed8328aadb4091c95e9ed8c22073f00df466d9c47.jpg%22%2C%22link%22%3A%22%23%22%2C%22classes%22%3A%7B%22sg-image%22%3A1%7D%7D"><a href="#" target="_blank"><img alt="" border="0" height="50" src="https://marketing-image-production.s3.amazonaws.com/uploads/17dc44d2101b1ced57f8c74f5d4e751318e33d1f2ace7b486c26905e13b45e30463bd7da0e9b23a1e7b968eed8328aadb4091c95e9ed8c22073f00df466d9c47.jpg" style="border: medium none; outline: medium none; text-decoration: none; width: 140px; height: 50px;" width="140" /></a></span></div>
-                                </td>
-                            </tr>
-                            <!-- logo section end here -->
-                            <!-- Energy Manager  section start here -->
-                            <tr>
-                                <td align="right" border="0" cellpadding="0" cellspacing="0" class="devicewidth" height="50" style=" background: #f36b23;  " valign="middle" width="100%">
-                                    <p style="width:100%; color:#fff;font-family: 'Open Sans', sans-serif; font-size: 13px; padding:0px 10px 0px 10px; text-align:center; ">Energy Manager &amp; authorized transportor</p>
-                                </td>
-                            </tr>
-                            <!-- Energy Manager section end here -->
-                            <!-- contact section start here -->
-                            <tr align="right" border="0" cellpadding="0" cellspacing="0" class="devicewidth" height="50" style=" background: #333;  " valign="middle" width="100%">
-                                <td width="100%">
-                                    <table align="center" border="0" cellpadding="0" cellspacing="0" class="devicewidth" width="600">
-                                        <tbody>
-                                            <tr>
-                                                <td>
-                                                    <table style="padding:0 10px" width="70%">
-                                                        <tbody>
-                                                            <tr>
-                                                                <td style="padding:0 10px"><span class="sg-image" data-imagelibrary="%7B%22width%22%3A%2220px%22%2C%22height%22%3A15%2C%22alignment%22%3A%22%22%2C%22border%22%3A0%2C%22src%22%3A%22https%3A//marketing-image-production.s3.amazonaws.com/uploads/49588f5d9518cc5b2ea2c336c9d19daa71f06ed26f45e4ff359ba9c26aa9535c83f6e8f4cd5763a8761470f18cb9c18992f47bb3ff7be0c35b189d22a4e5b680.png%22%2C%22classes%22%3A%7B%22sg-image%22%3A1%7D%7D"><img height="15" src="https://marketing-image-production.s3.amazonaws.com/uploads/49588f5d9518cc5b2ea2c336c9d19daa71f06ed26f45e4ff359ba9c26aa9535c83f6e8f4cd5763a8761470f18cb9c18992f47bb3ff7be0c35b189d22a4e5b680.png" style="width: 20px; height: 15px;" width="20px" /></span></td>
-                                                                <td><a href="#" style="font-size: 13px; color: #fff;text-decoration: none;font-family: 'Open Sans', sans-serif;">arunlogistics@arungas.com </a> <a href="#" style="font-size: 13px; text-align:left; color: #fff;text-decoration: none; font-family: Helvetica, arial, sans-serif;">arunlogistics1@gmail.com</a></td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </td>
-                                                <td>
-                                                    <table style="padding:0 10px" width="30%">
-                                                        <tbody>
-                                                            <tr>
-                                                                <td style="padding:0 10px"><span class="sg-image" data-imagelibrary="%7B%22width%22%3A%2220px%22%2C%22height%22%3A17%2C%22alignment%22%3A%22%22%2C%22border%22%3A0%2C%22src%22%3A%22https%3A//marketing-image-production.s3.amazonaws.com/uploads/bbd57722db8fbd4bfd2ef30dc9eacbd2557585a5bc3c79df0fa8d1a63fa4b81f68eb06acec9eba8ec4ce794e6f49133110baa0a735160df4c9cc956bce10ca52.png%22%2C%22classes%22%3A%7B%22sg-image%22%3A1%7D%7D"><img height="17" src="https://marketing-image-production.s3.amazonaws.com/uploads/bbd57722db8fbd4bfd2ef30dc9eacbd2557585a5bc3c79df0fa8d1a63fa4b81f68eb06acec9eba8ec4ce794e6f49133110baa0a735160df4c9cc956bce10ca52.png" style="width: 20px; height: 17px;" width="20px" /></span></td>
-                                                                <td style="padding:10px;"><a href="#" style="font-size: 13px; color: #fff;text-decoration: none;font-family: 'Open Sans', sans-serif;">9814007679 9216507679</a></td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                            <!-- Spacing -->
-                            <tr>
-                                <td height="20" style="font-size:1px; line-height:1px; mso-line-height-rule: exactly;">&nbsp;</td>
-                            </tr>
-                            <!-- Spacing -->
-                            <!-- Title -->
-                            <tr>
+            {% for invoice in doc.invoices %}
+                <tr>
+                    <td class="">
+                        {{ frappe.format_value(invoice.date, {'fieldtype': 'Date'}) }}
+                    </td>
+                    <td class="">
+                        {{ invoice.name }}
+                    </td>
+                    <td class="">
+                        ₹{{ frappe.format_value(invoice.amount | round(2), {'fieldtype': 'Currency'}) }}
+                    </td>
+                </tr>
+            {% endfor %}
 
-	                            <!-- Content -->
-	                            	<div class="row clearfix">
-		<div class="col-xs-12 column">
-			<table class="table table-bordered table-striped">
-				<thead>
-				<tr>
-					<th>
-						Date
-					</th>
-					<th>
-						Invoice Number
-					</th>
-					<th>
-						Amount
-					</th>
-				</tr>
-				</thead>
-				<tbody>
+            </tbody>
+        </table>
 
-				{% for invoice in doc.invoices %}
-					<tr>
-						<td class="">
-							{{ frappe.format_value(invoice.date, {'fieldtype': 'Date'}) }}
-						</td>
-						<td class="">
-							{{ invoice.name }}
-						</td>
-						<td class="">
-							₹{{ frappe.format_value(invoice.amount | round(2), {'fieldtype': 'Currency'}) }}
-						</td>
-					</tr>
-				{% endfor %}
-
-				</tbody>
-			</table>
-		</div>
 	</div>
-
-
-                            </tr>
-                            <!-- end of title -->
-                            <!-- Spacing -->
-                            <!-- contact section start here -->
-                            <tr align="right" border="0" cellpadding="0" cellspacing="0" class="devicewidth" height="50" style="border-top:1px solid #ccc; background:#f9f8f8;" valign="middle" width="100%">
-                                <td width=" 100% ">
-                                    <table align="center " border="0 " cellpadding="0 " cellspacing="0 " class="devicewidth" width="600 ">
-                                        <tbody>
-                                            <tr>
-                                                <td style="padding:0 10px; text-align:center;"><img alt=" " border="0 " height="40" src="https://marketing-image-production.s3.amazonaws.com/uploads/709db00b593e9d419788a983a9eb199bcc818ed2c9a1250e7b2f6216e23acc0f60781f3c42fb0326c6b3f62635cfab842c5235a363cbfb43e39a647e9119ccf3.png " style="width: 40px; padding: 0px 10px 12px; height: 40px;" width="40" /><img alt=" " border="0 " height="45" src="https://marketing-image-production.s3.amazonaws.com/uploads/2fa923b911c749c58a054579dcad1a6000ac2f14b43c2deb94de621cbcff88ab22603a51a6580f3901b60862ca04ae9507deee8ef6b01d9d6c072f1a620dc6a1.png " style="width: 45px; padding: 0px 10px 12px; height: 45px;" width="45" /><img alt=" " border="0 " height="40" src="https://marketing-image-production.s3.amazonaws.com/uploads/f9bfe73724d5659c5cdee5bf79e1ff5f9197629fd37cd0fb21db87226d9d3737948cf9ac0fd01ee168033e39113825a2772b9b2e02fdb249e36fb5c27fcd3633.png " style="width: 40px; padding: 0px 10px 12px; height: 40px;" width="40" /><img src="https://marketing-image-production.s3.amazonaws.com/uploads/0c5781013a8de166c256af217a6479d146e2366a013931cbc8d9c824805364967ae5f4ebb1edc91378a896fd6c2b8822d04e3e688b96c75b33211d4952ee83a6.png" style="width:80px; " /></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                            <tr style="background:#f36b23; ">
-                                <td align="right " border="0 " cellpadding="0 " cellspacing="0 " class="devicewidth " height="50 " valign="middle " width="100% ">
-                                    <p><img height="26" src="https://marketing-image-production.s3.amazonaws.com/uploads/8cbb4073e6c3875afd03b3779d1056cfffd9d21bc8391febd5cb26c8a738ba783d3d2aebd5f0864695ad2cb693caacf12f4e37860ef895237e284f74e5125745.png" style="width: 30px; padding: 10px 0px 0px; margin: 0px auto; height: 26px; text-align:center; display:block;" width="30" /></p>
-
-                                    <p style="width:100%; color:#fff;font-family: 'Open Sans', sans-serif; font-size: 13px; padding:10px 10px 10px 10px; text-align:center; ">328/329,Industrial Area A, Cheema Chownk, Ludhiana , Punjab -141003</p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <!-- End of Header -->
-
-    <div>&nbsp;</div>
-</body>
-
-</html>
+{% endblock %}
