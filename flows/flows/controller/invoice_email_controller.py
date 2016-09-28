@@ -212,7 +212,7 @@ def update_status(docs, unique_id):
 
 def cleanup(local_links):
 	for link in local_links:
-		file_path = os.path.join(DOWNLOAD_DIR, re.findall('.*/files/temp/(.*)', link)[0][0])
+		file_path = os.path.join(DOWNLOAD_DIR, re.findall('.*/files/temp/(.*)', link)[0])
 		os.remove(file_path)
 
 
