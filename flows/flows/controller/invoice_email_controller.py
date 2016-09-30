@@ -22,9 +22,9 @@ def make_tracking_table():
 		start_date = '2016-09-23'
 
 	scn_numbers = frappe.db.sql("""
-	select m.name as sales_invoice,
-	m.amended_from as sales_invoice_amended_from,
-	q.name as indent_invoice
+	select si.name as sales_invoice,
+	si.amended_from as sales_invoice_amended_from,
+	ii.name as indent_invoice
 	from (
 		select si.name, si.posting_date, si.amended_from
 		from `tabSales Invoice` si left join `tabSales Invoice Email Tracking` t
@@ -36,73 +36,60 @@ def make_tracking_table():
 		where t.sales_invoice_number is null and
 			si.posting_date between "{start_date}" and "{end_date}"
 			and si.docstatus = 1
-	) m	left join `tabIndent Invoice` q
-	on q.transportation_invoice = m.name
+	) si left join `tabIndent Invoice` ii
+	on ii.transportation_invoice = si.name
 	""".format(
 		start_date=start_date,
 		end_date=end_date
 	), as_dict=True)
 
-	for scn_tupple in scn_numbers:
-		sales_invoice = scn_tupple['sales_invoice']
-		if scn_tupple['sales_invoice_amended_from']:
-			sales_invoice = sales_invoice.rsplit("-", 1)[0]
-		else:
-			sales_invoice = scn_tupple['sales_invoice']
+	for scn in scn_numbers:
 
-			doc = frappe.get_doc({
-				"doctype": "Sales Invoice Email Tracking",
-				"document_type": "Consignment Note",
-				"sales_invoice_number": "{}".format(sales_invoice),
-				"email": "0",
-			})
-			doc.save()
+		normalised_sales_invoice = scn.sales_invoice.rsplit("-", 1)[0] if scn.sales_invoice_amended_from else scn.sales_invoice
 
-		if scn_tupple['indent_invoice']:
+		doc = frappe.get_doc({
+			"doctype": "Sales Invoice Email Tracking",
+			"document_type": "Consignment Note" if scn.indent_invoice else "Sales Invoice",
+			"sales_invoice_number": normalised_sales_invoice,
+			"email": "0",
+		})
+		doc.save()
+
+		if scn.indent_invoice:
 			doc = frappe.get_doc({
 				"doctype": "Sales Invoice Email Tracking",
 				"document_type": "Indent Invoice",
-				"sales_invoice_number": "{}".format(sales_invoice),
+				"sales_invoice_number": normalised_sales_invoice,
 				"email": "0",
 			})
 			doc.save()
 
-			q = frappe.db.get_values("Indent Invoice", {
-				"transportation_invoice": sales_invoice
-			}, "*")
+			indent_invoice = frappe.db.get_values("Indent Invoice", {
+				"transportation_invoice": scn.sales_invoice
+			}, "*")[0]
 
-			data = q[0]
-
-			if data["sales_tax"] == 'CST':
+			if indent_invoice.sales_tax == 'CST':
 				doc = frappe.get_doc({
 					"doctype": "Sales Invoice Email Tracking",
 					"document_type": "VAT Form XII",
-					"sales_invoice_number": "{}".format(sales_invoice),
+					"sales_invoice_number": normalised_sales_invoice,
 					"email": "0"
 				})
 				doc.save()
 
-			if 'hpcl' in data["supplier"].lower() and cint(data["cenvat"]) == 1:
+			if 'hpcl' in indent_invoice.supplier.lower() and cint(indent_invoice.cenvat) == 1:
 				doc = frappe.get_doc({
 					"doctype": "Sales Invoice Email Tracking",
 					"document_type": "Excise_Invoice",
-					"sales_invoice_number": "{}".format(sales_invoice),
+					"sales_invoice_number": normalised_sales_invoice,
 					"email": "0",
 				})
 				doc.save()
 
-		else:
-			doc = frappe.get_doc({
-				"doctype": "Sales Invoice Email Tracking",
-				"document_type": "Sales Invoice",
-				"sales_invoice_number": "{}".format(sales_invoice),
-				"email": "0",
-			})
-			doc.save()
 	return "Table Updated Successfully"
 
 
-def get_customer():
+def email_invoices_to_customers():
 	def render(doc, format='Invoice Receiving Email'):
 		jenv = frappe.get_jenv()
 		template = jenv.from_string(get_print_format('Invoice Receiving Email Tool', format))
@@ -145,13 +132,13 @@ def get_customer():
 		all_links = []
 
 		for scn, scn_docs in docs.items():
-			links, rows = get_links_and_metadata(scn, scn_docs)
+			links, rows = get_download_links_and_metadata(scn, scn_docs)
 			meta_rows.extend(rows)
 
 			for key, value in links.items():
-				links[key] = url_formatter(value)
+				links[key] = get_image_download_url(value)
 
-			rs_links = get_local_links(links)
+			rs_links = download_files_and_get_local_links(links)
 			all_links.extend(rs_links)
 			data = render({'doc': {'links': rs_links}}, format='Invoice Receiving PDF')
 			pdf_pages.append(data)
@@ -187,15 +174,15 @@ def get_customer():
 		)
 		send(email_object)
 
-		update_status(docs, unique_id)
+		set_email_sent_status(docs, unique_id)
 
 		cleanup(all_links)
 
 
-def update_status(docs, unique_id):
+def set_email_sent_status(docs, unique_id):
 	condition = " or\n".join(
 		[
-			'(sales_invoice_number = "{}" and ({}) )'.format(
+			'( sales_invoice_number = "{}" and ({}) )'.format(
 				scn,
 				' or '.join(
 					['document_type = "{}"'.format(type) for type in doc]
@@ -216,7 +203,7 @@ def cleanup(local_links):
 		os.remove(file_path)
 
 
-def get_local_links(links):
+def download_files_and_get_local_links(links):
 	rs_links = []
 
 	if not os.path.exists(DOWNLOAD_DIR):
@@ -235,7 +222,7 @@ def get_local_links(links):
 	return rs_links
 
 
-def url_formatter(url):
+def get_image_download_url(url):
 	"""
 	Input: http://docs.arungas.com:8080/share/proxy/alfresco/api/node/workspace/SpacesStore/0459abf1-38bd-45a5-97cd-f579a2ca7e8e/content/thumbnails/imgpreview
 	Output: http://docs.arungas.com:8080/alfresco/s/api/node/content/workspace/SpacesStore/0459abf1-38bd-45a5-97cd-f579a2ca7e8e
@@ -246,7 +233,7 @@ def url_formatter(url):
 	return "{}/alfresco/s/api/node/content/{}".format(*link)
 
 
-def get_links_and_metadata(scn, docs_array):
+def get_download_links_and_metadata(scn, docs_array):
 	links = {}
 	rows = []
 
