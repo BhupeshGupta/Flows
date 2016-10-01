@@ -12,9 +12,10 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		"Date:Date:95", "Gatepass:Link/Gatepass:95", "Vehicle:Link/Transportation Vehicle:130", "Route::200",
-		"Number Of Bills:Int:50", "Route Cost:Currency:100", "Advance:Currency:100", "Fuel Qty:Float:100",
-		"Fuel Rate:Currency:100", "Fuel Amount:Currency:100", "Amount To Be Paid:Currency:150"
+		"Sr.::15", "GP Out Date:Date:95", "Gatepass:Link/Gatepass:95", "Vehicle:Link/Transportation Vehicle:130",
+		"Route::200", "Number Of Bills:Int:50", "Basic Route Cost:Currency:100", "Fuel Route Cost:Currency:100",
+		"Advance:Currency:100", "Fuel Qty:Float:100", "Fuel Rate:Currency:100", "Fuel Amount:Currency:100",
+		"Amount To Be Paid:Currency:150", "Indent Date:Date:95", "Invoice Date:Date:95", "Material in M.T.:Float:"
 	]
 
 
@@ -24,24 +25,27 @@ def get_data(filters):
 	gatepasses_map = initialize_gatepasses_map(gatepasses)
 	populate_gatepasses_map(gatepasses_map, gatepasses)
 
-	route_cost = advance = fuel_qty = fuel_cost = amount_to_be_paid = no_of_bills = 0
+	basic_route_cost = fuel_route_cost = advance = fuel_qty = fuel_cost = amount_to_be_paid = no_of_bills = 0
 
 	rows = []
 	for vehicle, vehicle_map in gatepasses_map.items():
-		for e in vehicle_map.gatepasses:
+		for i, e in enumerate(vehicle_map.gatepasses):
 			rows.append([
-				e.date, e.name, e.vehicle, e.route_name,
-				e.no_of_bills, e.route_cost, e.advance,
-				e.fuel_qty, e.fuel_rate, e.fuel_cost,
-				e.amount_to_be_paid
+				i + 1, e.date, e.name, e.vehicle,
+				e.route_name, e.no_of_bills, e.basic_route_cost, e.fuel_route_cost,
+				e.advance, e.fuel_qty, e.fuel_rate, e.fuel_cost,
+				e.amount_to_be_paid, e.indent_date, e.invoice_date, e.qty_mt
 			])
-		rows.append(['', '', e.vehicle, 'Total', vehicle_map.no_of_bills,
-		             vehicle_map.route_cost, vehicle_map.advance, vehicle_map.fuel_qty,
-		             '',
-		             vehicle_map.fuel_cost, vehicle_map.amount_to_be_paid])
+		rows.append([
+			 '', '', '', e.vehicle, 'Total', vehicle_map.no_of_bills,
+			 vehicle_map.basic_route_cost, vehicle_map.fuel_route_cost,
+			 vehicle_map.advance, vehicle_map.fuel_qty, '',
+			 vehicle_map.fuel_cost, vehicle_map.amount_to_be_paid
+		])
 		rows.append([])
 
-		route_cost += vehicle_map.route_cost
+		basic_route_cost += vehicle_map.basic_route_cost
+		fuel_route_cost += vehicle_map.fuel_route_cost
 		advance += vehicle_map.advance
 		fuel_qty += vehicle_map.fuel_qty
 		fuel_cost += vehicle_map.fuel_cost
@@ -50,10 +54,11 @@ def get_data(filters):
 
 	rows.append([])
 
-	rows.append(['', '', '', 'Grand Total', no_of_bills,
-	             route_cost, advance, fuel_qty,
-	             '',
-	             fuel_cost, amount_to_be_paid])
+	rows.append([
+		 '', '', '', '', 'Grand Total', no_of_bills,
+		 basic_route_cost, fuel_route_cost, advance, fuel_qty,
+		 '', fuel_cost, amount_to_be_paid
+	])
 
 	return rows
 
@@ -82,10 +87,12 @@ def get_route_cost(date, route, vehicle):
 
 	cost = frappe.db.sql(
 		"""
-			select * from `tabRoute Cost` where
-			route = '{route}' and
-			with_effect_from <= '{date}' and
-			vehicle_type='{vehicle_type}' order by with_effect_from desc limit 1;
+			select * from `tabRoute Cost`
+			where route = '{route}'
+			and with_effect_from <= '{date}'
+			and vehicle_type='{vehicle_type}'
+			order by with_effect_from
+			desc limit 1;
 		""".format(**context),
 		as_dict=True
 	)
@@ -96,7 +103,11 @@ def get_route_cost(date, route, vehicle):
 			for route {route} in {date} date, assuming zero(0)""".format(**context)
 		)
 
-	return cost[0].route_cost if cost else 0
+	if not cost:
+		return 0, 0
+
+	cost_per_l, total_cost = get_fuel_cost(date, cost[0].fuel_qty)
+	return cost[0].basic_cost, total_cost
 
 
 def get_route_name(route):
@@ -108,7 +119,8 @@ def initialize_gatepasses_map(gatepasses):
 	for gatepass in gatepasses:
 		gatepasses_map.setdefault(gatepass.vehicle, frappe._dict({
 			"gatepasses": [],
-			"route_cost": 0,
+			"basic_route_cost": 0,
+			"fuel_route_cost": 0,
 			"advance": 0,
 			"fuel_qty": 0,
 			"fuel_rate": 0,
@@ -171,20 +183,30 @@ def get_fuel_cost(date, fuel_qty):
 
 
 def get_gatepass_entry(gatepass):
+	basic_route_cost, fuel_route_cost = get_route_cost(gatepass.transaction_date, gatepass.route, gatepass.vehicle)
 	entry = frappe._dict({
 		"date": gatepass.transaction_date,
 		"name": gatepass.name,
 		"vehicle": get_vehicle(gatepass.vehicle).name,
 		"route_name": get_route_name(gatepass.route),
-		"route_cost": get_route_cost(gatepass.transaction_date, gatepass.route, gatepass.vehicle),
+		"basic_route_cost": basic_route_cost,
+		"fuel_route_cost": fuel_route_cost,
 		"advance": gatepass.advance if gatepass.advance else 0,
 		"fuel_qty": gatepass.fuel_quantity if gatepass.fuel_quantity else 0,
 		"no_of_bills": frappe.db.sql("""
 		select count(name) from `tabIndent Item` where parent = "{}"
-		""".format(gatepass.indent))[0][0]
+		""".format(gatepass.indent))[0][0],
+		"indent_date": frappe.db.get_value("Indent", filters=gatepass.indent, fieldname="posting_date"),
+		"invoice_date": frappe.db.get_value("Indent Invoice", filters={'indent': gatepass.indent}, fieldname="transaction_date"),
+		"qty_mt": frappe.db.sql(
+			"""
+			select sum(replace(replace(item, 'FC', ''), 'L', '') * qty) from `tabIndent Item`
+			where parent = "{}"
+			""".format(gatepass.indent)
+		)[0][0]/1000 if gatepass.indent else 0
 	})
 	entry["fuel_rate"], entry["fuel_cost"] = get_fuel_cost(gatepass.transaction_date, gatepass.fuel_quantity)
-	entry.amount_to_be_paid = entry["route_cost"] - entry["advance"] - entry["fuel_cost"]
+	entry.amount_to_be_paid = entry["basic_route_cost"] + entry["fuel_route_cost"] - entry["advance"] - entry["fuel_cost"]
 	return entry
 
 
@@ -193,13 +215,15 @@ def populate_gatepasses_map(gatepasses_map, gatepasses):
 		gatepass_entry = get_gatepass_entry(gatepass)
 		gatepasses_map[gatepass.vehicle].gatepasses.append(gatepass_entry)
 
-		route_cost = gatepass_entry["route_cost"]
+		basic_route_cost = gatepass_entry["basic_route_cost"]
+		fuel_route_cost = gatepass_entry["fuel_route_cost"]
 		fuel_quantity = gatepass_entry["fuel_qty"]
 		fuel_cost = gatepass_entry["fuel_cost"]
 		advance = gatepass_entry["advance"]
 		amount_to_be_paid = gatepass_entry["amount_to_be_paid"]
 
-		gatepasses_map[gatepass.vehicle].route_cost += route_cost
+		gatepasses_map[gatepass.vehicle].basic_route_cost += basic_route_cost
+		gatepasses_map[gatepass.vehicle].fuel_route_cost += fuel_route_cost
 		gatepasses_map[gatepass.vehicle].fuel_qty += fuel_quantity
 		gatepasses_map[gatepass.vehicle].fuel_cost += fuel_cost
 		gatepasses_map[gatepass.vehicle].advance += advance
