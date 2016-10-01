@@ -1,0 +1,15 @@
+{
+ "creation": "2016-09-27 19:08:27.170562", 
+ "disabled": 0, 
+ "doc_type": "Invoice Receiving Email Tool", 
+ "docstatus": 0, 
+ "doctype": "Print Format", 
+ "html": "", 
+ "modified": "2016-09-27 19:09:22.081245", 
+ "modified_by": "Administrator", 
+ "module": "Flows", 
+ "name": "Invoice Receiving PDF", 
+ "owner": "Administrator", 
+ "print_format_type": "Server", 
+ "standard": "Yes"
+}

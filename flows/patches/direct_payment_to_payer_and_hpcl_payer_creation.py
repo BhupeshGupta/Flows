@@ -22,8 +22,6 @@ def execute():
 		)
 		"""):
 		invoice_id = invoice_id[0]
-		from flows.stdlogger import root
-		root.debug(invoice_id)
 		doc = frappe.get_doc("Indent Invoice", invoice_id)
 		gl_entries = doc.get_gl_entries()
 		make_gl_entries(gl_entries, cancel=True, update_outstanding='Yes', merge_entries=False)

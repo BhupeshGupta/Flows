@@ -1,0 +1,56 @@
+{% extends 'templates/arun_logistics_email.html' %}
+
+{% block head %}
+    <style type="text/css">
+        .content_table{ padding: 0 20px 20px; color:#222;}
+        .content_table table { border:1px solid #ddd; }
+        .content_table tr td { font-size:13px; color:#222; padding:10px;}
+        .content_table tr th { padding:10px 0;}
+        .content_table p { padding-bottom: 20px; color:#222; line-height:20px;}
+    </style>
+{% endblock %}
+
+{% block content %}
+	<div style="display: none">uuid: {{ doc.uuid }}</div>
+	<div class="content_table">
+
+        <p>
+        Dear Customer,<br>
+        Please find enclosed hear with the scanned copy of following invoices in PDF format.
+        </p>
+
+        <table align="center" border="1">
+            <thead>
+            <tr>
+                <th>
+                    Date
+                </th>
+                <th>
+                    Invoice Number
+                </th>
+                <th>
+                    Amount
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+
+            {% for invoice in doc.invoices %}
+                <tr>
+                    <td class="">
+                        {{ frappe.format_value(invoice.date, {'fieldtype': 'Date'}) }}
+                    </td>
+                    <td class="">
+                        {{ invoice.name }}
+                    </td>
+                    <td class="">
+                        ₹{{ frappe.format_value(invoice.amount | round(2), {'fieldtype': 'Currency'}) }}
+                    </td>
+                </tr>
+            {% endfor %}
+
+            </tbody>
+        </table>
+
+	</div>
+{% endblock %}

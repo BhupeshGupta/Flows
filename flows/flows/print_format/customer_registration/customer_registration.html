@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 
 {% set customer = frappe.get_doc("Customer", doc.customer) %}
-{% set contact = frappe.get_list("Contact", {"customer": doc.customer}, "*", order_by="is_primary_contact desc", limit_page_length=1)[0] or {} %}
+{% set contact = frappe.get_list("Contact", {"customer": doc.customer}, "*", order_by="is_primary_contact desc", limit_page_length=1, ignore_permissions=True)[0] or {} %}
 
-{% set address = frappe.get_list("Address", {"customer": doc.customer}, "*", order_by="is_primary_address desc", limit_page_length=1)[0] or {} %}
+{% set address = frappe.get_list("Address", {"customer": doc.customer}, "*", order_by="is_primary_address desc", limit_page_length=1, ignore_permissions=True)[0] or {} %}
 {% set addr_html = [address.address_line1, address.address_line2, address.city, address.state, address.pincode, address.country] %}
 
 {% set f_officer = frappe.get_doc("Field Officer", doc.field_officer) %}
