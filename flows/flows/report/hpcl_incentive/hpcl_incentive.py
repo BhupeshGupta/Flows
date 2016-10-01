@@ -6,10 +6,11 @@ import frappe
 from frappe.utils import flt
 
 incentive_per_cylinder = {
-'FC19': 28,
-'FC35': 52,
-'FC47.5': 70,
-'FC47.5L': 70
+	'FC19': 28,
+	'FC35': 52,
+	'FC47.5': 70,
+	'FC47.5L': 70,
+	'FC450': 663
 }
 
 

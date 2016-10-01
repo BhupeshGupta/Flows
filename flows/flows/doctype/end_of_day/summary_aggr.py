@@ -6,7 +6,7 @@ from flows.flows.report.gr_summary.gr_summary import item_totals_map, get_total_
 from flows.jinja_filters import report_build_erv_item_map
 
 
-items = ['FC19', 'FC35', 'FC47.5', 'FC47.5L', 'EC19', 'EC35', 'EC47.5', 'EC47.5L']
+items = ['FC19', 'FC35', 'FC47.5', 'FC47.5L', 'EC19', 'EC35', 'EC47.5', 'EC47.5L', 'FC450', 'EC450']
 
 
 def get_data(date, warehouse):
