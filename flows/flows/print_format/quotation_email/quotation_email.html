@@ -1,64 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'templates/arun_logistics_email.html' %}
 
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1 user-scalable=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    {#    <link href="https://erp.arungas.com/assets/flows/quote/css/bootstrap.min.css" rel="stylesheet" media="screen, print">#}
-    <link href="https://erp.arungas.com/assets/flows/quote/css/custom.css" rel="stylesheet" type="text/css">
+{% block head %}
+    <style type="text/css">
+        .content_table{ padding: 0 20px 20px; color:#222;}
+        .content_table table { border:1px solid #ddd; }
+        .content_table tr td { font-size:13px; color:#222; padding:10px;}
+        .content_table tr th { padding:10px 0;}
+        .content_table p { padding-bottom: 20px; color:#222; line-height:20px;}
+    </style>
+	<link href="https://erp.arungas.com/assets/flows/quote/css/custom.css" rel="stylesheet" type="text/css">
     <link href="https://erp.arungas.com/assets/flows/quote/css/print.css" rel="stylesheet" type="text/css" media="screen, print">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700,800' rel='stylesheet' type='text/css' media="screen, print">
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css" media="screen, print">
+{% endblock %}
 
-    <![endif]-->
-</head>
-
-<body>
-    <div class="main_wrapper">
-{#        <header>#}
-{#            <div class="container pd0">#}
-{#                <div class="header_outer">#}
-{#                    <img class="headerbg" src="https://erp.arungas.com/assets/flows/quote/images/header.png" alt="">#}
-{#                    <div class="logo_img">#}
-{#                        <img src="https://erp.arungas.com/assets/flows/quote/images/logo.jpg">#}
-{#                    </div>#}
-{#                    <div class="col-sm-9 pd0">#}
-{#                        <div class="header_txt">#}
-{#                            <div class="header_LTEXT">#}
-{#                                <p class="align-left">Energy Manager & authorized transport</p>#}
-{#                            </div>#}
-{#                            <div class="text_block">#}
-{#                                <div class="address_block">#}
-{#                                    <i class="fa fa-envelope"></i>#}
-{#                                    <img src="https://erp.arungas.com/assets/flows/quote/images/env.png" alt="">#}
-{#                                    <p>arunlogistics@arungas.com#}
-{#                                        <br>arunlogistics1@gmail.com#}
-{#                                    </p>#}
-{#                                </div>#}
-{#                                <div class="address_block">#}
-{#                                    <i class="fa fa-phone"></i>#}
-{#                                    <img src="https://erp.arungas.com/assets/flows/quote/images/phone.png">#}
-{#                                    <p>#}
-{#	                                    9814007679 / 9216507679#}
-{#                                    </p>#}
-{#                                </div>#}
-{#                            </div>#}
-{#                        </div>#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
-{#        </header>#}
+{% block content %}
         <section class="text_wrap">
             <div class="container">
                 <p>This is to inform you that the landed <b>LPG rates</b>
-	               for the month of SEP*-16 for your organization is
+	               for the month of {{ doc.month_year }} for your organization is
 	               <strong style="font-size: 18px;">₹ {{ doc.row['Landed'] | round(2) }}</strong> per KG.
                 </p>
 	            <br><br>
-{#<h5>* Additional discount @ Rs. 1/- per kg allowed if the consummation exceed 9500 kg's & Rs. 2/- per if consumption exceed 19000 kg's in the month of  July-2016</h5>#}
+				{#<h5>* Additional discount @ Rs. 1/- per kg allowed if the consummation exceed 9500 kg's & Rs. 2/- per if consumption exceed 19000 kg's in the month of  July-2016</h5>#}
                 <p>CENVAT benefit will be applicable as per available batch. Current batch benefit stands at ₹ 2.90/- PER KG.</p>
                 <h3>NOTE:- </h3>
                 <ul>
@@ -78,26 +40,4 @@
                 </ul>
             </div>
         </section>
-{#        <footer>#}
-{#            <div class="container pd0">#}
-{#                <div class="footer_fix">#}
-{#                    <img class="footer_bg" src="https://erp.arungas.com/assets/flows/quote/images/footer.jpg">#}
-{#                    <div class="footer_inner">#}
-{#                        <div class="footer_logo">#}
-{#                            <img src="https://erp.arungas.com/assets/flows/quote/images/bp.png" alt="">#}
-{#                            <img src="https://erp.arungas.com/assets/flows/quote/images/hp.png" alt="">#}
-{#                            <img src="https://erp.arungas.com/assets/flows/quote/images/indianoil.png" alt="">#}
-{#                        </div>#}
-{#                        <div class="footer_txt">#}
-{#                            <i class="fa fa-map-marker"></i>#}
-{#                            <p>328/329,Industrial Area A, Cheema Chownk, Ludhiana , Punjab -141003</p>#}
-{#                        </div>#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
-{#        </footer>#}
-    </div>
-
-</body>
-
-</html>
+{% endblock %}

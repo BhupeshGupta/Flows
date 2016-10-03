@@ -13,7 +13,7 @@ from frappe.utils.email_lib.email_body import get_email
 from frappe.utils.email_lib.smtp import send
 from frappe.modules import get_doc_path
 import csv
-
+from frappe.utils import now_datetime
 
 class QuotationTool(Document):
 	def before_print(self):
@@ -45,6 +45,7 @@ class QuotationTool(Document):
 
 
 	def send_emails(self):
+		this_month_year = now_datetime().strftime("%B %Y")
 
 		csv_file = json.loads(self.cpv_json)
 		json_file = [
@@ -80,21 +81,18 @@ class QuotationTool(Document):
 
 			frappe.msgprint("Sending email to {}".format(email_list))
 
-
-			# row.letter_head = False
 			from premailer import transform
 
 			# email_content = frappe.get_print_format('Quotation Tool', self.name, 'Quotation Email')
 
-			email_content = self.render({'doc': {'row': row} })
-
+			email_content = self.render({'doc': {'row': row, 'month_year': this_month_year}})
 
 			email = transform(email_content, base_url=frappe.conf.host_name + '/')
 
 			email_object = get_email(
 				email_list, sender='',
 				msg='',
-				subject='LPG price for SEP*-2016: {Customer}'.format(**row),
+				subject='LPG price for {month_year}: {Customer}'.format(month_year=this_month_year, **row),
 				formatted=False, print_html=email
 			)
 
