@@ -11,6 +11,8 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import cstr
 from frappe.utils.csvutils import UnicodeWriter
+from frappe import local
+
 
 f = ['enabled', 'customer', 'plant', 'discount', 'discount_via_credit_note', 'incentive', 'transportation',
 	 'contract_number', 'payment_mode', 'sales_tax']
@@ -99,11 +101,14 @@ class CustomerPlantVariablesTool(Document):
 @frappe.whitelist()
 def download(plant, date, as_file=True):
 	def map_row(row):
-		return row if row else None
+		if not row:
+			return row
+		row.code = get_sap_code(row.customer, row.plant)
+		return row
 
 	keys = (
 		'with_effect_from', 'customer', 'discount', 'discount_via_credit_note', 'incentive',
-		'transportation', 'contract_number', 'plant', 'payment_mode', 'sales_tax', 'enabled'
+		'transportation', 'contract_number', 'plant', 'payment_mode', 'sales_tax', 'enabled', 'code'
 	)
 
 	final_rows = []
@@ -215,3 +220,31 @@ def upload():
 	from frappe.utils.csvutils import read_csv_content_from_uploaded_file
 	csv_content = read_csv_content_from_uploaded_file()
 	return filter(lambda x: x and any(x), csv_content)
+
+
+def get_sap_code(customer, plant):
+	omc = plant.split(' ')[0]
+
+	if not hasattr(local, 'sap_code_map'):
+		local.sap_code_map = frappe._dict({})
+
+	key = '{}_{}'.format(customer, omc)
+
+	if not key in local.sap_code_map:
+
+		reg = frappe.db.sql("""
+		select customer_code from `tabOMC Customer Registration`
+		where customer = "{}"
+		and omc = "{}"
+		and docstatus = 1
+		order by with_effect_from DESC
+		limit 1
+		""".format(customer, omc))
+
+		if not reg:
+			frappe.msgprint("Not able to find OMC Registration {}, {}".format(customer, omc))
+			local.sap_code_map[key] = ''
+		else:
+			local.sap_code_map[key] = reg[0][0]
+
+	return local.sap_code_map[key]
