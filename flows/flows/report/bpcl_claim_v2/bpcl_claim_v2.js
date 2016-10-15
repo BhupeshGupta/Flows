@@ -18,6 +18,13 @@ frappe.query_reports["BPCL Claim V2"] = {
 			"width":"80",
 			"default":frappe.datetime.month_end(),
 			"reqd":1
+		},
+		{
+			"fieldname":"field_officer",
+			"label":__("Field Officer"),
+			"fieldtype": "Link",
+			"options": "Field Officer",
+			"reqd":0
 		}
 	]
 };
