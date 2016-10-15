@@ -25,6 +25,7 @@ def get_columns(filters):
 		"AMT:Currency:",
 		"PROPOSAL ID:Data:",
 		"II:Link/Indent Invoice:",
+		"Field Officer:Data:100"
 	]
 
 
@@ -53,7 +54,8 @@ def get_data(filters):
 			rs['discount_mismatch'],
 			c_factor * invoice.qty * rs['discount_mismatch'],
 			"Insert Discount Proposal",
-			invoice.name
+			invoice.name,
+			invoice.field_officer
 		])
 
 	return rows
@@ -65,7 +67,7 @@ def get_invoices(filters):
 	if filters.field_officer else ''
 
 	return frappe.db.sql("""
-	Select i.*, r.customer_code from `tabIndent Invoice` i
+	Select i.*, r.customer_code, r.field_officer from `tabIndent Invoice` i
 	left join `tabOMC Customer Registration` r
 	on i.omc_customer_registration = r.name
 	where i.docstatus = 1
