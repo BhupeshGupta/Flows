@@ -34,7 +34,9 @@ def get_data(filters):
 	rows = []
 
 	for invoice in invoices:
-		policy_name = frappe.db.get_value("Customer Plant Variables", invoice.customer_plant_variables, "omc_policy")
+		policy_name, proposal_id = frappe.db.get_value(
+			"Customer Plant Variables", invoice.customer_plant_variables, ["omc_policy", "contract_number"]
+		)
 		policy = get_policy(policy_name)
 		rs = policy.execute(invoice.name)
 
@@ -53,7 +55,7 @@ def get_data(filters):
 			c_factor * invoice.qty,
 			rs['discount_mismatch'],
 			c_factor * invoice.qty * rs['discount_mismatch'],
-			"Insert Discount Proposal",
+			proposal_id if proposal_id else "Insert Discount Proposal",
 			invoice.name,
 			invoice.field_officer
 		])

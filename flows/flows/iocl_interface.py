@@ -1,12 +1,15 @@
+import re
+from collections import OrderedDict
+
 import requests
-from requests.adapters import HTTPAdapter
-
 from bs4 import BeautifulSoup
-
-from frappe.utils.data import date_diff, today
-from flows.stdlogger import root
+from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
+
 import frappe
+from flows.stdlogger import root
+from frappe.utils import flt
+from frappe.utils.data import date_diff, today
 
 
 class IOCLPortal(object):
@@ -16,7 +19,8 @@ class IOCLPortal(object):
 
 	@classmethod
 	def parse_amount(cls, amt):
-		return float(amt.replace(',', '').strip())
+		v = flt(amt.strip())
+		return v if v else amt
 
 	def __init__(self, user, passwd, debug=False):
 		self.user = user
@@ -36,6 +40,10 @@ class IOCLPortal(object):
 
 			self.session = requests.Session()
 			self.session.proxies = proxy_map
+			self.session.headers.update({
+				'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) '
+							  'Chrome/54.0.2840.59 Safari/537.36'
+			})
 
 			retry = Retry(
 				total=10, connect=5, read=5, redirect=5,
@@ -51,9 +59,9 @@ class IOCLPortal(object):
 	def login(self):
 		s = self.get_session()
 		login_key = {
-		'LogId': self.user,
-		'LogPwd': self.passwd,
-		'LogType': 2
+			'LogId': self.user,
+			'LogPwd': self.passwd,
+			'LogType': 2
 		}
 		content = s.post('http://webapp.indianoil.co.in/ioconline/iocExSignIn.jsp', data=login_key).text
 		if self.debug:
@@ -107,10 +115,10 @@ class IOCLPortal(object):
 				total_credit += amt
 
 		return {
-		'txns': data_map,
-		'current_balance': float(soup.findAll('table')[5].text.split(':')[1].replace(',', '').strip()),
-		'total_credit': total_credit,
-		'total_debit': total_debit
+			'txns': data_map,
+			'current_balance': float(soup.findAll('table')[5].text.split(':')[1].replace(',', '').strip()),
+			'total_credit': total_credit,
+			'total_debit': total_debit
 		}
 
 	def get_current_balance_as_on_date(self, cca='Total'):
@@ -148,6 +156,72 @@ class IOCLPortal(object):
 			rs['balance'] = rs['cca'][cca]['Balance']
 
 		return rs
+
+	def get_pricing(self, customer_code, plant_code, material_code, c_form=False, excise_concession=False):
+		def parse_pricing_content(content):
+			def txt(elem):
+				return elem.text.replace('&nbsp', '').strip()
+
+			soup = BeautifulSoup(content, 'lxml')
+			pricing_table = soup.findAll('b', text=re.compile('.*Pricing Element.*'))
+
+			rs = OrderedDict()
+			if pricing_table:
+				pricing_table = pricing_table[0].parent.parent.parent.parent
+				for i in pricing_table.find_all_next('tr'):
+					if i.findAll('td'):
+						rs[txt(i.find_all_next('td')[0])] = IOCLPortal.parse_amount(txt(i.find_all_next('td')[1]))
+
+			return rs
+
+		session = self.get_session()
+		data = {
+			'LogId': customer_code,
+			'custcode': customer_code,
+			'sold_to': customer_code,
+			'ship_to': customer_code,
+			'plant': plant_code,
+			'matnr': material_code,
+			'DISTCHAN': 'CO',
+		}
+		if c_form:
+			data.update({'CFORM': 'C'})
+		if excise_concession:
+			data.update({'EXCISE': 3})
+
+		content = session.post('http://webapp.indianoil.co.in/ioconline/iocExPriceElement_process.jsp', data=data).text
+		return parse_pricing_content(content)
+
+	def retrieve_statement(self, from_date, to_date):
+		session = self.get_session()
+
+		headers = [
+			'Company Name',
+			'Plant',
+			'Document Number',
+			'Item Text',
+			'Document Type',
+			'Date',
+			'Material Description',
+			'Quantity',
+			'Unit',
+			'Debit',
+			'Credit',
+			'Balance'
+		]
+
+		data = {
+			'fromDate': from_date.replace('-', ''),
+			'toDate': to_date.replace('-', '')
+		}
+
+		content = session.post('http://webapp.indianoil.co.in/ioconline/RetriveData', data=data).text.split('#########')
+
+		soup = BeautifulSoup(content[0], 'lxml')
+
+		data = [{headers[index]: col.text.strip() for index, col in enumerate(row.find_all('td'))} for row in soup.find_all('tr')]
+
+		return data
 
 
 class IOCLAdapter(HTTPAdapter):
