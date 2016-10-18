@@ -11,6 +11,15 @@ from utils import skip_run, strip_vehicle
 from utils import get_portal_user_password
 
 
+IOCL_PLANT_CODE_MAP = {
+	'1217': 'IOCL Jalandhar',
+	'1274': 'IOCL NABHA',
+	'1277': 'IOCL una',
+	'1171': 'IOCL TIKRI',
+	'3148': 'IOCL Dahej'
+}
+
+
 def get_iocl_customer_list():
 	return
 
@@ -30,17 +39,7 @@ def fetch_and_record_iocl_transactions(customer_list, for_date=None, force_run=F
 		return item_code
 
 	def get_plant(plant_code):
-		if plant_code == "1217":
-			return "IOCL Jalandhar"
-		if plant_code == "1274":
-			return "IOCL NABHA"
-		if plant_code == "1277":
-			return "IOCL UNA"
-		if plant_code == "1171":
-			return "IOCL TIKRI"
-		if plant_code == "3148":
-			return "IOCL Dahej"
-		return plant_code
+		return IOCL_PLANT_CODE_MAP[plant_code] if plant_code in IOCL_PLANT_CODE_MAP else plant_code
 
 	for customer in customer_list:
 		portal = IOCLPortal(customer.id, customer.passwd)

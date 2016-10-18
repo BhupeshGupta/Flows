@@ -11,6 +11,28 @@ from flows.stdlogger import root
 from frappe.utils import flt
 from frappe.utils.data import date_diff, today
 
+PORTAL_STATEMENT_HEADERS = (
+	'Company Name',
+	'Plant',
+	'Document Number',
+	'Item Text',
+	'Document Type',
+	'Date',
+	'Material Description',
+	'Quantity',
+	'Unit',
+	'Debit',
+	'Credit',
+	'Balance'
+)
+
+PORTAL_STATEMENT_FTL_MEMBERS = (
+	'Debit',
+	'Credit',
+	'Quantity',
+	'Balance'
+)
+
 
 class IOCLPortal(object):
 	@classmethod
@@ -20,7 +42,7 @@ class IOCLPortal(object):
 	@classmethod
 	def parse_amount(cls, amt):
 		v = flt(amt.strip())
-		return v if v else amt
+		return v if (v or v == 0) else amt
 
 	def __init__(self, user, passwd, debug=False):
 		self.user = user
@@ -193,33 +215,34 @@ class IOCLPortal(object):
 		return parse_pricing_content(content)
 
 	def retrieve_statement(self, from_date, to_date):
+		"""
+		Retrieve account statement of logged in user from `from_date` & `to_date`
+		:param from_date: '2016-10-01'
+		:param to_date:  '2016-10-30'
+		:return:
+		"""
 		session = self.get_session()
-
-		headers = [
-			'Company Name',
-			'Plant',
-			'Document Number',
-			'Item Text',
-			'Document Type',
-			'Date',
-			'Material Description',
-			'Quantity',
-			'Unit',
-			'Debit',
-			'Credit',
-			'Balance'
-		]
 
 		data = {
 			'fromDate': from_date.replace('-', ''),
 			'toDate': to_date.replace('-', '')
 		}
 
-		content = session.post('http://webapp.indianoil.co.in/ioconline/RetriveData', data=data).text.split('#########')
+		content = session.post('http://webapp.indianoil.co.in/ioconline/RetriveData', data=data).text\
+			.split('#########')
 
 		soup = BeautifulSoup(content[0], 'lxml')
 
-		data = [{headers[index]: col.text.strip() for index, col in enumerate(row.find_all('td'))} for row in soup.find_all('tr')]
+		data = [{PORTAL_STATEMENT_HEADERS[index]: col.text.strip() for index, col in enumerate(row.find_all('td'))} for
+				row in soup.find_all('tr')]
+
+		# Data normalisation, parse amounts and dates in to flt and standard date format
+		for row in data:
+			for m in PORTAL_STATEMENT_FTL_MEMBERS:
+				if row[m]:
+					row[m] = IOCLPortal.parse_amount(row[m])
+			if row['Date']:
+				row['Date'] = '20{}'.format(IOCLPortal.parse_date(row['Date']))
 
 		return data
 

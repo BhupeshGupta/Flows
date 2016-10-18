@@ -17,6 +17,26 @@ erpnext.flows.CustomerPlantVariables = frappe.ui.form.Controller.extend({
 
     setup_queries: function () {
         this.set_plant_query("plant");
+    },
+
+    refresh: function() {
+	    var vm = this;
+        this.frm.add_custom_button(__("Validate With OMC"), function() {
+            frappe.call({
+	            "method": "flows.flows.doctype.customer_plant_variables.customer_plant_variables.validate_variables_with_omc",
+	            args: {
+	                cpv: vm.frm.doc,
+	            },
+	            callback: function (data) {
+	                console.log(data);
+		            if (data.message) {
+			            msgprint(data.message, "Mismatch")
+		            } else {
+			            msgprint("Pricing is correct")
+		            }
+	            }
+	        })
+		});
     }
 
 });
