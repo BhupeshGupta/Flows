@@ -24,10 +24,10 @@ def execute(filters=None):
 
 	data = []
 	empty_dict = frappe._dict({
-	"opening_qty": 0.0,
-	"in": {'GR': 0, 'PR': 0, 'GP': 0, 'OTHER': 0},
-	"out": {'GR': 0, 'PR': 0, 'GP': 0, 'OTHER': 0},
-	"bal_qty": 0.0
+		"opening_qty": 0.0,
+		"in": {'GR': 0, 'PR': 0, 'GP': 0, 'OTHER': 0},
+		"out": {'GR': 0, 'PR': 0, 'GP': 0, 'OTHER': 0},
+		"bal_qty": 0.0
 	})
 
 	posting_date = filters.from_date
@@ -55,37 +55,37 @@ def get_columns(filters):
 	]
 
 	columns.extend([
-	"GR IN(F):Float:80",
-	"PR IN(F):Float:80",
-	"GP IN(F):Float:80",
-	"OTHER IN(F):Float:80",
+		"GR IN(F):Float:80",
+		"PR IN(F):Float:80",
+		"GP IN(F):Float:80",
+		"OTHER IN(F):Float:80",
 	] if filters.bifurcate else ["IN(F):Float:80"])
 
 	columns.extend([
-	"GR OUT(F):Float:80",
-	"PR OUT(F):Float:80",
-	"GP OUT(F):Float:80",
-	"OTHER OUT(F):Float:80",
+		"GR OUT(F):Float:80",
+		"PR OUT(F):Float:80",
+		"GP OUT(F):Float:80",
+		"OTHER OUT(F):Float:80",
 	] if filters.bifurcate else ["OUT(F):Float:80"])
 
 	columns.extend([
-	"Closing(F):Float:100",
-	"::50",
-	"Opening(E):Float:100",
+		"Closing(F):Float:100",
+		"::50",
+		"Opening(E):Float:100",
 	])
 
 	columns.extend([
-	"GR IN(E):Float:80",
-	"PR IN(E):Float:80",
-	"GP IN(E):Float:80",
-	"OTHER IN(E):Float:80",
+		"GR IN(E):Float:80",
+		"PR IN(E):Float:80",
+		"GP IN(E):Float:80",
+		"OTHER IN(E):Float:80",
 	] if filters.bifurcate else ["IN(E):Float:80"])
 
 	columns.extend([
-	"GR OUT(E):Float:80",
-	"PR OUT(E):Float:80",
-	"GP OUT(E):Float:80",
-	"OTHER OUT(E):Float:80",
+		"GR OUT(E):Float:80",
+		"PR OUT(E):Float:80",
+		"GP OUT(E):Float:80",
+		"OTHER OUT(E):Float:80",
 	] if filters.bifurcate else ["OUT(E):Float:80"])
 
 	columns.extend(["Closing(E):Float:100"])
@@ -175,11 +175,16 @@ def get_conditions(filters):
 # get all details
 def get_stock_ledger_entries(filters):
 	conditions = get_conditions(filters)
-	return frappe.db.sql("""select item_code, posting_date, actual_qty,
+	# and ifnull(process, '') not in ('Consumption')
+	return frappe.db.sql(
+	"""
+		select item_code, posting_date, actual_qty,
 		voucher_type, qty_after_transaction
 		from `tabStock Ledger Entry`
-		where docstatus < 2 and ifnull(process, '') not in ('Consumption') %s order by posting_date, posting_time, name""" %
-						 conditions, as_dict=1)
+		where docstatus < 2
+		%s
+		order by posting_date, posting_time, name
+	""" % conditions, as_dict=1)
 
 
 def get_item_warehouse_map(filters):
@@ -189,20 +194,20 @@ def get_item_warehouse_map(filters):
 
 	# Init Map To At least Show Opening
 	iwb_map.setdefault(filters.from_date, frappe._dict({
-	"opening_qty": 0.0,
-	"in": {'GR': 0, 'PR': 0, 'GP': 0, 'OTHER': 0},
-	"out": {'GR': 0, 'PR': 0, 'GP': 0, 'OTHER': 0},
-	"bal_qty": 0.0
+		"opening_qty": 0.0,
+		"in": {'GR': 0, 'PR': 0, 'GP': 0, 'OTHER': 0},
+		"out": {'GR': 0, 'PR': 0, 'GP': 0, 'OTHER': 0},
+		"bal_qty": 0.0
 	}))
 
 	for d in sle:
 		active_map = opening_iwb_map if d.posting_date < filters["from_date"] else iwb_map
 
 		active_map.setdefault(d.posting_date, frappe._dict({
-		"opening_qty": 0.0,
-		"in": {'GR': 0, 'PR': 0, 'GP': 0, 'OTHER': 0},
-		"out": {'GR': 0, 'PR': 0, 'GP': 0, 'OTHER': 0},
-		"bal_qty": 0.0
+			"opening_qty": 0.0,
+			"in": {'GR': 0, 'PR': 0, 'GP': 0, 'OTHER': 0},
+			"out": {'GR': 0, 'PR': 0, 'GP': 0, 'OTHER': 0},
+			"bal_qty": 0.0
 		}))
 
 		qty_dict = active_map[d.posting_date]
