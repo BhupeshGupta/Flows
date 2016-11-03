@@ -48,6 +48,17 @@ class CFormTool(Document):
 				frappe.msgprint("Failed to create c form for {customer}".format(**pair))
 		frappe.msgprint("Done")
 
+	def get_reminders_conditions(self):
+		cond = []
+
+		if self.supplier_filter:
+			cond.append('supplier like "{}"'.format(self.supplier_filter))
+
+		if not cond:
+			cond.append('1=1')
+
+		return ' and '.join(cond)
+
 	def send_reminders(self):
 		for cform in frappe.db.sql("""
 		SELECT `name`, supplier,
@@ -59,7 +70,7 @@ class CFormTool(Document):
 		AND {cond}
 		ORDER BY customer;
 		""".format(
-				cond=self.get_conditions() if self.filter_reminders else '1=1'
+				cond=self.get_reminders_conditions() if self.filter_reminders else '1=1'
 		), as_dict=True):
 
 			frappe.msgprint(cform.name)
