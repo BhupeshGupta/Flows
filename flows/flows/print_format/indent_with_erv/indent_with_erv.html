@@ -68,6 +68,7 @@
 	</div>
 
 	{% set show_contract = doc.naming_series == 'IOC' %}
+	{% set show_sales_order = doc.naming_series == 'BPC' %}
 
     {% set one_way_indent = doc.indent|indent_oneway_qty > 0 %}
 
@@ -94,6 +95,11 @@
 					{% if show_contract %}
 						<th>
 							Contract No.
+						</th>
+					{% endif %}
+					{% if show_sales_order %}
+						<th>
+							SO No.
 						</th>
 					{% endif %}
 					<th>
@@ -161,6 +167,11 @@
 								{{ indent_item.customer | get_contract_number(doc.posting_date, doc.plant) or '' }}
 							</td>
 						{% endif %}
+						{% if show_sales_order %}
+							<td>
+								{{ indent_item.customer | get_omc_so(doc.plant, indent_item.item, doc.posting_date) or '' }}
+							</td>
+						{% endif %}
 						<td>
 							{{ indent_item.customer | get_customer_tin_number }}
 						</td>
@@ -212,6 +223,9 @@
 					<td></td>
 					{% if show_contract %}
 						<td></td>
+					{% endif %}
+					{% if show_sales_order %}
+							<td></td>
 					{% endif %}
 					<td colspan="2" class="item lastrow">Total in M.T.</td>
 				    {% if doc.naming_series == 'BPC' %}

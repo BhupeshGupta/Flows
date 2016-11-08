@@ -580,3 +580,33 @@ def get_applicable_customer_plant_variable(plant, customer, date):
 
 	if cpv:
 		return cpv[0]
+
+def get_omc_so(customer, plant, item, date=None):
+	"""
+	:param customer:
+	:param plant:
+	:param item:
+	:return:
+	"""
+
+	so_list = frappe.db.sql(
+		"""
+		select so.so_number, so.customer, so.plant, so.valid_from,
+        so.valid_upto, c.item, c.qty
+		from `tabOMC Sales Order` so left join `tabOMC Sales Order Table` c
+		on c.parent=so.name
+		where so.customer = "{}" AND
+              so.plant = "{}" AND
+              c.item = "{}"
+        order by so.valid_upto DESC
+        limit 1
+		""".format(customer, plant, item),
+		as_dict=True
+	)
+
+	if date and so_list:
+		if so_list[0].valid_upto < date:
+			# SO Expired, reject
+			so_list = None
+
+	return so_list[0] if so_list else None

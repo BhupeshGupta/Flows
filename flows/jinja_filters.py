@@ -3,6 +3,7 @@ from collections import OrderedDict
 import frappe
 from frappe.utils import cint
 from flows.controller.utils import get_portal_user_password
+from flows.doctype.indent.indent import get_omc_so as get_omc_so_from_indent
 
 def indent_refill_qty(indent_items):
 	sum = 0
@@ -201,3 +202,8 @@ def get_rsp(date, territory):
 		return None
 
 	return rsp[0].rsp_per_cylinder
+
+
+def get_omc_so(customer, plant, item, date):
+	so = get_omc_so_from_indent(customer, plant, item, date)
+	return so.so_number if so else ''
