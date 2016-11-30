@@ -184,6 +184,10 @@ def get_fuel_cost(date, fuel_qty):
 
 def get_gatepass_entry(gatepass):
 	basic_route_cost, fuel_route_cost = get_route_cost(gatepass.transaction_date, gatepass.route, gatepass.vehicle)
+
+	if not gatepass.indent:
+		frappe.throw("Indent not found with gatepass {}".format(gatepass.name))
+		
 	entry = frappe._dict({
 		"date": gatepass.transaction_date,
 		"name": gatepass.name,
