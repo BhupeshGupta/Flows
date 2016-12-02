@@ -721,6 +721,7 @@ class IndentInvoice(StockController):
 		"against_income_account": sales_invoice_conf.credit_account,
 		"select_print_heading": "Transportation Invoice / Consignment Note",
 		"company": registration.sales_invoice_company,
+		"debit_to": registration.sales_invoice_account,
 		"letter_head": registration.sales_invoice_company,
 		"is_opening": "No",
 		"naming_series": sales_invoice_conf.naming_series,
