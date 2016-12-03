@@ -186,9 +186,9 @@ def get_gatepass_entry(gatepass):
 	basic_route_cost, fuel_route_cost = get_route_cost(gatepass.transaction_date, gatepass.route, gatepass.vehicle)
 
 	if not gatepass.indent:
-		frappe.throw("Indent not found with gatepass {}".format(gatepass.name))
-		
-	entry = frappe._dict({
+		frappe.msgprint("Indent not found with gatepass {}".format(gatepass.name))
+
+	entry = {
 		"date": gatepass.transaction_date,
 		"name": gatepass.name,
 		"vehicle": get_vehicle(gatepass.vehicle).name,
@@ -202,13 +202,21 @@ def get_gatepass_entry(gatepass):
 		""".format(gatepass.indent))[0][0],
 		"indent_date": frappe.db.get_value("Indent", filters=gatepass.indent, fieldname="posting_date"),
 		"invoice_date": frappe.db.get_value("Indent Invoice", filters={'indent': gatepass.indent}, fieldname="transaction_date"),
-		"qty_mt": frappe.db.sql(
+	}
+
+	try:
+		entry["qty_mt"] = frappe.db.sql(
 			"""
 			select sum(replace(replace(item, 'FC', ''), 'L', '') * qty) from `tabIndent Item`
 			where parent = "{}"
 			""".format(gatepass.indent)
-		)[0][0]/1000 if gatepass.indent else 0
-	})
+		)[0][0] / 1000 if gatepass.indent else 0
+	except:
+		entry["qty_mt"] = 0
+		frappe.msgprint("Error while accessing indent for gatepass {}".format(gatepass.name))
+
+	entry = frappe._dict(entry)
+
 	entry["fuel_rate"], entry["fuel_cost"] = get_fuel_cost(gatepass.transaction_date, gatepass.fuel_quantity)
 	entry.amount_to_be_paid = entry["basic_route_cost"] + entry["fuel_route_cost"] - entry["advance"] - entry["fuel_cost"]
 	return entry
