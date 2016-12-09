@@ -13,7 +13,7 @@ def submit_indents():
 		WHERE ind.docstatus = 0
 		GROUP BY ind.name
 		HAVING count(iitm.name) - count(iitm.invoice_reference) = 0;
-		""", as_dict=True
+		"""
 	):
 		indent = frappe.get_doc("Indent", indent[0])
 		indent.docstatus = 1
