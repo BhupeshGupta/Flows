@@ -20,7 +20,7 @@ def strip_vehicle(vehicle):
 
 def reconcile_omc_txns_with_indents():
 	for txn in frappe.db.sql("""
-	select supplier, document_no, customer, item, quantity, debit, vehicle_no
+	select date, supplier, document_no, customer, item, quantity, debit, vehicle_no
 	from `tabOMC Transactions`
 	where debit > 0 and document_no not in (
 		select invoice_number
@@ -30,7 +30,7 @@ def reconcile_omc_txns_with_indents():
 		select invoice_reference
 		from `tabIndent Item`
 		where ifnull(invoice_reference, '') != ''
-	)
+	);
 	""", as_dict=True):
 
 		indent_list = frappe.db.sql("""
@@ -43,7 +43,9 @@ def reconcile_omc_txns_with_indents():
 			and ifnull(indent_item, '')!=''
 		) and ifnull(iitm.invoice_reference, '') = ''
 		and iitm.customer="{customer}" and replace(iitm.item, 'L', '')="{item}"
-		and iitm.qty="{quantity}" and ind.vehicle = "{vehicle_no}";
+		and iitm.qty="{quantity}" and ind.vehicle = "{vehicle_no}"
+		and ind.posting_date  <= "{date}"
+		and "{date}" <= ADDDATE(ind.posting_date, INTERVAL 3 DAY);
 		""".format(**txn), as_dict=True)
 
 		# Match Found

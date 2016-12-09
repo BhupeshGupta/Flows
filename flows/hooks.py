@@ -97,7 +97,11 @@ doc_events = {
 		"onload": "flows.flows.custom_validation.customer_onload"
 	},
 	"Indent Invoice": {
-		"on_submit": "flows.flows.controller.ephesoft_integration.create_docs_in_review_server"
+		"on_submit": "flows.flows.controller.ephesoft_integration.create_docs_in_review_server",
+		"validate": "flows.flows.controller.autoinvoicing_controller.validate_invoice_number"
+	},
+	"Indent": {
+		"on_submit": "flows.flows.controller.autoinvoicing_controller.save_and_submit_invoices"
 	}
 }
 
@@ -106,20 +110,17 @@ doc_events = {
 # ---------------
 
 scheduler_events = {
-	"all": [
-	],
+	"all": [],
 	"daily_long": [
 		"flows.flows.controller.hpcl_controller.fetch_and_record_hpcl_balance"
 	],
 	"hourly": [
 		"flows.flows.controller.hpcl_controller.update_invoice_status_for_pending_indents",
 		"flows.flows.controller.iocl_controller.fetch_and_record_iocl_transactions_controller",
-		"flows.flows.controller.autoinvoicing_controller.save_and_submit_invoices"
+		"flows.flows.controller.autoinvoicing_controller.submit_indents"
 	],
-	"weekly": [
-	],
-	"monthly": [
-	]
+	"weekly": [],
+	"monthly": []
 }
 
 # Testing
@@ -128,10 +129,10 @@ scheduler_events = {
 # before_tests = "flows.install.before_tests"
 
 doctype_js = {
-"Warehouse": ["asserts/js/warehouse.js"],
-"Journal Voucher": ["c_scripts/journal_voucher.js"],
-"Customer": ["c_scripts/customer.js"],
-"Sales Invoice": ["c_scripts/sales_invoice.js"],
+	"Warehouse": ["asserts/js/warehouse.js"],
+	"Journal Voucher": ["c_scripts/journal_voucher.js"],
+	"Customer": ["c_scripts/customer.js"],
+	"Sales Invoice": ["c_scripts/sales_invoice.js"],
 }
 
 # Overriding Whitelisted Methods

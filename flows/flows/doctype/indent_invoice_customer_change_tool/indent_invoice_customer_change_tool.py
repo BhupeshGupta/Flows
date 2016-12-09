@@ -40,6 +40,7 @@ class IndentInvoiceCustomerChangeTool(Document):
 		invoice.name = None
 		invoice.docstatus = 0
 		# Change ship to to allow bill to ship to validations
+		invoice.ignore_omc_validation = True
 		invoice.ship_to = target_customer
 		invoice.save()
 		invoice.submit()
