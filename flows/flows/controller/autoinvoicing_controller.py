@@ -2,6 +2,7 @@ import frappe
 from flows.stdlogger import root
 from frappe.utils import today
 from frappe.utils import flt
+from frappe.exceptions import DoesNotExistError
 
 
 def submit_indents():
@@ -92,6 +93,7 @@ def validate_invoice_number(doc, method=None, *args, **kwargs):
 
 		mismatch_fields = []
 
+		# Check for customer code instead of customer to pass validations for aarti and other units like these
 		if omc_txn.customer and omc_txn.customer != doc.customer:
 			mismatch_fields.append('Customer')
 		if omc_txn.item and omc_txn.item.replace('L', '') != doc.item.replace('L', ''):
@@ -109,6 +111,9 @@ def validate_invoice_number(doc, method=None, *args, **kwargs):
 				error_msg = ', '.join(mismatch_fields[:-1])
 				error_msg = '{} and {}'.format(error_msg, mismatch_fields[-1])
 			frappe.throw("Error. Please check {} in invoice {}".format(error_msg, doc.invoice_number))
+	except DoesNotExistError as e:
+		root.info("Exception in Hook Validation for invoice {}".format(doc.invoice_number))
+		root.error(e)
 	except Exception as e:
 		root.info("Exception in Hook Validation for invoice {}".format(doc.invoice_number))
 		root.error(e)
