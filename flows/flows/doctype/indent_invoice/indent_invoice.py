@@ -775,11 +775,16 @@ class IndentInvoice(StockController):
 
 	def get_data_bank(self):
 		try:
-			dbank = frappe._dict(json.loads(self.data_bank))
+			data_bank = frappe.db.get_value('Indent Invoice', self.name, 'data_bank')
 		except:
-			dbank = {}
+			data_bank = self.data_bank
 
-		return dbank
+		try:
+			data_bank = frappe._dict(json.loads(data_bank))
+		except:
+			data_bank = frappe._dict({})
+
+		return data_bank
 
 	def get_invoice_rate(self):
 		qty_in_kg = get_conversion_factor(self.item) * float(self.qty)
