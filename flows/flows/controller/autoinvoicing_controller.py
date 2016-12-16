@@ -93,9 +93,23 @@ def validate_invoice_number(doc, method=None, *args, **kwargs):
 
 		mismatch_fields = []
 
-		# Check for customer code instead of customer to pass validations for aarti and other units like these
 		if omc_txn.customer and omc_txn.customer != doc.customer:
-			mismatch_fields.append('Customer')
+			# If customer does not match, make attempt to match the customer code for customers like aarti
+			statement = """
+			select customer_code
+			from `tabOMC Customer Registration`
+			where customer = "{}"
+			and docstatus = 1
+			and omc = "{}"
+			order by with_effect_from DESC
+			limit 1
+			"""
+			txn_omc_code = frappe.db.sql(statement.format(omc_txn.customer, omc_txn.supplier))[0][0]
+			doc_omc_code = frappe.db.sql(statement.format(doc.customer, doc.supplier.split(' ')[0]))[0][0]
+
+			if not txn_omc_code == doc_omc_code:
+				mismatch_fields.append('Customer')
+
 		if omc_txn.item and omc_txn.item.replace('L', '') != doc.item.replace('L', ''):
 			mismatch_fields.append('Item')
 		if omc_txn.quantity and flt(omc_txn.quantity) != flt(doc.qty):
@@ -112,8 +126,7 @@ def validate_invoice_number(doc, method=None, *args, **kwargs):
 				error_msg = '{} and {}'.format(error_msg, mismatch_fields[-1])
 			frappe.throw("Error. Please check {} in invoice {}".format(error_msg, doc.invoice_number))
 	except DoesNotExistError as e:
-		root.info("Exception in Hook Validation for invoice {}".format(doc.invoice_number))
-		root.error(e)
+		pass
 	except Exception as e:
 		root.info("Exception in Hook Validation for invoice {}".format(doc.invoice_number))
 		root.error(e)
