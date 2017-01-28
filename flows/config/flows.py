@@ -224,6 +224,12 @@ def get_data():
 				{
 					"type": "report",
 					"is_query_report": True,
+					"name": "HPCL Discount Proposal",
+					"doctype": "Customer Plant Variables",
+				},
+				{
+					"type": "report",
+					"is_query_report": True,
 					"name": "BPCL Discount",
 					"doctype": "Indent Invoice",
 				},
