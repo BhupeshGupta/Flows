@@ -87,6 +87,9 @@ def validate_invoice_number(doc, method=None, *args, **kwargs):
 	if getattr(doc, 'ignore_omc_validation', False):
 		return
 
+	if doc.item == 'FCBK':
+		return
+
 	try:
 		root.info("Running Hook Validation for invoice {}".format(doc.invoice_number))
 		omc_txn = frappe.get_doc("OMC Transactions", {"document_no": doc.invoice_number})
