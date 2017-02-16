@@ -44,11 +44,12 @@ def get_columns():
 
 
 def get_indents():
+	# posting_date >= '2015-05-01'
 	return frappe.db.sql("""
 		SELECT * FROM
 		`tabIndent` WHERE
 		docstatus != 2 AND
-		posting_date >= '2015-05-01'
+		posting_date >= '2016-12-01'
 		order by creation desc;
 		""", as_dict=True)
 
