@@ -15,7 +15,7 @@ from erpnext.accounts.party import get_party_account
 from erpnext.accounts.general_ledger import make_gl_entries
 from erpnext.stock.stock_ledger import make_sl_entries
 from frappe.utils import today
-from frappe.utils import cint, now
+from frappe.utils import cint, now, flt
 from frappe.utils import get_first_day, getdate
 from flows.flows.doctype.indent.indent import validate_bill_to_ship_to
 from flows.flows.pricing_controller import compute_base_rate_for_a_customer, get_customer_payment_info
@@ -659,6 +659,7 @@ class IndentInvoice(StockController):
 		'doc': frappe._dict(self.as_dict()),
 		'crn_raised': True if credit_note else False,
 		'credit_note': credit_note,
+		'note': True if cint(self.adjusted) == 1 and (flt(self.handling) or flt(self.discount)) else False
 		}
 
 		self.load_transport_bill_variables()
@@ -864,7 +865,6 @@ def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
 	)
 
 	return frappe.db.sql(indent_items_sql)
-
 
 def get_conversion_factor(item):
 	conversion_factor_query = """
