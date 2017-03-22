@@ -151,6 +151,8 @@ def get_customer_payment_info(customer, plant, posting_date):
 	'posting_date': posting_date,
 	}
 
+	omc = plant.split(' ')[0].capitalize()
+
 	registration = frappe.db.sql("""
 	select name, default_credit_account, docstatus
 	from `tabOMC Customer Registration`
@@ -159,7 +161,7 @@ def get_customer_payment_info(customer, plant, posting_date):
 	and docstatus != 2
 	and with_effect_from <= DATE("{posting_date}")
 	ORDER BY with_effect_from DESC LIMIT 1;
-	""".format(omc=plant.split(' ')[0].capitalize(), **context), as_dict=True)[0]
+	""".format(omc=omc, **context), as_dict=True)[0]
 
 	if registration.docstatus != 1:
 		frappe.throw("Customer `{}` registration is not approved."
