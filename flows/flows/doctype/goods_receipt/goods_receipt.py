@@ -17,7 +17,10 @@ class GoodsReceipt(Document):
 
 	def autoname(self):
 		if frappe.form_dict.client == "app" and not self.goods_receipt_number:
-			self.name = make_autoname('GR-16-.#')
+			year = '16'
+			if self.transaction_date >= '2017-04-01':
+				year = '17'
+			self.name = make_autoname('GR-{}-.#'.format(year))
 
 	def validate_book(self):
 		if not self.goods_receipt_number:
