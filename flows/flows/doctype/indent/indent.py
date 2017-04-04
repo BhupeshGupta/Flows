@@ -397,6 +397,7 @@ def get_indent_list(doctype, txt, searchfield, start, page_len, filters):
 		AND ifnull(indent, '') = ''
 		AND name like '%{txt}%'
 		AND docstatus = 1
+		AND voucher_type = "ERV"
 	)
 	AND gp.name = gpi.parent
 	GROUP BY gp.name, gpi.item;
