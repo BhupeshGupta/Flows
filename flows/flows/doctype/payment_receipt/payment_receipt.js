@@ -5,7 +5,7 @@ cur_frm.add_fetch('gatepass', 'plant', 'plant');
 frappe.provide("erpnext.flows");
 
 erpnext.flows.CashReceiptController = frappe.ui.form.Controller.extend({
-	onload:function () {
+	onload: function () {
 		//if (frappe.boot.payment_receipt && frappe.boot.payment_receipt.stock_owner) {
 		//	this.frm.set_value("stock_owner", frappe.boot.payment_receipt.stock_owner, "");
 		//	this.frm.set_df_property("stock_owner", "read_only", frappe.boot.payment_receipt.stock_owner != "");
@@ -22,7 +22,7 @@ erpnext.flows.CashReceiptController = frappe.ui.form.Controller.extend({
 		this.frm.set_query('debit_account', function () {
 			return {
 				filters:{
-					'company': doc.company,
+					'company': this.frm.doc.company,
 					'account_type': 'Imprest'
 				}
 			}
