@@ -57,8 +57,9 @@ class PaymentReceipt(Document):
 			throw("Goods Receipt with this serial already exists {}".format(self.id))
 
 	def validate(self):
-		self.validate_book()
-		self.validate_unique()
+		if self.id:
+			self.validate_book()
+			self.validate_unique()
 
 	def autoname(self):
 		if self.id and self.id != '':
