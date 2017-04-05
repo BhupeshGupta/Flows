@@ -19,6 +19,15 @@ erpnext.flows.CashReceiptController = frappe.ui.form.Controller.extend({
 		this.frm.set_df_property("stock_owner_company", "read_only", true);
 		this.cancelled(this.frm.doc, null, null);
 
+		this.frm.set_query('debit_account', function () {
+			return {
+				filters:{
+					'company': doc.company,
+					'account_type': 'Imprest'
+				}
+			}
+		});
+
 	},
 
 	refresh: function (doc) {
