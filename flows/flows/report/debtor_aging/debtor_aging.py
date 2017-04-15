@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 
-from frappe.utils import add_days, today
+from frappe.utils import add_days, today, cint
 import frappe
 
 
@@ -22,13 +22,13 @@ def execute(filters=None):
 			leaf_accounts = list(set(get_leaf_nodes(account.name, parent_children_map)))
 			group_acc_sum = sum([debit_balance_map.get(x, 0) for x in leaf_accounts])
 			account.update({
-			'debit_bal': group_acc_sum
+			'debit_bal': cint(group_acc_sum)
 			})
 			account.update(get_aged_data_for_account(leaf_accounts, group_acc_sum, filters))
 			rows.append(account)
 		elif account.name in debit_balance_map:
 			account.update({
-			'debit_bal': debit_balance_map[account.name]
+			'debit_bal': cint(debit_balance_map[account.name])
 			})
 			account.update(get_aged_data_for_account([account.name], debit_balance_map[account.name], filters))
 			rows.append(account)

@@ -915,7 +915,11 @@ def get_sales_invoice_config(company, fiscal_year):
 		frappe._dict({
 		'company': 'G.L. Logistics', 'fiscal_year': '2016-17', 'naming_series': 'CN-16-',
 		'credit_account': 'Service - GL', "cost_center": "Main - GL", "tc_name": "Consignment Note GL"
-		})
+		}),
+		frappe._dict({
+			'company': 'ARUN ENERGIES LTD', 'fiscal_year': '2017-18', 'naming_series': 'SCN-AD-17-',
+			'credit_account': 'Service - AD', "cost_center": "Main - AD", "tc_name": "Consignment Note"
+		}),
 	]
 
 	for conf in config_map:
