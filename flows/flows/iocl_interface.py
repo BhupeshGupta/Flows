@@ -85,7 +85,7 @@ class IOCLPortal(object):
 			'LogPwd': self.passwd,
 			'LogType': 2
 		}
-		content = s.post('http://webapp.indianoil.co.in/ioconline/iocExSignIn.jsp', data=login_key).text
+		content = s.post('http://spandan.indianoil.co.in/ioconline/iocExSignIn.jsp', data=login_key).text
 		if self.debug:
 			root.debug(content)
 
@@ -104,7 +104,7 @@ class IOCLPortal(object):
 			raise Exception('Can only fetch data from yesterday and today')
 
 		session = self.get_session()
-		content = session.post('http://webapp.indianoil.co.in/ioconline/iocExdaily_transaction_process.jsp').text
+		content = session.post('http://spandan.indianoil.co.in/ioconline/iocExdaily_transaction_process.jsp').text
 
 		if self.debug:
 			root.debug(content)
@@ -145,7 +145,7 @@ class IOCLPortal(object):
 
 	def get_current_balance_as_on_date(self, cca='Total'):
 		session = self.get_session()
-		content = session.post('http://webapp.indianoil.co.in/ioconline/iocExcust_bal_process.jsp').text
+		content = session.post('http://spandan.indianoil.co.in/ioconline/iocExcust_bal_process.jsp').text
 
 		soup = BeautifulSoup(content, 'lxml')
 
@@ -211,7 +211,7 @@ class IOCLPortal(object):
 		if excise_concession:
 			data.update({'EXCISE': 3})
 
-		content = session.post('http://webapp.indianoil.co.in/ioconline/iocExPriceElement_process.jsp', data=data).text
+		content = session.post('http://spandan.indianoil.co.in/ioconline/iocExPriceElement_process.jsp', data=data).text
 		return parse_pricing_content(content)
 
 	def retrieve_statement(self, from_date, to_date):
@@ -228,7 +228,7 @@ class IOCLPortal(object):
 			'toDate': to_date.replace('-', '')
 		}
 
-		content = session.post('http://webapp.indianoil.co.in/ioconline/RetriveData', data=data).text\
+		content = session.post('http://spandan.indianoil.co.in/ioconline/RetriveData', data=data).text\
 			.split('#########')
 
 		soup = BeautifulSoup(content[0], 'lxml')
