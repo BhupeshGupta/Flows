@@ -33,6 +33,10 @@ class IndentInvoice(StockController):
 	def before_submit(self):
 		if not self.posting_date:
 			self.posting_date = today()
+
+		if self.posting_date >= '01-07-2017' or self.transaction_date >= '01-07-2017':
+			frappe.throw("GST Tax Introduced, Billing disabled from July Onwards")
+
 		self.fiscal_year = account_utils.get_fiscal_year(self.get("transaction_date"))[0]
 
 		if cint(self.indent_invoice_settings.price_check):
