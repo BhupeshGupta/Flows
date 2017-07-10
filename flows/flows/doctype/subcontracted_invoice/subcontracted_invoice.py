@@ -7,6 +7,7 @@ from frappe.model.document import Document
 from frappe.model.naming import make_autoname
 from flows.flows.doctype.indent_invoice.indent_invoice import get_conversion_factor
 from erpnext.accounts import utils as account_utils
+from frappe.utils.jinja import render_template
 
 
 class SubcontractedInvoice(Document):
@@ -26,7 +27,7 @@ class SubcontractedInvoice(Document):
 		else:
 			company_abbr = frappe.db.get_value("Company", self.company, "abbr")
 			fiscal_year = account_utils.get_fiscal_year(self.get("posting_date"))[0]
-			naming_series = "{}/{}/.".format(company_abbr, fiscal_year)
+			naming_series = "{}{}/.".format(company_abbr, fiscal_year[2:])
 
 			suffix_count = 16 - len(naming_series) + 1
 			suffix = '#' * suffix_count
@@ -65,7 +66,7 @@ class SubcontractedInvoice(Document):
 				"parenttype": "Sales Invoice",
 				"parentfield": "entries",
 			}
-			select_print_heading = "Vat Invoice" if self.bill_type == 'VAT' else "Retail Invoice",
+			select_print_heading = "Vat Invoice" if self.bill_type == 'VAT' else "Retail Invoice"
 		elif self.company == 'Arun Logistics':
 			item = {
 				"qty": self.item,
@@ -79,6 +80,7 @@ class SubcontractedInvoice(Document):
 				"cost_center": "Main - {}".format(company_abbr),
 				"parenttype": "Sales Invoice",
 				"parentfield": "entries",
+				"amount": float(self.amount_per_item) * self.item
 			}
 			if self.posting_date < '2017-07-01':
 				frappe.throw("Company enabled for billing only after GST.")
@@ -109,7 +111,7 @@ class SubcontractedInvoice(Document):
 			"plc_conversion_rate": 1,
 			"territory": customer_object.territory if customer_object.territory else 'All Territories',
 			"__islocal": True,
-			"docstatus": 1,
+			"docstatus": 0,
 			# "tc_name": "Arun Logistics Tax Invoice Product",
 			# "terms": frappe.get_doc('Terms and Conditions', "Aggarwal LPG Invoice").terms
 			# "remarks": "Against Bill No. {}""".format(self.invoice_number)
@@ -121,12 +123,14 @@ class SubcontractedInvoice(Document):
 		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
 			consignment_note_json_doc["customer_address"] = "{}-Billing".format(self.customer.strip())
 
-
 		if self.posting_date >= '2017-07-01':
 			consignment_note_json_doc["taxes_and_charges"] = "In State GST"
 
 		transportation_invoice = frappe.get_doc(consignment_note_json_doc)
+		transportation_invoice.save()
 
+		transportation_invoice.terms = self.get_terms_and_conditions(transportation_invoice)
+		transportation_invoice.docstatus = 1
 		transportation_invoice.save()
 
 		self.sales_invoice = transportation_invoice.name
@@ -138,6 +142,23 @@ class SubcontractedInvoice(Document):
 		if sales_invoice.docstatus != 2:
 			sales_invoice.docstatus = 2
 			sales_invoice.save()
+
+	def get_terms_and_conditions(self, transportation_invoice):
+		if self.company != 'Arun Logistics':
+			return ""
+
+		terms_template = frappe.get_doc('Terms and Conditions', 'Arun Logistics Tax Invoice Product').terms
+
+		if not terms_template:
+			return ""
+
+		payable_amount = transportation_invoice.grand_total_export
+
+		context = {
+			'total_payable_amount': payable_amount,
+			'indent_invoice': self,
+		}
+		return render_template(terms_template, context)
 
 
 def get_conversion_factor(item):
