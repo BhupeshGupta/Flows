@@ -28,7 +28,7 @@ class SubcontractedInvoice(Document):
 			fiscal_year = account_utils.get_fiscal_year(self.get("posting_date"))[0]
 			naming_series = "{}/{}/.".format(company_abbr, fiscal_year)
 
-			suffix_count = 16 - len(naming_series)
+			suffix_count = 16 - len(naming_series) + 1
 			suffix = '#' * suffix_count
 			self.name = make_autoname(naming_series + suffix)
 
@@ -82,14 +82,11 @@ class SubcontractedInvoice(Document):
 			}
 			if self.posting_date < '2017-07-01':
 				frappe.throw("Company enabled for billing only after GST.")
-
+		else:
+			frappe.throw("System not configured for this company invoicing.")
 
 		if self.posting_date >= '2017-07-01':
 			select_print_heading = 'Tax Invoice'
-
-
-		else:
-			frappe.throw("System not configured for this company invoicing.")
 
 		consignment_note_json_doc = {
 			"doctype": "Sales Invoice",
