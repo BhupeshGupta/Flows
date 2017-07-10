@@ -282,6 +282,7 @@
    "fieldname": "omc_account_balance", 
    "fieldtype": "Currency", 
    "label": "OMC Account Balance", 
+   "no_copy": 1, 
    "permlevel": 0, 
    "precision": "", 
    "read_only": 1
@@ -290,6 +291,7 @@
    "fieldname": "invoice_reference", 
    "fieldtype": "Data", 
    "label": "Invoice Reference", 
+   "no_copy": 1, 
    "permlevel": 0, 
    "precision": "", 
    "read_only": 1
@@ -302,7 +304,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 1, 
- "modified": "2016-03-02 18:17:34.984928", 
+ "modified": "2016-12-06 19:59:09.236333", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Item", 

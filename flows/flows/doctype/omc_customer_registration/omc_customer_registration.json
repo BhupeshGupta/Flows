@@ -1,9 +1,9 @@
 {
  "allow_copy": 0, 
- "allow_import": 0, 
+ "allow_import": 1, 
  "allow_rename": 0, 
  "autoname": "OMC", 
- "creation": "2016-08-09 19:36:37.560401",
+ "creation": "2016-08-09 19:36:37.560401", 
  "custom": 0, 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -317,7 +317,7 @@
    "in_list_view": 0, 
    "label": "Amended From", 
    "no_copy": 1, 
-   "options": "OMC Customer Registration",
+   "options": "OMC Customer Registration", 
    "permlevel": 0, 
    "precision": "", 
    "print_hide": 1, 
@@ -326,6 +326,15 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0
+  }, 
+  {
+   "default": "0", 
+   "fieldname": "latest", 
+   "fieldtype": "Check", 
+   "hidden": 1, 
+   "label": "Latest", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "hide_heading": 0, 
@@ -335,7 +344,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2016-08-24 18:33:01.018830",
+ "modified": "2017-06-30 12:27:44.969262", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "OMC Customer Registration", 
@@ -383,6 +392,20 @@
    "permlevel": 1, 
    "read": 1, 
    "role": "Purchase Master Manager", 
+   "write": 1
+  }, 
+  {
+   "amend": 1, 
+   "cancel": 1, 
+   "create": 1, 
+   "delete": 1, 
+   "export": 1, 
+   "import": 1, 
+   "permlevel": 0, 
+   "read": 1, 
+   "report": 1, 
+   "role": "Administrator", 
+   "submit": 1, 
    "write": 1
   }
  ], 

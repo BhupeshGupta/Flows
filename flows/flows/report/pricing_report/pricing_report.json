@@ -6,12 +6,12 @@
  "docstatus": 0, 
  "doctype": "Report", 
  "is_standard": "Yes", 
- "modified": "2016-08-05 23:31:22.539909", 
+ "modified": "2017-05-09 15:35:15.810838", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Pricing Report", 
  "owner": "Administrator", 
- "ref_doctype": "Quotation Tool", 
+ "ref_doctype": "Customer Plant Variables", 
  "report_name": "Pricing Report", 
  "report_type": "Script Report"
 }

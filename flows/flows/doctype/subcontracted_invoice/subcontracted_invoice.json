@@ -13,7 +13,9 @@
    "fieldtype": "Data", 
    "label": "Force Name", 
    "permlevel": 0, 
-   "precision": ""
+   "precision": "", 
+   "read_only": 1, 
+   "set_only_once": 1
   }, 
   {
    "allow_on_submit": 0, 
@@ -73,7 +75,7 @@
    "report_hide": 0, 
    "reqd": 1, 
    "search_index": 0, 
-   "set_only_once": 0
+   "set_only_once": 1
   }, 
   {
    "allow_on_submit": 0, 
@@ -196,7 +198,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2016-04-04 17:17:15.753413", 
+ "modified": "2017-07-10 18:12:31.536808", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Subcontracted Invoice", 

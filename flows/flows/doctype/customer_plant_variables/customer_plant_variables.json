@@ -155,7 +155,8 @@
   }, 
   {
    "allow_on_submit": 1, 
-   "default": "In case of IOC, this will be Contract Number.\nIn case of BPC, this will be Proposal ID", 
+   "default": "", 
+   "description": "In case of IOC, this will be Contract Number.\nIn case of BPC, this will be Proposal ID", 
    "fieldname": "contract_number", 
    "fieldtype": "Data", 
    "label": "Contract Number", 
@@ -231,7 +232,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2016-09-22 18:26:17.160442", 
+ "modified": "2016-10-27 09:35:18.336202", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Customer Plant Variables", 
