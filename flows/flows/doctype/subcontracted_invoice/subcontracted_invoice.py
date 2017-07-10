@@ -69,7 +69,7 @@ class SubcontractedInvoice(Document):
 			select_print_heading = "Vat Invoice" if self.bill_type == 'VAT' else "Retail Invoice"
 		elif self.company == 'Arun Logistics':
 			item = {
-				"qty": self.item,
+				"qty": self.quantity,
 				"rate": self.amount_per_item,
 				"item_code": self.item,
 				"item_name": self.item,
@@ -80,7 +80,7 @@ class SubcontractedInvoice(Document):
 				"cost_center": "Main - {}".format(company_abbr),
 				"parenttype": "Sales Invoice",
 				"parentfield": "entries",
-				"amount": float(self.amount_per_item) * self.item
+				# "amount": float(self.amount_per_item) * float(self.quantity)
 			}
 			if self.posting_date < '2017-07-01':
 				frappe.throw("Company enabled for billing only after GST.")
