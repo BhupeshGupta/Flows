@@ -6,7 +6,7 @@ frappe.provide("erpnext.flows");
 
 erpnext.flows.SubcontractedInvoiceController = frappe.ui.form.Controller.extend({
 	onload:function () {
-		this.frm.set_value("company", "Aggarwal Enterprises");
+		// this.frm.set_value("company", "Aggarwal Enterprises");
 	},
 
 	refresh: function (doc) {
