@@ -15,14 +15,26 @@ class SubcontractedInvoice(Document):
 			self.name = self.force_name
 			return
 
-		company_abbr = frappe.db.get_value("Company", self.company, "abbr")
-		b_type = 'V' if self.bill_type == 'VAT' else 'R'
-		naming_series = '{}#{}#'.format(company_abbr, b_type)
-		self.name = make_autoname(naming_series + '.#####')
+
+		if self.posting_date < '2017-07-01':
+
+			company_abbr = frappe.db.get_value("Company", self.company, "abbr")
+			b_type = 'V' if self.bill_type == 'VAT' else 'R'
+			naming_series = '{}#{}#'.format(company_abbr, b_type)
+			self.name = make_autoname(naming_series + '.#####')
+
+		else:
+			company_abbr = frappe.db.get_value("Company", self.company, "abbr")
+			fiscal_year = account_utils.get_fiscal_year(self.get("posting_date"))[0]
+			naming_series = "{}/{}/.".format(company_abbr, fiscal_year)
+
+			suffix_count = 16 - len(naming_series)
+			suffix = '#' * suffix_count
+			self.name = make_autoname(naming_series + suffix)
 
 	def before_submit(self):
 		if not self.posting_date:
-			self.fiscal_year = account_utils.get_fiscal_year(self.get("transaction_date"))[0]
+			self.fiscal_year = account_utils.get_fiscal_year(self.get("posting_date"))[0]
 
 		self.raise_sales_invoice()
 
@@ -39,43 +51,71 @@ class SubcontractedInvoice(Document):
 		customer_object = frappe.get_doc("Customer", self.customer)
 		company_abbr = frappe.db.get_value("Company", self.company, "abbr")
 
-		consignment_note_json_doc = {
-		"doctype": "Sales Invoice",
-		"customer": self.customer,
-		"customer_name": self.customer.strip(),
-		"posting_date": self.posting_date,
-		"fiscal_year": self.fiscal_year,
-		"entries": [
-			{
-			"qty": qty_in_kg,
-			"rate": rate_per_kg,
-			"item_code": "CLP",
-			"item_name": "CLP",
-			"stock_uom": "Kg",
-			"doctype": "Sales Invoice Item",
-			"idx": 1,
-			"income_account": "Sales - {}".format(company_abbr),
-			"cost_center": "Main - {}".format(company_abbr),
-			"parenttype": "Sales Invoice",
-			"parentfield": "entries",
+		if self.company == 'Aggarwal Enterprises':
+			item = {
+				"qty": qty_in_kg,
+				"rate": rate_per_kg,
+				"item_code": "CLP",
+				"item_name": "CLP",
+				"stock_uom": "Kg",
+				"doctype": "Sales Invoice Item",
+				"idx": 1,
+				"income_account": "Sales - {}".format(company_abbr),
+				"cost_center": "Main - {}".format(company_abbr),
+				"parenttype": "Sales Invoice",
+				"parentfield": "entries",
 			}
-		],
-		"against_income_account": "Sales - {}".format(company_abbr),
-		"select_print_heading": "Vat Invoice" if self.bill_type == 'VAT' else "Retail Invoice",
-		"company": self.company,
-		"letter_head": self.company,
-		"is_opening": "No",
-		"name": self.name,
-		"amended_from": self.amended_from,
-		"price_list_currency": "INR",
-		"currency": "INR",
-		"plc_conversion_rate": 1,
-		"territory": customer_object.territory if customer_object.territory else 'All Territories',
-		"__islocal": True,
-		"docstatus": 1,
-		# "tc_name": "Aggarwal LPG Invoice",
-		# "terms": frappe.get_doc('Terms and Conditions', "Aggarwal LPG Invoice").terms
-		# "remarks": "Against Bill No. {}""".format(self.invoice_number)
+			select_print_heading = "Vat Invoice" if self.bill_type == 'VAT' else "Retail Invoice",
+		elif self.company == 'Arun Logistics':
+			item = {
+				"qty": self.item,
+				"rate": self.amount_per_item,
+				"item_code": self.item,
+				"item_name": self.item,
+				"stock_uom": "Nos",
+				"doctype": "Sales Invoice Item",
+				"idx": 1,
+				"income_account": "Sales - {}".format(company_abbr),
+				"cost_center": "Main - {}".format(company_abbr),
+				"parenttype": "Sales Invoice",
+				"parentfield": "entries",
+			}
+			if self.posting_date < '2017-07-01':
+				frappe.throw("Company enabled for billing only after GST.")
+
+
+		if self.posting_date >= '2017-07-01':
+			select_print_heading = 'Tax Invoice'
+
+
+		else:
+			frappe.throw("System not configured for this company invoicing.")
+
+		consignment_note_json_doc = {
+			"doctype": "Sales Invoice",
+			"customer": self.customer,
+			"customer_name": self.customer.strip(),
+			"posting_date": self.posting_date,
+			"fiscal_year": self.fiscal_year,
+			"entries": [
+				item
+			],
+			"against_income_account": "Sales - {}".format(company_abbr),
+			"select_print_heading": select_print_heading,
+			"company": self.company,
+			"letter_head": self.company,
+			"is_opening": "No",
+			"name": self.name,
+			"amended_from": self.amended_from,
+			"price_list_currency": "INR",
+			"currency": "INR",
+			"plc_conversion_rate": 1,
+			"territory": customer_object.territory if customer_object.territory else 'All Territories',
+			"__islocal": True,
+			"docstatus": 1,
+			# "tc_name": "Arun Logistics Tax Invoice Product",
+			# "terms": frappe.get_doc('Terms and Conditions', "Aggarwal LPG Invoice").terms
+			# "remarks": "Against Bill No. {}""".format(self.invoice_number)
 		}
 
 		if self.description:
@@ -83,6 +123,10 @@ class SubcontractedInvoice(Document):
 
 		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
 			consignment_note_json_doc["customer_address"] = "{}-Billing".format(self.customer.strip())
+
+
+		if self.posting_date >= '2017-07-01':
+			consignment_note_json_doc["taxes_and_charges"] = "In State GST"
 
 		transportation_invoice = frappe.get_doc(consignment_note_json_doc)
 
