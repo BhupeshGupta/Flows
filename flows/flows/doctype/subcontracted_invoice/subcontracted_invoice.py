@@ -10,6 +10,14 @@ from erpnext.accounts import utils as account_utils
 from frappe.utils.jinja import render_template
 
 
+pricing_dict = {
+	'2017-07': {
+		'Advance': 37.00,
+		'Credit': 40
+	},
+}
+
+
 class SubcontractedInvoice(Document):
 	def autoname(self):
 		if hasattr(self, 'force_name') and self.force_name:
@@ -44,15 +52,45 @@ class SubcontractedInvoice(Document):
 		self.cancel_sales_invoice()
 		self.sales_invoice = ''
 
+
+	def compute_cost(self, target_billing_rate=None):
+		plant_rate = frappe.db.sql("""
+		SELECT *
+		FROM `tabPlant Rate`
+		WHERE plant="{plant}"
+			AND with_effect_from <= DATE("{posting_date}")
+		ORDER BY with_effect_from DESC
+		LIMIT 1;
+		""".format(plant=self.gst_bill_from, posting_date=self.posting_date), as_dict=True)[0]
+
+
+		customer_obj = frappe.get_doc("Customer", self.customer)
+
+		for_rate = plant_rate.for_rate
+		if not target_billing_rate:
+			target_billing_rate = pricing_dict[self.posting_date[:-3]][customer_obj.billing_slab]
+		discount = for_rate-target_billing_rate
+
+		if discount < 0:
+			for_rate += abs(discount)
+			discount = 0
+
+		return for_rate, discount
+
+
 	def raise_sales_invoice(self):
 		item_c_factor = get_conversion_factor(self.item)
 		qty_in_kg = item_c_factor * float(self.quantity)
-		rate_per_kg = self.amount_per_item / item_c_factor
 
 		customer_object = frappe.get_doc("Customer", self.customer)
 		company_abbr = frappe.db.get_value("Company", self.company, "abbr")
 
+		discount = 0
+		cf = get_conversion_factor(self.item)
+
 		if self.company == 'Aggarwal Enterprises':
+			rate_per_kg = self.amount_per_item / item_c_factor
+
 			item = {
 				"qty": qty_in_kg,
 				"rate": rate_per_kg,
@@ -68,9 +106,16 @@ class SubcontractedInvoice(Document):
 			}
 			select_print_heading = "Vat Invoice" if self.bill_type == 'VAT' else "Retail Invoice"
 		elif self.company == 'Arun Logistics':
+
+			amt = None
+			if self.amount_per_item:
+				amt = self.amount_per_item / cf
+
+			rate_per_kg, discount = self.compute_cost(amt)
+
 			item = {
 				"qty": self.quantity,
-				"rate": self.amount_per_item,
+				"rate": rate_per_kg * cf,
 				"item_code": self.item,
 				"item_name": self.item,
 				"stock_uom": "Nos",
@@ -112,6 +157,7 @@ class SubcontractedInvoice(Document):
 			"territory": customer_object.territory if customer_object.territory else 'All Territories',
 			"__islocal": True,
 			"docstatus": 0,
+			"discount_amount": discount * cf,
 			# "tc_name": "Arun Logistics Tax Invoice Product",
 			# "terms": frappe.get_doc('Terms and Conditions', "Aggarwal LPG Invoice").terms
 			# "remarks": "Against Bill No. {}""".format(self.invoice_number)

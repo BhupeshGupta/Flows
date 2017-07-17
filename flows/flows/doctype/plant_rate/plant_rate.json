@@ -67,6 +67,13 @@
    "set_only_once": 0
   }, 
   {
+   "fieldname": "for_rate", 
+   "fieldtype": "Currency", 
+   "label": "FOR Rate", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "excise", 
    "fieldtype": "Data", 
    "label": "Excise", 
@@ -97,7 +104,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2016-08-11 16:18:02.322461", 
+ "modified": "2017-07-15 16:13:17.328313", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Plant Rate", 

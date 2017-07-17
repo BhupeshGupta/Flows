@@ -422,6 +422,14 @@
    "read_only": 1
   }, 
   {
+   "fieldname": "bill_to_ship_to_invoice", 
+   "fieldtype": "Link", 
+   "label": "Bill To Ship To Invoice", 
+   "options": "Sales Invoice", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "column_break_40", 
    "fieldtype": "Column Break", 
    "permlevel": 0, 
@@ -529,6 +537,14 @@
    "fieldtype": "Select", 
    "label": "Service Tax Liability", 
    "options": "\nConsignee(Customer)\nTransporter", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "billing_type", 
+   "fieldtype": "Select", 
+   "label": "Billing Type", 
+   "options": "Bill To\nBill To Ship To\nSelf Purchase", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -711,7 +727,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2016-08-12 18:29:28.667148", 
+ "modified": "2017-07-14 17:52:46.773177", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 

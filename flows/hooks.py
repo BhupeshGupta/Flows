@@ -102,6 +102,9 @@ doc_events = {
 	},
 	"Indent": {
 		"on_submit": "flows.flows.controller.autoinvoicing_controller.save_and_submit_invoices"
+	},
+	"Sales Invoice": {
+		"before_save": "flows.flows.custom_validation.validate_gst_number"
 	}
 }
 

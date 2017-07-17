@@ -3,24 +3,27 @@
 
 from __future__ import unicode_literals
 
+import collections
 import json
 
-from flows.stdlogger import root
 import frappe
 import frappe.defaults
-from flows import utils as flow_utils
-from erpnext.controllers.selling_controller import StockController
 from erpnext.accounts import utils as account_utils
-from erpnext.accounts.party import get_party_account
 from erpnext.accounts.general_ledger import make_gl_entries
+from erpnext.accounts.party import get_party_account
+from erpnext.controllers.selling_controller import StockController
 from erpnext.stock.stock_ledger import make_sl_entries
-from frappe.utils import today
-from frappe.utils import cint, now, flt
-from frappe.utils import get_first_day, getdate
+from flows import utils as flow_utils
 from flows.flows.doctype.indent.indent import validate_bill_to_ship_to
 from flows.flows.pricing_controller import compute_base_rate_for_a_customer, get_customer_payment_info
+from flows.stdlogger import root
+from frappe.utils import cint, now, flt
+from frappe.utils import get_first_day
+from frappe.utils import today
+from frappe.utils.data import getdate
 from frappe.utils.formatters import format_value
-import collections
+
+LINKED_DOCS = ['transportation_invoice', 'bill_to_ship_to_invoice']
 
 
 class IndentInvoice(StockController):
@@ -48,6 +51,8 @@ class IndentInvoice(StockController):
 		self.make_gl_entries()
 		self.make_stock_refill_entry()
 		self.raise_transportation_bill()
+
+		self.raise_bill_to_invoice()
 
 	def update_status(self):
 		# Data Logging
@@ -147,6 +152,7 @@ class IndentInvoice(StockController):
 		self.make_gl_entries()
 		self.make_stock_refill_entry()
 		self.cancel_transport_bill()
+		self.cancel_bill_to_ship_to()
 
 	def validate(self):
 		self.invoice_number = self.invoice_number
@@ -160,18 +166,16 @@ class IndentInvoice(StockController):
 		if not self.service_tax_liability:
 			self.service_tax_liability = frappe.db.get_value("Customer", self.customer, "service_tax_liability")
 
+		if self.is_new() and self.amended_from != "":
+			linked_docs = frappe.db.get_value(
+				"Indent Invoice", self.amended_from,
+				LINKED_DOCS,
+				as_dict=True
+			)
+			self.update_data_bank(linked_docs)
 
-
-		if self.docstatus == 0:
-			if self.amended_from != "":
-				self.update_data_bank({
-				'transportation_invoice': self.transportation_invoice,
-				'credit_note': self.credit_note
-				})
-				self.transportation_invoice = ''
-				self.credit_note = ''
-			else:
-				self.data_bank = ''
+			for attr in LINKED_DOCS:
+				setattr(self, attr, None)
 
 		if cint(self.indent_linked) == 1:
 			if not (self.indent_item and self.indent_item != ''):
@@ -324,6 +328,19 @@ class IndentInvoice(StockController):
 						cint(self.indent_linked) == 1 and cint(self.sub_contracted) == 0:
 			warehouse_object = flow_utils.get_suppliers_warehouse_account(self.supplier, self.company)
 			self.warehouse = warehouse_object.name
+
+
+		if self.billing_type == 'Self Purchase':
+			self.billing_type = ''
+
+		if self.customer in ['Alpine Energy', 'Mosaic Enterprises Ltd.']:
+			self.billing_type = 'Self Purchase'
+
+		if not self.billing_type:
+			if 'iocl' in self.supplier.lower() and self.credit_account == 'Payer Code':
+				self.billing_type = 'Bill To Ship To'
+			else:
+				self.billing_type = 'Bill To'
 
 	def make_stock_refill_entry(self):
 		if cint(self.sub_contracted) == 1:
@@ -567,6 +584,9 @@ class IndentInvoice(StockController):
 						self.customer == 'VK Logistics':
 			return
 
+		if self.billing_type == 'Self Purchase':
+			return
+
 		# Pull out config
 		indent_invoice_settings = self.indent_invoice_settings
 
@@ -607,16 +627,22 @@ class IndentInvoice(StockController):
 		if self.transaction_date >= '2016-07-01':
 			self.validate_margin(transportation_rate - discount)
 
-		transportation_invoice = self.raise_consignment_note(
-			qty_in_kg, transportation_rate, indent_invoice_settings, discount_per_kg=discount
-		)
+		if self.transaction_date <= '2017-07-01':
+			transportation_invoice = self.raise_consignment_note(
+				qty_in_kg, transportation_rate, indent_invoice_settings, discount_per_kg=discount
+			)
+		else:
+			transportation_invoice = self.raise_aux_service_sales_invoice(
+				qty_in_kg, transportation_rate, indent_invoice_settings, discount_per_kg=discount
+			)
 
-		# Update terms of Consignment Note
-		transportation_invoice.terms = self.get_terms_for_commercial_invoice(
-			transportation_invoice, indent_invoice_settings,
-			credit_note=credit_note,
-			invoice=self,
-		)
+		if not transportation_invoice.terms:
+			# Update terms of Consignment Note
+			transportation_invoice.terms = self.get_terms_for_commercial_invoice(
+				transportation_invoice, indent_invoice_settings,
+				credit_note=credit_note,
+				invoice=self,
+			)
 
 		# Save and Submit Credit Note and Consignment Note
 		if credit_note:
@@ -701,43 +727,43 @@ class IndentInvoice(StockController):
 		description += """({})""".format(', '.join(['{}: {}'.format(k, v) for k, v in d_m.items()]))
 
 		consignment_note_json_doc = {
-		"doctype": "Sales Invoice",
-		"customer": self.customer,
-		"customer_name": self.customer.strip(),
-		"posting_date": self.posting_date,
-		"posting_time": self.posting_time,
-		"fiscal_year": self.fiscal_year,
-		"entries": [
-			{
-			"qty": qty_in_kg,
-			"rate": transportation_rate_per_kg - discount_per_kg,
-			"item_code": "LPG Transport",
-			"item_name": "LPG Transport",
-			"description": description,
-			"stock_uom": "Kg",
-			"doctype": "Sales Invoice Item",
-			"idx": 1,
-			"income_account": sales_invoice_conf.credit_account,
-			"cost_center": sales_invoice_conf.cost_center,
-			"parenttype": "Sales Invoice",
-			"parentfield": "entries",
-			}
-		],
-		"against_income_account": sales_invoice_conf.credit_account,
-		"select_print_heading": "Transportation Invoice / Consignment Note",
-		"company": registration.sales_invoice_company,
-		"debit_to": registration.sales_invoice_account,
-		"letter_head": registration.sales_invoice_company,
-		"is_opening": "No",
-		"naming_series": sales_invoice_conf.naming_series,
-		"price_list_currency": "INR",
-		"currency": "INR",
-		"plc_conversion_rate": 1,
-		"tc_name": sales_invoice_conf.tc_name,
-		"consignor": self.supplier,
-		"territory": customer_object.territory if customer_object.territory else
-		indent_invoice_settings.default_territory,
-		"remarks": "Against Bill No. {}""".format(self.invoice_number)
+			"doctype": "Sales Invoice",
+			"customer": self.customer,
+			"customer_name": self.customer.strip(),
+			"posting_date": get_posting_date(sales_invoice_conf.naming_series, self.transaction_date),
+			# "posting_time": ,
+			"fiscal_year": self.fiscal_year,
+			"entries": [
+				{
+					"qty": qty_in_kg,
+					"rate": transportation_rate_per_kg - discount_per_kg,
+					"item_code": "LPG Transport",
+					"item_name": "LPG Transport",
+					"description": description,
+					"stock_uom": "Kg",
+					"doctype": "Sales Invoice Item",
+					"idx": 1,
+					"income_account": sales_invoice_conf.credit_account,
+					"cost_center": sales_invoice_conf.cost_center,
+					"parenttype": "Sales Invoice",
+					"parentfield": "entries",
+				}
+			],
+			"against_income_account": sales_invoice_conf.credit_account,
+			"select_print_heading": "Transportation Invoice / Consignment Note",
+			"company": registration.sales_invoice_company,
+			"debit_to": registration.sales_invoice_account,
+			"letter_head": registration.sales_invoice_company,
+			"is_opening": "No",
+			"naming_series": sales_invoice_conf.naming_series,
+			"price_list_currency": "INR",
+			"currency": "INR",
+			"plc_conversion_rate": 1,
+			"tc_name": sales_invoice_conf.tc_name,
+			"consignor": self.supplier,
+			"territory": customer_object.territory if customer_object.territory else
+			indent_invoice_settings.default_territory,
+			"remarks": "Against Bill No. {}""".format(self.invoice_number)
 		}
 
 		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
@@ -760,8 +786,15 @@ class IndentInvoice(StockController):
 		] = 1 if self.service_tax_liability == "Transporter" else 0
 
 		data_bank = self.get_data_bank()
-		if 'transportation_invoice' in data_bank:
+		if 'transportation_invoice' in data_bank and data_bank['transportation_invoice']:
 			consignment_note_json_doc["amended_from"] = data_bank.transportation_invoice
+			consignment_note_json_doc["posting_date"] = frappe.db.get_value(
+				"Sales Invoice",
+				data_bank.transportation_invoice,
+				'posting_date'
+			)
+
+			frappe.msgprint("Posting Date Of Amended Invoice {}".format(consignment_note_json_doc["posting_date"]))
 
 		transportation_invoice = frappe.get_doc(consignment_note_json_doc)
 
@@ -779,17 +812,13 @@ class IndentInvoice(StockController):
 		self.data_bank = json.dumps(dbank)
 
 	def get_data_bank(self):
+		data_bank = frappe.db.get_value("Indent Invoice", self.name, 'data_bank')
 		try:
-			data_bank = frappe.db.get_value('Indent Invoice', self.name, 'data_bank')
+			data_bank = json.loads(data_bank)
 		except:
-			data_bank = self.data_bank
+			data_bank = {}
 
-		try:
-			data_bank = frappe._dict(json.loads(data_bank))
-		except:
-			data_bank = frappe._dict({})
-
-		return data_bank
+		return frappe._dict(data_bank)
 
 	def get_invoice_rate(self):
 		qty_in_kg = get_conversion_factor(self.item) * float(self.qty)
@@ -817,7 +846,6 @@ class IndentInvoice(StockController):
 
 		return acc
 
-
 	def validate_territory(self):
 
 		if getdate(self.transaction_date) < getdate('2016-08-01'):
@@ -842,6 +870,267 @@ class IndentInvoice(StockController):
 		if not(rsp[0].with_effect_from.split("-")[0] == self.transaction_date.split("-")[0] and \
 		rsp[0].with_effect_from.split("-")[1] == self.transaction_date.split("-")[1]):
 			frappe.throw("RSP not set for {} for the month of {}".format( territory, "-".join( reversed(self.transaction_date.split("-")[:-1]) ) ))
+				reversed(self.transaction_date.split("-")[:-1]))))
+
+	def raise_bill_to_invoice(self):
+		if self.billing_type != 'Bill To Ship To':
+			if self.bill_to_ship_to_invoice:
+				doc = frappe.get_doc("Sales Invoice", self.bill_to_ship_to_invoice)
+				if doc.docstatus != 2:
+					doc.cancel()
+			self.bill_to_ship_to_invoice = None
+			return
+
+		if self.transaction_date < '2017-07-01':
+			return
+
+		# name = None
+		# if self.bill_to_ship_to_invoice:
+		# 	name = self.bill_to_ship_to_invoice
+
+
+		amended_from = None
+		data_bank = self.get_data_bank()
+		if 'bill_to_ship_to_invoice' in data_bank:
+			amended_from = data_bank.bill_to_ship_to_invoice
+
+		print (data_bank)
+		frappe.msgprint(data_bank)
+
+		bill_to_ship_to_invoice = self.raise_bill_to_ship_to_invoice(amended_from=amended_from)
+
+		# Update terms of Consignment Note
+		# bill_to_ship_to_invoice.terms = self.get_terms_for_commercial_invoice()
+
+		bill_to_ship_to_invoice.docstatus = 1
+		bill_to_ship_to_invoice.save()
+
+		self.bill_to_ship_to_invoice = bill_to_ship_to_invoice.name
+
+	def cancel_bill_to_ship_to(self):
+		if self.bill_to_ship_to_invoice:
+			doc = frappe.get_doc("Sales Invoice", self.bill_to_ship_to_invoice)
+			if doc.docstatus != 2:
+				doc.cancel()
+
+	def raise_bill_to_ship_to_invoice(self, name=None, amended_from=None):
+
+		if self.billing_type == 'Self Purchase':
+			return
+
+		# if name:
+		# 	doc = frappe.get_doc("Sales Invoice", name)
+		# 	doc.submit()
+		# 	return doc
+
+		customer_object = frappe.get_doc("Customer", self.customer)
+		company_object = frappe.get_doc("Company", self.company)
+
+		rate = self.actual_amount / self.qty
+		tax = frappe.get_doc("Indent Invoice Tax", self.sales_tax)
+		net_tax = get_net_tax_percentage(tax.tax_percentage, tax.surcharge_percentage)
+		rate_before_tax = get_basic_value_before_tax(rate, net_tax)
+
+		qty_in_kg = get_conversion_factor(self.item) * float(self.qty)
+
+		d_m = collections.OrderedDict()
+		d_m['Dt.'] = format_value(self.transaction_date, {"fieldtype": "Date"})
+		d_m['Bill No.'] = self.invoice_number
+		d_m['Amt.'] = '<strong>\u20b9{}</strong>'.format(format_value(self.actual_amount, {"fieldtype": "Currency"}))
+		d_m['Qty in KG'] = '<strong>{} x {}: <em>{}</em></strong>'.format(self.item, self.qty, qty_in_kg)
+
+		description = """({})""".format(', '.join(['{}: {}'.format(k, v) for k, v in d_m.items()]))
+
+		naming_series = get_gst_invoice_naming_series(self.company, self.posting_date, '')
+
+		consignment_note_json_doc = {
+			"doctype": "Sales Invoice",
+			"customer": self.customer,
+			"customer_name": self.customer.strip(),
+			"posting_date": get_posting_date(naming_series, self.transaction_date),
+			# "posting_time": self.posting_time,
+			"fiscal_year": self.fiscal_year,
+			"entries": [
+				{
+					"qty": self.qty,
+					"rate": rate_before_tax,
+					"item_code": self.item,
+					"item_name": self.item,
+					"description": description,
+					"stock_uom": "Kg",
+					"doctype": "Sales Invoice Item",
+					"idx": 1,
+					"income_account": company_object.default_income_account,
+					"cost_center": company_object.cost_center,
+					"parenttype": "Sales Invoice",
+					"parentfield": "entries"
+				}
+			],
+			"against_income_account": company_object.default_income_account,
+			"select_print_heading": "Tax Invoice",
+			"company": self.company,
+			"debit_to": self._get_account_(self.company, self.customer),
+			# BA
+			"letter_head": self.company,
+			"is_opening": "No",
+			"naming_series": naming_series,
+			"price_list_currency": "INR",
+			"currency": "INR",
+			"plc_conversion_rate": 1,
+			# "tc_name": sales_invoice_conf.tc_name,
+			# "consignor": self.supplier,
+			"territory": customer_object.territory if customer_object.territory else 'NA',
+			"remarks": "Bill To Ship To Against Bill No. {}""".format(self.invoice_number),
+			"tax_paid_by_supplier": 0,
+		}
+
+		if amended_from:
+			consignment_note_json_doc['amended_from'] = amended_from
+
+		if name:
+			consignment_note_json_doc['name'] = name
+
+		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
+			consignment_note_json_doc["customer_address"] = "{}-Billing".format(self.customer.strip())
+
+		consignment_note_json_doc["taxes_and_charges"] = "In State GST"
+
+		transportation_invoice = frappe.get_doc(consignment_note_json_doc)
+
+		transportation_invoice.save()
+
+		transportation_invoice.terms = get_terms_for_bill_to_ship_to_invoice(transportation_invoice)
+
+		return transportation_invoice
+
+	def raise_aux_service_sales_invoice(
+			self, qty_in_kg, transportation_rate_per_kg,
+			indent_invoice_settings, discount_per_kg=0
+	):
+
+		registration = frappe.get_doc("OMC Customer Registration", self.omc_customer_registration)
+
+		fiscal_year = account_utils.get_fiscal_year(self.get("posting_date"))[0]
+		sales_invoice_conf = get_sales_invoice_config(registration.sales_invoice_company, fiscal_year)
+		if not sales_invoice_conf:
+			frappe.throw("Sales Invoice Config Not Found For Year {}, Company {}".format(sales_invoice_conf,
+																						 registration.sales_invoice_company))
+
+		customer_object = frappe.get_doc("Customer", self.customer)
+
+		description = ''
+
+		if discount_per_kg > 0:
+			description += "Rate: {} - {} (Discount) per KG\n". \
+				format(transportation_rate_per_kg, discount_per_kg)
+
+		d_m = collections.OrderedDict()
+		d_m['Dt.'] = format_value(self.transaction_date, {"fieldtype": "Date"})
+		d_m['Bill No.'] = self.invoice_number
+		d_m['Amt.'] = '<strong>\u20b9{}</strong>'.format(format_value(self.actual_amount, {"fieldtype": "Currency"}))
+		d_m['Qty in KG'] = '<strong>{} x {}: <em>{}</em></strong>'.format(self.item, self.qty, qty_in_kg)
+
+		description += """({})""".format(', '.join(['{}: {}'.format(k, v) for k, v in d_m.items()]))
+
+		naming_series = sales_invoice_conf.naming_series.replace('CN', 'SN')
+
+		consignment_note_json_doc = {
+			"doctype": "Sales Invoice",
+			"customer": self.customer,
+			"customer_name": self.customer.strip(),
+			"posting_date": get_posting_date(naming_series, self.transaction_date),
+			# "posting_time": ,
+			"fiscal_year": self.fiscal_year,
+			"entries": [
+				{
+					"qty": qty_in_kg,
+					"rate": transportation_rate_per_kg - discount_per_kg,
+					"item_code": "AS",
+					"description": description,
+					"stock_uom": "Kg",
+					"doctype": "Sales Invoice Item",
+					"idx": 1,
+					"income_account": sales_invoice_conf.credit_account,
+					"cost_center": sales_invoice_conf.cost_center,
+					"parenttype": "Sales Invoice",
+					"parentfield": "entries",
+				}
+			],
+			"against_income_account": sales_invoice_conf.credit_account,
+			"select_print_heading": "Tax Invoice",
+			"company": registration.sales_invoice_company,
+			"debit_to": registration.sales_invoice_account,
+			"letter_head": registration.sales_invoice_company,
+			"is_opening": "No",
+			"naming_series": sales_invoice_conf.naming_series.replace('CN', 'SN'),
+			"price_list_currency": "INR",
+			"currency": "INR",
+			"plc_conversion_rate": 1,
+			"consignor": self.supplier,
+			"territory": customer_object.territory if customer_object.territory else
+			indent_invoice_settings.default_territory,
+			"remarks": "Against Bill No. {}""".format(self.invoice_number)
+		}
+
+		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
+			consignment_note_json_doc["customer_address"] = "{}-Billing".format(self.customer.strip())
+
+		consignment_note_json_doc["taxes_and_charges"] = "In State GST"
+
+		consignment_note_json_doc[
+			"tax_paid_by_supplier"
+		] = 1
+
+		data_bank = self.get_data_bank()
+		if 'transportation_invoice' in data_bank and data_bank['transportation_invoice']:
+			consignment_note_json_doc["amended_from"] = data_bank.transportation_invoice
+			consignment_note_json_doc["posting_date"] = frappe.db.get_value(
+				"Sales Invoice",
+				data_bank.transportation_invoice,
+				'posting_date'
+			)
+
+			frappe.msgprint("Posting Date Of Amended Invoice {}".format(consignment_note_json_doc["posting_date"]))
+
+		transportation_invoice = frappe.get_doc(consignment_note_json_doc)
+
+		transportation_invoice.save()
+
+		transportation_invoice.terms = self.get_terms_of_aux_invoice(transportation_invoice)
+
+		return transportation_invoice
+
+	def get_terms_of_aux_invoice(self, aux_invoice):
+		inv = aux_invoice
+
+		terms_template = frappe.get_doc('Terms and Conditions', 'Aux Service Invoice Arun Logistics').terms
+
+		from frappe.utils.jinja import render_template
+
+		cf = get_conversion_factor(self.item)
+		qty = self.qty
+		t_kg = cf * qty
+
+		context = {
+			'invoice_gt': inv.grand_total_export + (self.actual_amount if not self.payment_type == 'Direct' else 0),
+			'p_t': self.actual_amount / t_kg,
+			's_t': inv.grand_total_export / t_kg,
+			'p_tax': self.cst / t_kg,
+			's_tax': inv.other_charges_total_export / t_kg,
+			't_kg': t_kg
+		}
+
+		context.update({
+			'ps_t': context['p_t'] + context['s_t'],
+			'ps_tax_t': context['p_tax'] + context['s_tax']
+		})
+
+		context.update({
+			'eff_l_r': context['ps_t'] - context['ps_tax_t']
+		})
+
+		return render_template(terms_template, context)
+
 
 def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
 	indent_items_sql = """
@@ -931,3 +1220,85 @@ def get_sales_invoice_config(company, fiscal_year):
 			return conf
 
 	return None
+
+
+def get_net_tax_percentage(tax, surcharge):
+	return tax + (tax / 100 * surcharge)
+
+
+def get_basic_value_before_tax(value, tax):
+	return (value / (100 + tax)) * 100
+
+
+def get_gst_invoice_naming_series(company, date, prefix):
+	company_abbr = frappe.db.get_value("Company", company, "abbr")
+	fiscal_year = account_utils.get_fiscal_year(date)[0]
+	naming_series = "{}{}/.".format(company_abbr, fiscal_year[2:])
+	naming_series += prefix
+	suffix_count = 16 - len(naming_series) + 1
+	suffix = '#' * suffix_count
+	return naming_series + suffix
+
+
+def get_posting_date(key, date_of_this_invoice):
+	frappe.msgprint(key)
+	last_invoice_name = get_latest_name(key)
+	frappe.msgprint(last_invoice_name)
+	date_of_last_invoice = get_latest_sales_invoice_date(last_invoice_name)
+	frappe.msgprint(date_of_last_invoice)
+
+	frappe.msgprint(date_of_this_invoice)
+
+	if not date_of_last_invoice:
+		return date_of_this_invoice
+
+	date_of_this_invoice = getdate(date_of_this_invoice)
+	return max(date_of_last_invoice, date_of_this_invoice)
+
+
+def get_latest_name(key):
+	if ".#" not in key:
+		key += ".#####"
+
+	prefix, hashes = key.rsplit(".", 1)
+
+	current = frappe.db.sql("SELECT `current` FROM `tabSeries` WHERE name=%s", (prefix,))
+
+	if not current:
+		return
+
+	current = current[0][0]
+	len_hash = len(hashes)
+	_curr = '{0:0' + str(len_hash) + 'd}'
+	return prefix + _curr.format(current)
+
+
+def get_latest_sales_invoice_date(name):
+	if not name:
+		return
+
+	rs = frappe.db.sql("""
+		select posting_date
+		from `tabSales Invoice`
+		where (name = "{0}" or name like '{0}-%')
+		order by creation desc limit 1;
+	""".format(name))
+
+	if rs and rs[0][0]:
+		return rs[0][0]
+
+	return
+
+
+def get_terms_for_bill_to_ship_to_invoice(bill_to_ship_to_invoice):
+	inv = bill_to_ship_to_invoice
+
+	terms_template = frappe.get_doc('Terms and Conditions', 'Bill to ship to terms Mosaic Arun Logistics').terms
+
+	from frappe.utils.jinja import render_template
+
+	context = {
+		'invoice_gt': inv.grand_total_export
+	}
+
+	return render_template(terms_template, context)

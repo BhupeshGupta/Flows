@@ -106,3 +106,15 @@ def customer_onload(doc, method=None, *args, **kwargs):
 			row['credit_account'] = "{} ({})".format(passwd.name, passwd.username)
 
 	doc.get("__onload").omc_customer_variables_list = rs
+
+
+def validate_gst_number(doc, method=None, *args, **kwargs):
+	address = doc.customer_address
+	if address:
+		gst_number = frappe.db.get_value("Address", address, 'gst_number')
+		if gst_number:
+			if gst_number[:2] == '03':
+				return
+
+			frappe.throw("Out of state GST billing not enabled yet.".format(doc.customer))
+	frappe.throw("GST Number not found for customer {}. Can not raise invoice.".format(doc.customer))
