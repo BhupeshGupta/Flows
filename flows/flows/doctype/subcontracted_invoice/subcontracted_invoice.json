@@ -161,7 +161,7 @@
    "in_list_view": 0, 
    "label": "Amount Per Item", 
    "no_copy": 0, 
-   "permlevel": 0, 
+   "permlevel": 1, 
    "precision": "", 
    "print_hide": 0, 
    "read_only": 0, 
@@ -206,7 +206,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2017-07-16 17:05:57.363846", 
+ "modified": "2017-07-17 11:36:43.411528", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Subcontracted Invoice", 
@@ -229,6 +229,30 @@
    "role": "All", 
    "set_user_permissions": 0, 
    "submit": 1, 
+   "write": 1
+  }, 
+  {
+   "permlevel": 1, 
+   "read": 1, 
+   "role": "All"
+  }, 
+  {
+   "amend": 1, 
+   "cancel": 1, 
+   "create": 1, 
+   "delete": 1, 
+   "export": 1, 
+   "permlevel": 0, 
+   "read": 1, 
+   "report": 1, 
+   "role": "Quality Manager", 
+   "submit": 1, 
+   "write": 1
+  }, 
+  {
+   "permlevel": 1, 
+   "read": 1, 
+   "role": "Quality Manager", 
    "write": 1
   }
  ], 

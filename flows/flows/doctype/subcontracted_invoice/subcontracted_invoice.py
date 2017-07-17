@@ -157,7 +157,7 @@ class SubcontractedInvoice(Document):
 			"territory": customer_object.territory if customer_object.territory else 'All Territories',
 			"__islocal": True,
 			"docstatus": 0,
-			"discount_amount": discount * cf,
+			"discount_amount": discount * cf * self.quantity
 			# "tc_name": "Arun Logistics Tax Invoice Product",
 			# "terms": frappe.get_doc('Terms and Conditions', "Aggarwal LPG Invoice").terms
 			# "remarks": "Against Bill No. {}""".format(self.invoice_number)

@@ -112,7 +112,7 @@ def validate_gst_number(doc, method=None, *args, **kwargs):
 	address = doc.customer_address
 	if address:
 		gst_number = frappe.db.get_value("Address", address, 'gst_number')
-		if gst_number:
+		if gst_number and gst_number.strip():
 			if gst_number[:2] == '03':
 				return
 

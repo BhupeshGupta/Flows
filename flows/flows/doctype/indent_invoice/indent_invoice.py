@@ -37,8 +37,8 @@ class IndentInvoice(StockController):
 		if not self.posting_date:
 			self.posting_date = today()
 
-		if self.posting_date >= '01-07-2017' or self.transaction_date >= '01-07-2017':
-			frappe.throw("GST Tax Introduced, Billing disabled from July Onwards")
+		#if self.posting_date >= '01-07-2017' or self.transaction_date >= '01-07-2017':
+		#	frappe.throw("GST Tax Introduced, Billing disabled from July Onwards")
 
 		self.fiscal_year = account_utils.get_fiscal_year(self.get("transaction_date"))[0]
 
@@ -166,7 +166,7 @@ class IndentInvoice(StockController):
 		if not self.service_tax_liability:
 			self.service_tax_liability = frappe.db.get_value("Customer", self.customer, "service_tax_liability")
 
-		if self.is_new() and self.amended_from != "":
+		if self.is_new() and self.amended_from:
 			linked_docs = frappe.db.get_value(
 				"Indent Invoice", self.amended_from,
 				LINKED_DOCS,
@@ -870,7 +870,6 @@ class IndentInvoice(StockController):
 		if not(rsp[0].with_effect_from.split("-")[0] == self.transaction_date.split("-")[0] and \
 		rsp[0].with_effect_from.split("-")[1] == self.transaction_date.split("-")[1]):
 			frappe.throw("RSP not set for {} for the month of {}".format( territory, "-".join( reversed(self.transaction_date.split("-")[:-1]) ) ))
-				reversed(self.transaction_date.split("-")[:-1]))))
 
 	def raise_bill_to_invoice(self):
 		if self.billing_type != 'Bill To Ship To':
