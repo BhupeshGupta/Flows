@@ -22,6 +22,7 @@ from frappe.utils import get_first_day
 from frappe.utils import today
 from frappe.utils.data import getdate
 from frappe.utils.formatters import format_value
+from flows.flows.doctype.subcontracted_invoice.subcontracted_invoice import get_gst_sales_tax
 
 LINKED_DOCS = ['transportation_invoice', 'bill_to_ship_to_invoice']
 
@@ -992,11 +993,11 @@ class IndentInvoice(StockController):
 		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
 			consignment_note_json_doc["customer_address"] = "{}-Billing".format(self.customer.strip())
 
-		consignment_note_json_doc["taxes_and_charges"] = "In State GST"
-
 		transportation_invoice = frappe.get_doc(consignment_note_json_doc)
 
 		transportation_invoice.save()
+
+		transportation_invoice.taxes_and_charges = get_gst_sales_tax(transportation_invoice)
 
 		transportation_invoice.terms = get_terms_for_bill_to_ship_to_invoice(transportation_invoice)
 
@@ -1074,8 +1075,6 @@ class IndentInvoice(StockController):
 		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
 			consignment_note_json_doc["customer_address"] = "{}-Billing".format(self.customer.strip())
 
-		consignment_note_json_doc["taxes_and_charges"] = "In State GST"
-
 		consignment_note_json_doc[
 			"tax_paid_by_supplier"
 		] = 1
@@ -1094,6 +1093,8 @@ class IndentInvoice(StockController):
 		transportation_invoice = frappe.get_doc(consignment_note_json_doc)
 
 		transportation_invoice.save()
+
+		consignment_note_json_doc["taxes_and_charges"] = get_gst_sales_tax(transportation_invoice)
 
 		transportation_invoice.terms = self.get_terms_of_aux_invoice(transportation_invoice)
 

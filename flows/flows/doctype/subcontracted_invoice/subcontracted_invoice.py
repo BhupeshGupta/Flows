@@ -169,11 +169,11 @@ class SubcontractedInvoice(Document):
 		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
 			consignment_note_json_doc["customer_address"] = "{}-Billing".format(self.customer.strip())
 
-		if self.posting_date >= '2017-07-01':
-			consignment_note_json_doc["taxes_and_charges"] = "In State GST"
-
 		transportation_invoice = frappe.get_doc(consignment_note_json_doc)
 		transportation_invoice.save()
+
+		if self.posting_date >= '2017-07-01':
+			consignment_note_json_doc["taxes_and_charges"] = get_gst_sales_tax(transportation_invoice)
 
 		transportation_invoice.terms = self.get_terms_and_conditions(transportation_invoice)
 		transportation_invoice.docstatus = 1
@@ -217,3 +217,17 @@ def get_conversion_factor(item):
 	val = frappe.db.sql(conversion_factor_query)[0][0]
 
 	return float(val) if val else 0
+
+
+def get_gst_sales_tax(transportation_invoice):
+	gst_number = frappe.db.get_value(
+		"Address",
+		transportation_invoice.customer_address,
+		'gst_number'
+	)
+	if not gst_number:
+		frappe.throw("GST Not Found. Enter GST in customer Portal")
+	if gst_number[:2] == '03':
+		return "In State GST"
+	else:
+		return "Out State GST"
