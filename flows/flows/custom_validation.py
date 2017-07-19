@@ -113,8 +113,8 @@ def validate_gst_number(doc, method=None, *args, **kwargs):
 	if address:
 		gst_number = frappe.db.get_value("Address", address, 'gst_number')
 		if gst_number and gst_number.strip():
-			if gst_number[:2] == '03':
-				return
+			# if gst_number[:2] == '03':
+			return
 
 			frappe.throw("Out of state GST billing not enabled yet.".format(doc.customer))
 	frappe.throw("GST Number not found for customer {}. Can not raise invoice.".format(doc.customer))

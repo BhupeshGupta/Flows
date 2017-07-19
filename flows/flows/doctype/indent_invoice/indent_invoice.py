@@ -992,11 +992,13 @@ class IndentInvoice(StockController):
 		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
 			consignment_note_json_doc["customer_address"] = "{}-Billing".format(self.customer.strip())
 
+		if self.posting_date >= '2017-07-01':
+			consignment_note_json_doc['taxes_and_charges'] = get_gst_sales_tax(
+				consignment_note_json_doc["customer_address"])
+
 		transportation_invoice = frappe.get_doc(consignment_note_json_doc)
 
 		transportation_invoice.save()
-
-		transportation_invoice.taxes_and_charges = get_gst_sales_tax(transportation_invoice)
 
 		transportation_invoice.terms = get_terms_for_bill_to_ship_to_invoice(transportation_invoice)
 
@@ -1074,6 +1076,9 @@ class IndentInvoice(StockController):
 		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
 			consignment_note_json_doc["customer_address"] = "{}-Billing".format(self.customer.strip())
 
+		if self.posting_date >= '2017-07-01':
+			consignment_note_json_doc['taxes_and_charges'] = get_gst_sales_tax(consignment_note_json_doc["customer_address"])
+
 		consignment_note_json_doc[
 			"tax_paid_by_supplier"
 		] = 1
@@ -1089,11 +1094,12 @@ class IndentInvoice(StockController):
 
 			frappe.msgprint("Posting Date Of Amended Invoice {}".format(consignment_note_json_doc["posting_date"]))
 
+		consignment_note_json_doc['taxes_and_charges'] = get_gst_sales_tax(consignment_note_json_doc["customer_address"])
+
 		transportation_invoice = frappe.get_doc(consignment_note_json_doc)
 
 		transportation_invoice.save()
 
-		consignment_note_json_doc["taxes_and_charges"] = get_gst_sales_tax(transportation_invoice)
 
 		transportation_invoice.terms = self.get_terms_of_aux_invoice(transportation_invoice)
 
@@ -1302,10 +1308,10 @@ def get_terms_for_bill_to_ship_to_invoice(bill_to_ship_to_invoice):
 
 	return render_template(terms_template, context)
 
-def get_gst_sales_tax(transportation_invoice):
+def get_gst_sales_tax(addr):
 	gst_number = frappe.db.get_value(
 		"Address",
-		transportation_invoice.customer_address,
+		addr,
 		'gst_number'
 	)
 	if not gst_number:

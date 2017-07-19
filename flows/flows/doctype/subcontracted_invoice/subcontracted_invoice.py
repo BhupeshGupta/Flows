@@ -169,11 +169,13 @@ class SubcontractedInvoice(Document):
 		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
 			consignment_note_json_doc["customer_address"] = "{}-Billing".format(self.customer.strip())
 
+		if self.posting_date >= '2017-07-01':
+			consignment_note_json_doc['taxes_and_charges'] = get_gst_sales_tax(consignment_note_json_doc["customer_address"])
+
 		transportation_invoice = frappe.get_doc(consignment_note_json_doc)
 		transportation_invoice.save()
 
-		if self.posting_date >= '2017-07-01':
-			consignment_note_json_doc["taxes_and_charges"] = get_gst_sales_tax(transportation_invoice)
+
 
 		transportation_invoice.terms = self.get_terms_and_conditions(transportation_invoice)
 		transportation_invoice.docstatus = 1
@@ -219,10 +221,10 @@ def get_conversion_factor(item):
 	return float(val) if val else 0
 
 
-def get_gst_sales_tax(transportation_invoice):
+def get_gst_sales_tax(address):
 	gst_number = frappe.db.get_value(
 		"Address",
-		transportation_invoice.customer_address,
+		address,
 		'gst_number'
 	)
 	if not gst_number:
