@@ -22,7 +22,6 @@ from frappe.utils import get_first_day
 from frappe.utils import today
 from frappe.utils.data import getdate
 from frappe.utils.formatters import format_value
-from flows.flows.doctype.subcontracted_invoice.subcontracted_invoice import get_gst_sales_tax
 
 LINKED_DOCS = ['transportation_invoice', 'bill_to_ship_to_invoice']
 
@@ -1302,3 +1301,16 @@ def get_terms_for_bill_to_ship_to_invoice(bill_to_ship_to_invoice):
 	}
 
 	return render_template(terms_template, context)
+
+def get_gst_sales_tax(transportation_invoice):
+	gst_number = frappe.db.get_value(
+		"Address",
+		transportation_invoice.customer_address,
+		'gst_number'
+	)
+	if not gst_number:
+		frappe.throw("GST Not Found. Enter GST in customer Portal")
+	if gst_number[:2] == '03':
+		return "In State GST"
+	else:
+		return "Out State GST"
