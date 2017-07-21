@@ -1333,4 +1333,6 @@ def get_address(customer):
 	if addr:
 		return addr[0][0]
 
+	frappe.throw("Customer Address Not Found. Please add customer address and then update GST from portal")
+
 	return None
