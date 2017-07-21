@@ -766,8 +766,9 @@ class IndentInvoice(StockController):
 			"remarks": "Against Bill No. {}""".format(self.invoice_number)
 		}
 
-		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
-			consignment_note_json_doc["customer_address"] = "{}-Billing".format(self.customer.strip())
+		c_addr = get_address(self.customer)
+		if c_addr:
+			consignment_note_json_doc["customer_address"] = c_addr
 
 		# if getdate(consignment_note_json_doc['posting_date']) < getdate('2015-06-01'):
 		# 	consignment_note_json_doc["taxes_and_charges"] = "Road Transport"
@@ -989,8 +990,9 @@ class IndentInvoice(StockController):
 		if name:
 			consignment_note_json_doc['name'] = name
 
-		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
-			consignment_note_json_doc["customer_address"] = "{}-Billing".format(self.customer.strip())
+		c_addr = get_address(self.customer)
+		if c_addr:
+			consignment_note_json_doc["customer_address"] = c_addr
 
 		if self.posting_date >= '2017-07-01':
 			consignment_note_json_doc['taxes_and_charges'] = get_gst_sales_tax(
@@ -1073,8 +1075,9 @@ class IndentInvoice(StockController):
 			"remarks": "Against Bill No. {}""".format(self.invoice_number)
 		}
 
-		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
-			consignment_note_json_doc["customer_address"] = "{}-Billing".format(self.customer.strip())
+		c_addr = get_address(self.customer)
+		if c_addr:
+			consignment_note_json_doc["customer_address"] = c_addr
 
 		if self.posting_date >= '2017-07-01':
 			consignment_note_json_doc['taxes_and_charges'] = get_gst_sales_tax(consignment_note_json_doc["customer_address"])
@@ -1320,3 +1323,14 @@ def get_gst_sales_tax(addr):
 		return "In State GST"
 	else:
 		return "Out State GST"
+
+def get_address(customer):
+	addr = frappe.db.sql(
+		"""
+		select name from `tabAddress` where customer = "{}" and is_primary_address = 1
+		""".format(customer)
+	)
+	if addr:
+		return addr[0][0]
+
+	return None

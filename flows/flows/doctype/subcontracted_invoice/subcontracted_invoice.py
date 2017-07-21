@@ -166,8 +166,9 @@ class SubcontractedInvoice(Document):
 		if self.description:
 			consignment_note_json_doc['entries'][0]['description'] = self.description
 
-		if frappe.db.exists("Address", "{}-Billing".format(self.customer.strip())):
-			consignment_note_json_doc["customer_address"] = "{}-Billing".format(self.customer.strip())
+		c_addr = get_address(self.customer)
+		if c_addr:
+			consignment_note_json_doc["customer_address"] = c_addr
 
 		if self.posting_date >= '2017-07-01':
 			consignment_note_json_doc['taxes_and_charges'] = get_gst_sales_tax(consignment_note_json_doc["customer_address"])
@@ -233,3 +234,15 @@ def get_gst_sales_tax(address):
 		return "In State GST"
 	else:
 		return "Out State GST"
+
+
+def get_address(customer):
+	addr = frappe.db.sql(
+		"""
+		select name from `tabAddress` where customer = "{}" and is_primary_address = 1
+		""".format(customer)
+	)
+	if addr:
+		return addr[0][0]
+
+	return None
