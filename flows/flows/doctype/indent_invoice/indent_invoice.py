@@ -926,6 +926,9 @@ class IndentInvoice(StockController):
 		customer_object = frappe.get_doc("Customer", self.customer)
 		company_object = frappe.get_doc("Company", self.company)
 
+		if customer_object.customer_group == 'Dixit':
+			return
+
 		rate = self.actual_amount / self.qty
 		tax = frappe.get_doc("Indent Invoice Tax", self.sales_tax)
 		net_tax = get_net_tax_percentage(tax.tax_percentage, tax.surcharge_percentage)
@@ -1020,6 +1023,9 @@ class IndentInvoice(StockController):
 																						 registration.sales_invoice_company))
 
 		customer_object = frappe.get_doc("Customer", self.customer)
+
+		if customer_object.customer_group == 'Dixit':
+			return
 
 		description = ''
 
