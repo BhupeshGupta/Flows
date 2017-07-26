@@ -587,6 +587,10 @@ class IndentInvoice(StockController):
 		if self.billing_type == 'Self Purchase':
 			return
 
+		customer_object = frappe.get_doc("Customer", self.customer)
+		if customer_object.customer_group == 'Dixit':
+			return
+
 		# Pull out config
 		indent_invoice_settings = self.indent_invoice_settings
 
@@ -884,6 +888,11 @@ class IndentInvoice(StockController):
 		if self.transaction_date < '2017-07-01':
 			return
 
+		customer_object = frappe.get_doc("Customer", self.customer)
+
+		if customer_object.customer_group == 'Dixit':
+			return
+
 		# name = None
 		# if self.bill_to_ship_to_invoice:
 		# 	name = self.bill_to_ship_to_invoice
@@ -925,9 +934,6 @@ class IndentInvoice(StockController):
 
 		customer_object = frappe.get_doc("Customer", self.customer)
 		company_object = frappe.get_doc("Company", self.company)
-
-		if customer_object.customer_group == 'Dixit':
-			return
 
 		rate = self.actual_amount / self.qty
 		tax = frappe.get_doc("Indent Invoice Tax", self.sales_tax)
@@ -1023,9 +1029,6 @@ class IndentInvoice(StockController):
 																						 registration.sales_invoice_company))
 
 		customer_object = frappe.get_doc("Customer", self.customer)
-
-		if customer_object.customer_group == 'Dixit':
-			return
 
 		description = ''
 
