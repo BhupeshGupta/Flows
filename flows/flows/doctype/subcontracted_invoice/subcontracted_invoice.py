@@ -206,6 +206,7 @@ class SubcontractedInvoice(Document):
 		context = {
 			'total_payable_amount': payable_amount,
 			'indent_invoice': self,
+			'ti': transportation_invoice
 		}
 		return render_template(terms_template, context)
 
