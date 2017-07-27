@@ -176,9 +176,8 @@ class SubcontractedInvoice(Document):
 		transportation_invoice = frappe.get_doc(consignment_note_json_doc)
 		transportation_invoice.save()
 
-
-
-		transportation_invoice.terms = self.get_terms_and_conditions(transportation_invoice)
+		total_kgs = cf * self.quantity
+		transportation_invoice.terms = self.get_terms_and_conditions(transportation_invoice, total_kgs)
 		transportation_invoice.docstatus = 1
 		transportation_invoice.save()
 
@@ -192,7 +191,7 @@ class SubcontractedInvoice(Document):
 			sales_invoice.docstatus = 2
 			sales_invoice.save()
 
-	def get_terms_and_conditions(self, transportation_invoice):
+	def get_terms_and_conditions(self, transportation_invoice, total_kgs):
 		if self.company != 'Arun Logistics':
 			return ""
 
@@ -206,7 +205,8 @@ class SubcontractedInvoice(Document):
 		context = {
 			'total_payable_amount': payable_amount,
 			'indent_invoice': self,
-			'ti': transportation_invoice
+			'ti': transportation_invoice,
+			'total_kgs': total_kgs
 		}
 		return render_template(terms_template, context)
 
