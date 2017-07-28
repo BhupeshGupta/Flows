@@ -199,6 +199,7 @@ def get_subcontracted_invoices(filters):
 			SELECT name, posting_date, customer, item, quantity as qty
 			FROM `tabSubcontracted Invoice`
 			WHERE docstatus = 1 AND
+			cross_sold = 0 AND
 			customer="{0}" AND
 			posting_date <= %(to_date)s
 			ORDER BY posting_date desc, name desc;""".format(filters['customer']),

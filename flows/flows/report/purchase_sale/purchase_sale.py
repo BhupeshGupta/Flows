@@ -304,6 +304,18 @@ def get_data_map(filters):
 		qty_dict = active_map[i.company][get_item(i.item, filters)]
 		qty_dict.m_sold += flt(i.qty)
 
+		# Cross Sold
+		if cint(i.cross_sold) == 1:
+			# Sold by customer
+			active_map.setdefault(i.customer, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
+			qty_dict = active_map[i.customer][get_item(i.item, filters)]
+			qty_dict.m_sold += flt(i.qty)
+
+			# Purchased by Cross Sale Purchase balance account
+			active_map.setdefault(balance_customer_account, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
+			qty_dict = active_map[balance_customer_account][get_item(i.item, filters)]
+			qty_dict.m_purchased += i.qty
+
 	active_map = opening_map
 	for customer in sorted(active_map):
 		for item in sorted(active_map[customer]):
