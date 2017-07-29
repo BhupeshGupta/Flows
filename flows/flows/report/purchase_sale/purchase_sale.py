@@ -309,12 +309,12 @@ def get_data_map(filters):
 			# Sold by customer
 			active_map.setdefault(i.customer, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
 			qty_dict = active_map[i.customer][get_item(i.item, filters)]
-			qty_dict.m_sold += flt(i.qty)
+			qty_dict.m_sold += flt(i.quantity)
 
 			# Purchased by Cross Sale Purchase balance account
 			active_map.setdefault(balance_customer_account, {}).setdefault(get_item(i.item, filters), frappe._dict(default))
 			qty_dict = active_map[balance_customer_account][get_item(i.item, filters)]
-			qty_dict.m_purchased += i.qty
+			qty_dict.m_purchased += i.quantity
 
 	active_map = opening_map
 	for customer in sorted(active_map):
