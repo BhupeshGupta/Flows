@@ -11,11 +11,21 @@
   {
    "fieldname": "force_name", 
    "fieldtype": "Data", 
+   "hidden": 1, 
    "label": "Force Name", 
    "permlevel": 0, 
    "precision": "", 
    "read_only": 1, 
    "set_only_once": 1
+  }, 
+  {
+   "allow_on_submit": 1, 
+   "default": "0", 
+   "fieldname": "cross_sold", 
+   "fieldtype": "Check", 
+   "label": "Cross Sold", 
+   "permlevel": 2, 
+   "precision": ""
   }, 
   {
    "allow_on_submit": 0, 
@@ -83,7 +93,8 @@
    "label": "GST Bill From", 
    "options": "Supplier", 
    "permlevel": 0, 
-   "precision": ""
+   "precision": "", 
+   "reqd": 1
   }, 
   {
    "allow_on_submit": 0, 
@@ -206,7 +217,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2017-07-17 11:36:43.411528", 
+ "modified": "2017-07-28 16:30:41.773348", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Subcontracted Invoice", 
@@ -253,6 +264,28 @@
    "permlevel": 1, 
    "read": 1, 
    "role": "Quality Manager", 
+   "write": 1
+  }, 
+  {
+   "permlevel": 2, 
+   "read": 1, 
+   "role": "All"
+  }, 
+  {
+   "amend": 1, 
+   "cancel": 1, 
+   "create": 1, 
+   "delete": 1, 
+   "permlevel": 0, 
+   "read": 1, 
+   "role": "Purchase Master Manager", 
+   "submit": 1, 
+   "write": 1
+  }, 
+  {
+   "permlevel": 2, 
+   "read": 1, 
+   "role": "Purchase Master Manager", 
    "write": 1
   }
  ], 
