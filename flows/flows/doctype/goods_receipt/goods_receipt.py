@@ -142,6 +142,10 @@ class GoodsReceipt(Document):
 			""".format(self.customer, self.name))
 
 	def on_submit(self):
+
+		addr = get_address(self.customer)
+		get_gst_sales_tax(addr)
+
 		self.validate_date()
 		self.validate_item()
 		if self.warehouse == '' or not self.warehouse:
@@ -415,7 +419,7 @@ class GoodsReceipt(Document):
 
 		import base64
 
-		# u'सिलिंडर पूर्ति रिपोर्ट: अरुण गॅस दिनाक
+		# u'सिलिंडर पूर्ति रिपोर्ट: अरुण गॅस दिनाक'
 		subject = '\n'.join([
 			'=?utf-8?B?{}?='.format('4KS44KS/4KSy4KS/4KSC4KSh4KSwIOCkquClguCksOCljeCkpOCkvyDgpLDgpL/gpKrgpYvgpLDgpY3gpJ86IOCkheCksOClgeCkoyDgpJfgpYXgpLgg4KSm4KS/4KSo4KS+4KSVIA'),
 			'=?utf-8?B?{}?='.format(base64.b64encode(frappe.format_value(self.transaction_date, {'fieldtype': 'Date'})))
@@ -430,3 +434,41 @@ class GoodsReceipt(Document):
 				formatted=False, print_html=email
 			)
 		)
+
+def get_gst_sales_tax(address):
+	gst_number, gst_status = frappe.db.get_value(
+		"Address",
+		address,
+		['gst_number', 'gst_status']
+	)
+
+	if gst_status == 'Not Updated':
+		frappe.throw("GST Not Found. Enter GST in customer Portal")
+	elif gst_status == 'Unregistered':
+		pass
+	else:
+		if not gst_number:
+			frappe.throw("GST Not Found. Enter GST in customer Portal")
+
+
+	if gst_number and gst_number[:2] == '03':
+		return "In State GST"
+	elif gst_number:
+		return "Out State GST"
+	else:
+		# Unregistered customer
+		return None
+
+
+def get_address(customer):
+	addr = frappe.db.sql(
+		"""
+		select name from `tabAddress` where customer = "{}" and is_primary_address = 1
+		""".format(customer)
+	)
+	if addr:
+		return addr[0][0]
+
+	frappe.throw("Customer Address Not Found. Please add customer address and then update GST from portal")
+
+	return None
