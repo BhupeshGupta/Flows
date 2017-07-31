@@ -448,7 +448,7 @@ def get_gst_sales_tax(address):
 		pass
 	else:
 		if not gst_number:
-			frappe.throw("GST Not Found. Enter GST in customer Portal")
+			frappe.throw("GST Not Found. Enter GST in customer Portal. Contact 7888691920.")
 
 
 	if gst_number and gst_number[:2] == '03':
@@ -469,6 +469,6 @@ def get_address(customer):
 	if addr:
 		return addr[0][0]
 
-	frappe.throw("Customer Address Not Found. Please add customer address and then update GST from portal")
+	frappe.throw("Customer Address Not Found. Please add customer address and then update GST from portal. Contact 7888691920.")
 
 	return None
