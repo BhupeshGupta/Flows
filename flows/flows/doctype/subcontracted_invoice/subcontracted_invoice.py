@@ -171,8 +171,12 @@ class SubcontractedInvoice(Document):
 			consignment_note_json_doc["customer_address"] = c_addr
 
 		if self.posting_date >= '2017-07-01':
-			consignment_note_json_doc['taxes_and_charges'] = get_gst_sales_tax(consignment_note_json_doc["customer_address"])
+			self.sales_tax = get_gst_sales_tax(consignment_note_json_doc["customer_address"])
 
+		if not self.sales_tax:
+			frappe.throw("Enter sales tax")
+
+		consignment_note_json_doc['taxes_and_charges'] = self.sales_tax
 		transportation_invoice = frappe.get_doc(consignment_note_json_doc)
 		transportation_invoice.save()
 
@@ -223,18 +227,30 @@ def get_conversion_factor(item):
 	return float(val) if val else 0
 
 
+
 def get_gst_sales_tax(address):
-	gst_number = frappe.db.get_value(
+	gst_number, gst_status = frappe.db.get_value(
 		"Address",
 		address,
-		'gst_number'
+		['gst_number', 'gst_status']
 	)
-	if not gst_number:
+
+	if gst_status == 'Not Updated':
 		frappe.throw("GST Not Found. Enter GST in customer Portal")
-	if gst_number[:2] == '03':
-		return "In State GST"
+	elif gst_status == 'Unregistered':
+		pass
 	else:
+		if not gst_number:
+			frappe.throw("GST Not Found. Enter GST in customer Portal. Contact 7888691920.")
+
+
+	if gst_number and gst_number[:2] == '03':
+		return "In State GST"
+	elif gst_number:
 		return "Out State GST"
+	else:
+		# Unregistered customer
+		return None
 
 
 def get_address(customer):
@@ -246,6 +262,6 @@ def get_address(customer):
 	if addr:
 		return addr[0][0]
 
-	frappe.throw("Customer Address Not Found. Please add customer address and then update GST from portal")
+	frappe.throw("Customer Address Not Found. Please add customer address and then update GST from portal. Contact 7888691920.")
 
 	return None
