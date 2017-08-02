@@ -171,7 +171,8 @@ class SubcontractedInvoice(Document):
 			consignment_note_json_doc["customer_address"] = c_addr
 
 		if self.posting_date >= '2017-07-01':
-			self.sales_tax = get_gst_sales_tax(consignment_note_json_doc["customer_address"])
+			sales_tax = get_gst_sales_tax(consignment_note_json_doc["customer_address"])
+			self.sales_tax = sales_tax or self.sales_tax
 
 		if not self.sales_tax:
 			frappe.throw("Enter sales tax")
