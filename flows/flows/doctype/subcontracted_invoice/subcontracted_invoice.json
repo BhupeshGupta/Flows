@@ -190,6 +190,14 @@
    "precision": ""
   }, 
   {
+   "fieldname": "sales_tax", 
+   "fieldtype": "Link", 
+   "label": "Sales Tax", 
+   "options": "Sales Taxes and Charges Master", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "amended_from", 
    "fieldtype": "Link", 
    "label": "Amended From", 
@@ -217,7 +225,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2017-07-28 16:30:41.773348", 
+ "modified": "2017-09-02 10:27:21.272767", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Subcontracted Invoice", 
@@ -225,9 +233,9 @@
  "owner": "Administrator", 
  "permissions": [
   {
-   "amend": 1, 
+   "amend": 0, 
    "apply_user_permissions": 0, 
-   "cancel": 1, 
+   "cancel": 0, 
    "create": 1, 
    "delete": 1, 
    "email": 0, 
@@ -249,7 +257,7 @@
   }, 
   {
    "amend": 1, 
-   "cancel": 1, 
+   "cancel": 0, 
    "create": 1, 
    "delete": 1, 
    "export": 1, 
@@ -257,7 +265,7 @@
    "read": 1, 
    "report": 1, 
    "role": "Quality Manager", 
-   "submit": 1, 
+   "submit": 0, 
    "write": 1
   }, 
   {

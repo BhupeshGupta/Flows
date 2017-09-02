@@ -15,6 +15,14 @@ pricing_dict = {
 		'Advance': 37.00,
 		'Credit': 40
 	},
+	'2017-08': {
+		'Advance': 34.6,
+		'Credit': 37
+	},
+	#'2017-09': {
+        #        'Advance': 39.84,
+        #        'Credit': 42.84
+	#}
 }
 
 
@@ -112,6 +120,9 @@ class SubcontractedInvoice(Document):
 				amt = self.amount_per_item / cf
 
 			rate_per_kg, discount = self.compute_cost(amt)
+			rate_per_kg -= discount
+			discount = 0
+
 
 			item = {
 				"qty": self.quantity,

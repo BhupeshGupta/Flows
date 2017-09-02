@@ -588,7 +588,7 @@ class IndentInvoice(StockController):
 			return
 
 		customer_object = frappe.get_doc("Customer", self.customer)
-		if customer_object.customer_group == 'Dixit':
+		if customer_object.customer_group in ['Dixit', 'RAVI AMBALA', 'Aman']:
 			return
 
 		# Pull out config
@@ -890,7 +890,7 @@ class IndentInvoice(StockController):
 
 		customer_object = frappe.get_doc("Customer", self.customer)
 
-		if customer_object.customer_group == 'Dixit':
+		if customer_object.customer_group in ['Dixit', 'RAVI AMBALA', 'Aman']:
 			return
 
 		# name = None
@@ -935,10 +935,16 @@ class IndentInvoice(StockController):
 		customer_object = frappe.get_doc("Customer", self.customer)
 		company_object = frappe.get_doc("Company", self.company)
 
-		rate = self.actual_amount / self.qty
+		if customer_object.customer_group in ['Baddi']:
+			return
+
+		rate = float(self.actual_amount) / self.qty
 		tax = frappe.get_doc("Indent Invoice Tax", self.sales_tax)
 		net_tax = get_net_tax_percentage(tax.tax_percentage, tax.surcharge_percentage)
 		rate_before_tax = get_basic_value_before_tax(rate, net_tax)
+
+		frappe.msgprint([self.actual_amount, self.qty, rate, net_tax, rate_before_tax])
+
 
 		qty_in_kg = get_conversion_factor(self.item) * float(self.qty)
 
@@ -990,7 +996,7 @@ class IndentInvoice(StockController):
 			# "consignor": self.supplier,
 			"territory": customer_object.territory if customer_object.territory else 'NA',
 			"remarks": "Bill To Ship To Against Bill No. {}""".format(self.invoice_number),
-			"tax_paid_by_supplier": 0,
+			"tax_paid_by_supplier": 1,
 		}
 
 		if amended_from:
@@ -1005,7 +1011,7 @@ class IndentInvoice(StockController):
 
 		if self.posting_date >= '2017-07-01':
 			consignment_note_json_doc['taxes_and_charges'] = get_gst_sales_tax(
-				consignment_note_json_doc["customer_address"])
+				consignment_note_json_doc["customer_address"]) + ' - MO'
 
 		transportation_invoice = frappe.get_doc(consignment_note_json_doc)
 

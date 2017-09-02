@@ -207,3 +207,12 @@ def get_rsp(date, territory):
 def get_omc_so(customer, plant, item, date):
 	so = get_omc_so_from_indent(customer, plant, item, date)
 	return so.so_number if so else ''
+
+def get_id_and_percision(doc):
+	if not doc.amended_from:
+		return doc.name, 0
+
+	docname = '-'.join(doc.name.split('-')[:-1])
+	rev = doc.name.replace(docname, '').replace('-', '')
+
+	return docname, rev

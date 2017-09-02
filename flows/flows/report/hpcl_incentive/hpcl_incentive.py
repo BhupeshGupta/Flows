@@ -10,6 +10,7 @@ incentive_per_cylinder = {
 	'FC35': 52,
 	'FC47.5': 70,
 	'FC47.5L': 70,
+	'FC425': 1127.1,
 	'FC450': 663
 }
 
