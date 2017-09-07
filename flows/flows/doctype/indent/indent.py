@@ -40,7 +40,7 @@ class Indent(Document):
 			validate_bill_to_ship_to(indent_item.customer, indent_item.ship_to, self.posting_date)
 			if not indent_item.ship_to:
 				indent_item.ship_to = indent_item.customer
-			validate_c_form(indent_item.customer, self.plant, self.posting_date)
+			#validate_c_form(indent_item.customer, self.plant, self.posting_date)
 
 		for i, indent in  enumerate(sorted(self.indent, key=lambda x: (x.credit_account, x.item))):
 			indent.idx = i + 1

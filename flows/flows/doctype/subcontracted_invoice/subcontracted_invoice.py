@@ -19,10 +19,10 @@ pricing_dict = {
 		'Advance': 34.6,
 		'Credit': 37
 	},
-	#'2017-09': {
-        #        'Advance': 39.84,
-        #        'Credit': 42.84
-	#}
+	'2017-09': {
+                'Advance': 39.84,
+                'Credit': 42.84
+	}
 }
 
 

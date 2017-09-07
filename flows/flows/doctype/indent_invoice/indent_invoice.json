@@ -544,7 +544,7 @@
    "fieldname": "billing_type", 
    "fieldtype": "Select", 
    "label": "Billing Type", 
-   "options": "Bill To\nBill To Ship To\nSelf Purchase", 
+   "options": "\nBill To\nBill To Ship To\nSelf Purchase", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -727,7 +727,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2017-07-14 17:52:46.773177", 
+ "modified": "2017-09-02 17:11:57.013090", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 

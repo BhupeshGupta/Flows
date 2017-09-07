@@ -588,7 +588,7 @@ class IndentInvoice(StockController):
 			return
 
 		customer_object = frappe.get_doc("Customer", self.customer)
-		if customer_object.customer_group in ['Dixit', 'RAVI AMBALA', 'Aman']:
+		if customer_object.customer_group in ['Dixit', 'RAVI AMBALA', 'Aman', 'BADDI']:
 			return
 
 		# Pull out config
@@ -607,12 +607,12 @@ class IndentInvoice(StockController):
 				frappe.throw("Consignment Note Adjustment method missing")
 
 			if self.consignment_note_adjustment in ('Adjust Handling', 'Adjust Discount & Handling') and self.handling != 0:
-				adjustment_value = -1 * self.handling * (1 + self.cst / (self.actual_amount - self.cst))
+				adjustment_value = -1 * self.handling #* (1 + self.cst / (self.actual_amount - self.cst))
 				transportation_rate += adjustment_value
 				transportation_rate = round(transportation_rate, 2)
 
 			if self.consignment_note_adjustment in ('Adjust Discount', 'Adjust Discount & Handling') and self.discount != 0:
-				adjustment_value = self.discount * (1 + self.cst / (self.actual_amount - self.cst))
+				adjustment_value = self.discount #* (1 + self.cst / (self.actual_amount - self.cst))
 				transportation_rate += adjustment_value
 				transportation_rate = round(transportation_rate, 2)
 
@@ -890,7 +890,7 @@ class IndentInvoice(StockController):
 
 		customer_object = frappe.get_doc("Customer", self.customer)
 
-		if customer_object.customer_group in ['Dixit', 'RAVI AMBALA', 'Aman']:
+		if customer_object.customer_group in ['Dixit', 'RAVI AMBALA', 'Aman', 'BADDI']:
 			return
 
 		# name = None
