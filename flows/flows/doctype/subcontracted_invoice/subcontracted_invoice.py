@@ -182,7 +182,7 @@ class SubcontractedInvoice(Document):
 			consignment_note_json_doc["customer_address"] = c_addr
 
 		if self.posting_date >= '2017-07-01':
-			sales_tax = get_gst_sales_tax(consignment_note_json_doc["customer_address"])
+			sales_tax = get_gst_sales_tax(consignment_note_json_doc["customer_address"], company_abbr)
 			self.sales_tax = sales_tax or self.sales_tax
 
 		if not self.sales_tax:
@@ -240,7 +240,7 @@ def get_conversion_factor(item):
 
 
 
-def get_gst_sales_tax(address):
+def get_gst_sales_tax(address, company_abbr):
 	gst_number, gst_status = frappe.db.get_value(
 		"Address",
 		address,
@@ -257,12 +257,17 @@ def get_gst_sales_tax(address):
 
 
 	if gst_number and gst_number[:2] == '03':
-		return "In State GST"
+		st = "In State GST"
 	elif gst_number:
-		return "Out State GST"
+		st = "Out State GST"
 	else:
 		# Unregistered customer
 		return None
+
+	if company_abbr == 'AL':
+		return st
+
+	return '{} - {}'.format(st, company_abbr)
 
 
 def get_address(customer):
