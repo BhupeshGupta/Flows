@@ -22,8 +22,10 @@ from frappe.utils import get_first_day
 from frappe.utils import today
 from frappe.utils.data import getdate
 from frappe.utils.formatters import format_value
+from flows.jinja_filters import get_id_and_percision
 
-LINKED_DOCS = ['transportation_invoice', 'bill_to_ship_to_invoice']
+
+LINKED_DOCS = ['transportation_invoice', 'bill_to_ship_to_invoice', 'bill_to_ship_to_purchase']
 
 
 class IndentInvoice(StockController):
@@ -40,6 +42,8 @@ class IndentInvoice(StockController):
 		#if self.posting_date >= '01-07-2017' or self.transaction_date >= '01-07-2017':
 		#	frappe.throw("GST Tax Introduced, Billing disabled from July Onwards")
 
+		self.load_ess()
+
 		self.fiscal_year = account_utils.get_fiscal_year(self.get("transaction_date"))[0]
 
 		if cint(self.indent_invoice_settings.price_check):
@@ -48,11 +52,21 @@ class IndentInvoice(StockController):
 		self.validate_territory()
 
 		self.check_previous_doc()
-		self.make_gl_entries()
 		self.make_stock_refill_entry()
 		self.raise_transportation_bill()
 
+		self.raise_bill_to_ship_to_purchase_invoice()
 		self.raise_bill_to_invoice()
+
+		self.make_gl_entries()
+
+	def load_ess(self):
+		self.registration = frappe.get_doc("OMC Customer Registration", self.omc_customer_registration)
+		self.material_account = frappe.db.get_value("OMC Customer Registration Credit Account", {
+			'parent': self.registration.name,
+			'type': self.credit_account
+		}, '*', as_dict=True)
+
 
 	def update_status(self):
 		# Data Logging
@@ -148,11 +162,15 @@ class IndentInvoice(StockController):
 		if getdate(self.posting_date) < getdate('2016-06-01'):
 			frappe.throw("Tax Changed! Cant cancel/submit invoice")
 
+		self.load_ess()
+
 		self.set_missing_values()
-		self.make_gl_entries()
 		self.make_stock_refill_entry()
 		self.cancel_transport_bill()
 		self.cancel_bill_to_ship_to()
+		self.cancel_bill_to_ship_to_purchase_invoice()
+		self.make_gl_entries(cancel=True)
+
 
 	def validate(self):
 		self.invoice_number = self.invoice_number
@@ -308,14 +326,13 @@ class IndentInvoice(StockController):
 			frappe.throw("Margin Erosion of {}".format(margin_diff))
 
 
-	def make_gl_entries(self, repost_future_gle=True):
-		gl_entries = self.get_gl_entries()
+	def make_gl_entries(self, repost_future_gle=True, cancel=False):
+		gl_entries = self.get_gl_entries(cancel=cancel)
 
-		root.debug("Gl Entry Map: {}".format(gl_entries))
+		# root.debug("Gl Entry Map: {}".format(gl_entries))
 
 		if gl_entries:
-			make_gl_entries(gl_entries, cancel=(self.docstatus == 2),
-							update_outstanding='Yes', merge_entries=False)
+			make_gl_entries(gl_entries, cancel=cancel, update_outstanding='Yes', merge_entries=False)
 
 	def set_missing_values(self, *args, **kwargs):
 
@@ -336,11 +353,11 @@ class IndentInvoice(StockController):
 		if self.customer in ['Alpine Energy', 'Mosaic Enterprises Ltd.']:
 			self.billing_type = 'Self Purchase'
 
-		if not self.billing_type:
-			if 'iocl' in self.supplier.lower() and self.credit_account == 'Payer Code':
-				self.billing_type = 'Bill To Ship To'
-			else:
-				self.billing_type = 'Bill To'
+		# if not self.billing_type:
+		if 'iocl' in self.supplier.lower() and self.credit_account == 'Payer Code':
+			self.billing_type = 'Bill To Ship To'
+		else:
+			self.billing_type = 'Bill To'
 
 	def make_stock_refill_entry(self):
 		if cint(self.sub_contracted) == 1:
@@ -388,11 +405,11 @@ class IndentInvoice(StockController):
 
 		return conversion_sl_entries
 
-	def get_gl_entries(self, warehouse_account=None):
+	def get_gl_entries(self, warehouse_account=None, cancel=False):
 
 		gl_entries = []
 
-		self.make_customer_gl_entry(gl_entries)
+		self.make_customer_gl_entry(gl_entries, cancel=cancel)
 
 		# # merge gl entries before adding pos entries
 		# gl_entries = merge_similar_entries(gl_entries)
@@ -452,7 +469,7 @@ class IndentInvoice(StockController):
 
 			return True
 
-	def make_customer_gl_entry(self, gl_entries):
+	def make_customer_gl_entry(self, gl_entries, cancel=False):
 
 		self.set_missing_values()
 
@@ -464,27 +481,36 @@ class IndentInvoice(StockController):
 		if not self.actual_amount:
 			return
 
-		registration = frappe.get_doc("OMC Customer Registration", self.omc_customer_registration)
-		material_account = frappe.db.get_value("OMC Customer Registration Credit Account", {
-			'parent': registration.name,
-			'type': self.credit_account
-		}, '*', as_dict=True)
+		registration = self.registration
+		material_account = self.material_account
+
+		bill_to_ship_to = self.billing_type == 'Bill To Ship To'
+
+		basic_credit_account = material_account.credit_account
+		if bill_to_ship_to:
+			basic_credit_account = self._get_account_(self.company, self.customer)
+
 
 		gl_entries.append(
 			self.get_gl_dict({
-			"account": material_account.credit_account,
+			"account": basic_credit_account,
 			"company": material_account.credit_account_company,
 			"credit": self.actual_amount,
 			"remarks": "Against Invoice Id {}".format(self.invoice_number),
 			})
 		)
 
+		customer_invoice_number = self.invoice_number
+		if not cancel and self.bill_to_ship_to_invoice:
+			customer_invoice_number, _ = get_id_and_percision(self.bill_to_ship_to_invoice_obj)
+
+
 		gl_entries.append(
 			self.get_gl_dict({
 			"account": material_account.debit_account,
 			"company": material_account.debit_account_company,
 			"debit": self.actual_amount,
-			"remarks": "Against Invoice Id {}".format(self.invoice_number),
+			"remarks": "Against Invoice Id {}".format(customer_invoice_number),
 			})
 		)
 
@@ -915,6 +941,7 @@ class IndentInvoice(StockController):
 		bill_to_ship_to_invoice.save()
 
 		self.bill_to_ship_to_invoice = bill_to_ship_to_invoice.name
+		self.bill_to_ship_to_invoice_obj = bill_to_ship_to_invoice
 
 	def cancel_bill_to_ship_to(self):
 		if self.bill_to_ship_to_invoice:
@@ -1018,6 +1045,15 @@ class IndentInvoice(StockController):
 		transportation_invoice.save()
 
 		transportation_invoice.terms = get_terms_for_bill_to_ship_to_invoice(transportation_invoice)
+
+		round_off = round(self.actual_amount - transportation_invoice.grand_total_export, 2)
+		if round_off:
+			transportation_invoice.append('other_charges', {
+				"charge_type": "Actual",
+				"description": "Round Off",
+				"account_head": "writeoff - MO",
+				"rate": round_off
+			})
 
 		return transportation_invoice
 
@@ -1153,6 +1189,47 @@ class IndentInvoice(StockController):
 		})
 
 		return render_template(terms_template, context)
+
+	def cancel_bill_to_ship_to_purchase_invoice(self):
+		if self.bill_to_ship_to_purchase:
+			doc = frappe.get_doc("Purchase Invoice", self.bill_to_ship_to_purchase)
+			if doc.docstatus != 2:
+				doc.cancel()
+
+	def raise_bill_to_ship_to_purchase_invoice(self):
+		if self.billing_type != 'Bill To Ship To':
+			if self.bill_to_ship_to_purchase:
+				doc = frappe.get_doc("Purchase Invoice", self.bill_to_ship_to_purchase)
+				if doc.docstatus != 2:
+					doc.cancel()
+			self.bill_to_ship_to_purchase = None
+			return
+
+		bpe = BillToShipToPurchaseInvoice(self)
+		if not bpe.is_applicable():
+			return
+
+		if self.transaction_date < '2017-07-01':
+			return
+
+		customer_object = frappe.get_doc("Customer", self.customer)
+
+		if customer_object.customer_group in ['Dixit', 'RAVI AMBALA', 'Aman', 'BADDI']:
+			return
+
+		amended_from = None
+		data_bank = self.get_data_bank()
+		if 'bill_to_ship_to_purchase' in data_bank:
+			amended_from = data_bank.bill_to_ship_to_purchase
+
+		purchase_invoice = bpe.raise_invoice(amended_from=amended_from)
+
+		purchase_invoice.submit()
+
+		self.bill_to_ship_to_purchase = purchase_invoice.name
+		self.bill_to_ship_to_purchase_obj = purchase_invoice
+
+
 
 
 def get_indent_for_vehicle(doctype, txt, searchfield, start, page_len, filters):
@@ -1351,3 +1428,90 @@ def get_address(customer):
 	frappe.throw("Customer Address Not Found. Please add customer address and then update GST from portal")
 
 	return None
+
+
+
+class BillToShipToPurchaseInvoice(object):
+	def __init__(self, indent_invoice):
+		self.indent_invoice = indent_invoice
+
+	def is_applicable(self):
+		return self.indent_invoice.billing_type == 'Bill To Ship To'
+
+	def raise_invoice(self, amended_from=None):
+		indent_invoice = self.indent_invoice
+
+		f_obj = frappe.get_doc("Company", indent_invoice.company)
+		# key = 'Ship To Purchase Invoice'
+
+		gst_number = frappe.db.get_value("Supplier", indent_invoice.supplier, 'gst_number')
+		if not gst_number:
+			frappe.throw("Enter GST number in supplier master")
+
+		tax = 'In State GST'
+		if gst_number[:3] != '03':
+			tax = 'Out State GST'
+
+		purchase_invoice = {
+			"title": indent_invoice.invoice_number,
+
+			"bill_no": indent_invoice.invoice_number,
+			"bill_date": indent_invoice.transaction_date,
+			"supplier": indent_invoice.supplier,
+
+			"posting_date": indent_invoice.transaction_date,
+			"company": indent_invoice.company,
+
+			"update_stock": 1,
+
+			"taxes_and_charges": tax,
+
+			"is_subcontracted": "No",
+			"is_opening": "No",
+			"naming_series": "PINV-",
+			"credit_to": indent_invoice.material_account.credit_account,
+			"doctype": "Purchase Invoice",
+
+			# Necessery to triger tax calculation
+			"currency": "INR",
+			"docstatus": 0
+		}
+
+		purchase_invoice['entries'] = []
+
+		item = indent_invoice
+
+		purchase_invoice['entries'].append({
+			"idx": 1,
+
+			"qty": item.qty,
+			"rate": float(item.actual_amount - item.cst) / item.qty,
+			"item_code": item.item,
+			"item_name": item.item,
+
+			"item_group": "Products",
+			"expense_account": "Cost of Goods Sold - {}".format(f_obj.abbr),
+			"cost_center": "Main - {}".format(f_obj.abbr),
+			"parenttype": "Purchase Invoice",
+			"parentfield": "entries",
+			"warehouse": "Finished Goods - {}".format(f_obj.abbr),
+			"uom": "Nos",
+			"doctype": "Purchase Invoice Item",
+		})
+
+		if amended_from:
+			purchase_invoice['amended_from'] = amended_from
+
+
+		p_invoice = frappe.get_doc(purchase_invoice)
+		p_invoice.save()
+
+		write_off = round(indent_invoice.actual_amount - p_invoice.outstanding_amount, 2)
+		if write_off:
+			p_invoice.write_off_amount = -1 * write_off
+			p_invoice.write_off_account = 'writeoff - {}'.format(f_obj.abbr)
+			p_invoice.outstanding_amount = indent_invoice.actual_amount
+			p_invoice.total_amount_to_pay = p_invoice.outstanding_amount
+
+
+		return p_invoice

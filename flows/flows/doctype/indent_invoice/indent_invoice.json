@@ -430,6 +430,14 @@
    "precision": ""
   }, 
   {
+   "fieldname": "bill_to_ship_to_purchase", 
+   "fieldtype": "Link", 
+   "label": "Bill To Ship To Purchase", 
+   "options": "Purchase Invoice", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "column_break_40", 
    "fieldtype": "Column Break", 
    "permlevel": 0, 
@@ -727,7 +735,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2017-09-02 17:11:57.013090", 
+ "modified": "2017-09-08 11:54:59.619753", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 
