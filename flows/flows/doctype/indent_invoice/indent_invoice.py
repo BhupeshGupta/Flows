@@ -487,7 +487,7 @@ class IndentInvoice(StockController):
 		bill_to_ship_to = self.billing_type == 'Bill To Ship To'
 
 		basic_credit_account = material_account.credit_account
-		if bill_to_ship_to:
+		if bill_to_ship_to and self.bill_to_ship_to_purchase:
 			basic_credit_account = self._get_account_(self.company, self.customer)
 
 
@@ -502,6 +502,9 @@ class IndentInvoice(StockController):
 
 		customer_invoice_number = self.invoice_number
 		if not cancel and self.bill_to_ship_to_invoice:
+			if not hasattr(self, 'bill_to_ship_to_invoice_obj'):
+				self.bill_to_ship_to_invoice_obj = frappe.get_doc("Sales Invoice", self.bill_to_ship_to_invoice)
+
 			customer_invoice_number, _ = get_id_and_percision(self.bill_to_ship_to_invoice_obj)
 
 
@@ -864,7 +867,11 @@ class IndentInvoice(StockController):
 		:param account:
 		:return:
 		"""
-		acc = get_party_account(company, account, "Supplier")
+		try:
+			acc = get_party_account(company, account, "Supplier")
+		except:
+			acc = get_party_account(company, account, "Customer")
+
 		if not acc:
 			acc = get_party_account(company, account, "Customer")
 		if not acc:
