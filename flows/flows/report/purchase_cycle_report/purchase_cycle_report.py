@@ -98,6 +98,7 @@ def get_data(filters):
 	from `tabIndent Invoice`
 	where indent in ({})
 	and docstatus != 2
+	group by indent
 	""".format(all_indents_names))
 
 	entered_bill_count_map = {row[0]: row[1] for row in entered_bill_count_map}
@@ -107,7 +108,8 @@ def get_data(filters):
 	from `tabIndent Invoice`
 	where docstatus != 2
 	and indent in ({})
-	group by indent""".format(all_indents_names))
+	group by indent
+	""".format(all_indents_names))
 
 	invoice_date_map = {row[0]: row[1] for row in invoice_date_map}
 
