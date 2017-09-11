@@ -56,7 +56,7 @@ def get_indents():
 def get_indent_linked_gp_map():
 	map = frappe._dict({})
 	data = frappe.db.sql(
-		"SELECT * FROM `tabGatepass` WHERE docstatus = 1 and indent != '' and posting_date >= '2017-04-01';",
+		"SELECT * FROM `tabGatepass` WHERE docstatus = 1 and indent != '' and posting_date >= '2017-03-01';",
 		as_dict=True
 	)
 	for gp in data:
