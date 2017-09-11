@@ -81,6 +81,37 @@ def get_data(filters):
 	indents = get_indents()
 	gatepass_map = get_indent_linked_gp_map()
 
+	all_indents = [indent.name for indent in indents]
+	all_indents_names = ', '.join(['"{}"'.format(x) for x in all_indents])
+
+	expected_bill_count_map = frappe.db.sql("""
+	select parent, count(name)
+	from `tabIndent Item`
+	where parent in ({})
+	group by parent
+	""".format(all_indents_names))
+
+	expected_bill_count_map = {row[0]: row[1] for row in expected_bill_count_map}
+
+	entered_bill_count_map = frappe.db.sql("""
+	select indent, count(name)
+	from `tabIndent Invoice`
+	where indent in ({})
+	and docstatus != 2
+	""".format(all_indents_names))
+
+	entered_bill_count_map = {row[0]: row[1] for row in entered_bill_count_map}
+
+	invoice_date_map = frappe.db.sql("""
+	select indent, transaction_date
+	from `tabIndent Invoice`
+	where docstatus != 2
+	and indent in ({})
+	group by indent""".format(all_indents_names))
+
+	invoice_date_map = {row[0]: row[1] for row in invoice_date_map}
+
+
 	for indent in indents:
 		row_dict = frappe._dict(default_row_dict)
 
@@ -94,20 +125,14 @@ def get_data(filters):
 		if in_key in gatepass_map:
 			row_dict.gatepass_in = gatepass_map[in_key]
 
-		expected_bill_count = frappe.db.sql("""
-		select count(name) from `tabIndent Item`
-		where parent = \"{}\" """.format(indent.name))
-		entered_bill_count = frappe.db.sql("""
-		select count(name) from `tabIndent Invoice`
-		where indent = \"{}\" and docstatus != 2""".format(indent.name))
+		expected_bill_count = expected_bill_count_map.get(indent.name, 0)
+		entered_bill_count = entered_bill_count_map.get(indent.name, 0)
 
-		row_dict.expected_bill_count = int(expected_bill_count[0][0]) if len(expected_bill_count) > 0 else 0
-		row_dict.entered_bill_count = int(entered_bill_count[0][0]) if len(entered_bill_count) > 0 else 0
+		row_dict.expected_bill_count = expected_bill_count
+		row_dict.entered_bill_count = entered_bill_count
 
 		if row_dict.entered_bill_count > 0:
-			row_dict.bill_date = frappe.db.sql(
-				"""select transaction_date from `tabIndent Invoice` where
-				docstatus != 2 and indent='{}' limit 1""".format(indent.name))[0][0]
+			row_dict.bill_date = invoice_date_map[indent.name]
 
 		# State Algo
 		if row_dict.gatepass_out:

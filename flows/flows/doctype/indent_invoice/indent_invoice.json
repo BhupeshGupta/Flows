@@ -62,7 +62,8 @@
    "label": "Indent Linked", 
    "permlevel": 0, 
    "precision": "", 
-   "reqd": 1
+   "reqd": 1, 
+   "search_index": 0
   }, 
   {
    "fieldname": "vehicle", 
@@ -115,7 +116,8 @@
    "options": "Indent", 
    "permlevel": 0, 
    "precision": "", 
-   "read_only": 1
+   "read_only": 1, 
+   "search_index": 1
   }, 
   {
    "fieldname": "indent_date", 
@@ -735,7 +737,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2017-09-08 11:54:59.619753", 
+ "modified": "2017-09-11 14:36:03.820245", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Indent Invoice", 
