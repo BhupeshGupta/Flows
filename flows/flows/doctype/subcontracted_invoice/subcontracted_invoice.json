@@ -182,6 +182,14 @@
    "set_only_once": 0
   }, 
   {
+   "fieldname": "bill_grand_total", 
+   "fieldtype": "Currency", 
+   "label": "Bill Grand Total", 
+   "permlevel": 0, 
+   "precision": "", 
+   "read_only": 1
+  }, 
+  {
    "fieldname": "sales_invoice", 
    "fieldtype": "Link", 
    "label": "Sales Invoice", 
@@ -225,7 +233,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2017-09-02 10:27:21.272767", 
+ "modified": "2017-09-12 15:37:57.457258", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Subcontracted Invoice", 

@@ -89,6 +89,14 @@
    "set_only_once": 0
   }, 
   {
+   "fieldname": "subcontracted_invoice_items", 
+   "fieldtype": "Table", 
+   "label": "Subcontracted Invoice", 
+   "options": "Cross Purchase Subcontracted Invoice", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "total_invoice_amount", 
    "fieldtype": "Currency", 
    "label": "Total Invoice Amount", 
@@ -211,7 +219,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2017-01-31 17:27:05.015624", 
+ "modified": "2017-09-11 16:41:17.812929", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Cross Purchase", 

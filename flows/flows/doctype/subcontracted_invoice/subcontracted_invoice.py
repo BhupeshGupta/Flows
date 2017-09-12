@@ -53,12 +53,33 @@ class SubcontractedInvoice(Document):
 		if not self.posting_date:
 			self.fiscal_year = account_utils.get_fiscal_year(self.get("posting_date"))[0]
 
-		self.raise_sales_invoice()
+		inv = self.raise_sales_invoice()
+		self.bill_grand_total = inv.grand_total_export
 
 	def cancel(self):
 		super(SubcontractedInvoice, self).cancel()
 		self.cancel_sales_invoice()
 		self.sales_invoice = ''
+
+
+	def on_update_after_submit(self):
+		if self.cross_sold == 0:
+			cp = frappe.db.sql("""
+			SELECT cp.name
+			FROM `tabCross Purchase` cp,
+			`tabCross Purchase Subcontracted Invoice` cpi
+			WHERE cpi.parent = cp.name
+			AND cpi.subcontracted_invoice = "{invoice}"
+			AND cp.docstatus = 1;
+			""".format(invoice=self.name), as_dict=True
+			)
+			if cp:
+				frappe.throw(
+					"This Subcontracted Invoice is already settled in Cross Purchase {}".
+						format(", ".join([x.name for x in cp]))
+				)
+
+		# validate_bill_to_ship_to(self.customer, self.ship_to, self.transaction_date)
 
 
 	def compute_cost(self, target_billing_rate=None):
