@@ -36,12 +36,19 @@ erpnext.flows.CrossPurchase = frappe.ui.form.Controller.extend({
 			invoice_total += invoice_item.invoice_amount;
 			consignment_note_amount_total += invoice_item.consignment_note_amount;
 		});
+		$.each(doc.subcontracted_invoice_items, function (index, invoice_item) {
+			invoice_total += invoice_item.total;
+		});
 		this.frm.set_value("total_invoice_amount", invoice_total);
 		this.frm.set_value("total_consignment_note_amount", consignment_note_amount_total);
 		this.frm.set_value("grand_total", invoice_total + consignment_note_amount_total);
 	},
 
 	invoice_items_remove:function (doc, cdt, cdn) {
+		this.compute_totals(doc);
+	},
+
+	subcontracted_invoice_items_remove:function (doc, cdt, cdn) {
 		this.compute_totals(doc);
 	},
 
