@@ -61,7 +61,12 @@ class CrossPurchase(Document):
 		super(CrossPurchase, self).cancel()
 		self.update_gl()
 
+	def save(self, ignore_permissions=None):
+		self.compute_totals()
+		super(CrossPurchase, self).save()
+
 	def on_submit(self):
+		self.compute_totals()
 		self.update_gl()
 
 	def validate(self):
