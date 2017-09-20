@@ -61,6 +61,15 @@ class SubcontractedInvoice(Document):
 		self.cancel_sales_invoice()
 		self.sales_invoice = ''
 
+	def validate(self):
+		if self.company != 'Arun Logistics':
+			return
+
+		stock_available, stock = check_if_we_have_stock(self.item)
+		if not stock_available:
+			frappe.throw("Stock not available, {}".format(stock))
+		frappe.msgprint("Stock, {}".format(stock))
+
 
 	def on_update_after_submit(self):
 		if self.cross_sold == 0:
@@ -303,3 +312,46 @@ def get_address(customer):
 	frappe.throw("Customer Address Not Found. Please add customer address and then update GST from portal. Contact 7888691920.")
 
 	return None
+
+
+def get_stock():
+	purchase = frappe.db.sql("""
+	select item, sum(qty) as qty
+	from `tabIndent Invoice`
+	where docstatus != 2
+	and transaction_date >= '2017-07-01'
+	and (customer = 'Alpine Energy' or customer='Kailash Gas' or customer = 'KAILEY GAS SERVICE')
+	group by item;
+	""", as_dict=True)
+
+	sale = frappe.db.sql("""
+	select item, sum(quantity) as qty
+	from `tabSubcontracted Invoice`
+	where company like 'Arun Logis%'
+	and docstatus != 2
+	and posting_date >= '2017-07-01'
+	group by item;
+	""", as_dict=True)
+
+	pur_rs = {x.item: x.qty for x in purchase}
+	sale_rs = {x.item: x.qty for x in sale}
+
+	for item, qty in sale_rs.items():
+		pur_rs.setdefault(item, 0)
+		pur_rs[item] -= qty
+
+		pur_rs['FC425'] += pur_rs['FC450']
+		pur_rs['FC47.5'] += pur_rs['FC47.5L']
+
+		pur_rs['FC19'] -= 300
+
+		del pur_rs['FC450']
+		del pur_rs['FC47.5L']
+
+	return pur_rs
+
+
+def check_if_we_have_stock(item):
+	itm = item.replace('L', '')
+	stock = get_stock()
+	return stock[itm] > 0, stock
