@@ -340,13 +340,13 @@ def get_stock():
 		pur_rs.setdefault(item, 0)
 		pur_rs[item] -= qty
 
-		pur_rs['FC425'] += pur_rs['FC450']
-		pur_rs['FC47.5'] += pur_rs['FC47.5L']
+	pur_rs['FC425'] += pur_rs['FC450']
+	pur_rs['FC47.5'] += pur_rs['FC47.5L']
 
-		pur_rs['FC19'] -= 300
+	pur_rs['FC19'] -= 300
 
-		del pur_rs['FC450']
-		del pur_rs['FC47.5L']
+	del pur_rs['FC450']
+	del pur_rs['FC47.5L']
 
 	return pur_rs
 
