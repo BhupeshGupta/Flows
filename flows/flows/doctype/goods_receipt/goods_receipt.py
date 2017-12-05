@@ -131,6 +131,12 @@ class GoodsReceipt(Document):
 		if not self.customer:
 			return
 
+		if self.item_delivered and '450' in self.item_delivered:
+			self.item_delivered = self.item_delivered.replace('450', '425')
+
+		if self.item_received and '450' in self.item_received:
+			self.item_received = self.item_received.replace('450', '425')
+
 		validity_hash = frappe.db.sql("""
 		select item_fc19, item_fc35, item_fc47_5, item_fc47_5l from `tabCustomer` where name = "{}"
 		""".format(self.customer), as_dict=True)[0]

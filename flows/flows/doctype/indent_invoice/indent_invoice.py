@@ -194,6 +194,9 @@ class IndentInvoice(StockController):
 
 			for attr in LINKED_DOCS:
 				setattr(self, attr, None)
+			self.applicable_transportation_invoice_rate = 0
+			self.transportation_invoice_amount = 0
+			self.transportation_invoice_rate = 0
 
 		if cint(self.indent_linked) == 1:
 			if not (self.indent_item and self.indent_item != ''):
@@ -242,6 +245,9 @@ class IndentInvoice(StockController):
 
 		if not self.ship_to:
 			self.ship_to = self.customer
+
+		if not self.gst_liability:
+			self.gst_liability = frappe.db.get_value("Customer", self.customer, "gst_liablilty")
 
 		if 'Aggarwal' in self.supplier:
 			frappe.throw("Use of Indent Invoice for `Aggarwal Enterprises` bills is deprecated. Please use Subcontracted Invoice from the same.")
@@ -353,8 +359,11 @@ class IndentInvoice(StockController):
 		if self.customer in ['Alpine Energy', 'Mosaic Enterprises Ltd.']:
 			self.billing_type = 'Self Purchase'
 
+		addr = get_address(self.customer)
+		unregistred = frappe.db.get_value("Address", addr, "gst_status") == 'Unregistered'
+
 		# if not self.billing_type:
-		if 'iocl' in self.supplier.lower() and self.credit_account == 'Payer Code':
+		if 'iocl' in self.supplier.lower() and self.credit_account == 'Payer Code' and not unregistred:
 			self.billing_type = 'Bill To Ship To'
 		else:
 			self.billing_type = 'Bill To'
@@ -659,6 +668,9 @@ class IndentInvoice(StockController):
 
 		if self.transaction_date >= '2016-07-01':
 			self.validate_margin(transportation_rate - discount)
+
+		if round(transportation_rate - discount, 2) <= 0 and self.transaction_date >= '2017-09-16':
+			return
 
 		if self.transaction_date <= '2017-07-01':
 			transportation_invoice = self.raise_consignment_note(
@@ -1095,6 +1107,13 @@ class IndentInvoice(StockController):
 
 		naming_series = sales_invoice_conf.naming_series.replace('CN', 'SN')
 
+
+		rc = False
+		cr_acc = sales_invoice_conf.credit_account
+		if self.gst_liability != 'Company':
+			cr_acc = cr_acc.replace('Service', 'Reverse Service')
+			rc=True
+
 		consignment_note_json_doc = {
 			"doctype": "Sales Invoice",
 			"customer": self.customer,
@@ -1106,18 +1125,18 @@ class IndentInvoice(StockController):
 				{
 					"qty": qty_in_kg,
 					"rate": transportation_rate_per_kg - discount_per_kg,
-					"item_code": "AS",
+					"item_code": "LPG Transport" if rc else "AS",
 					"description": description,
 					"stock_uom": "Kg",
 					"doctype": "Sales Invoice Item",
 					"idx": 1,
-					"income_account": sales_invoice_conf.credit_account,
+					"income_account": cr_acc,
 					"cost_center": sales_invoice_conf.cost_center,
 					"parenttype": "Sales Invoice",
 					"parentfield": "entries",
 				}
 			],
-			"against_income_account": sales_invoice_conf.credit_account,
+			"against_income_account": cr_acc,
 			"select_print_heading": "Tax Invoice",
 			"company": registration.sales_invoice_company,
 			"debit_to": registration.sales_invoice_account,
@@ -1130,19 +1149,18 @@ class IndentInvoice(StockController):
 			"consignor": self.supplier,
 			"territory": customer_object.territory if customer_object.territory else
 			indent_invoice_settings.default_territory,
-			"remarks": "Against Bill No. {}""".format(self.invoice_number)
+			"remarks": "Against Bill No. {}""".format(self.invoice_number),
+			"tax_paid_by_supplier": 0
 		}
 
 		c_addr = get_address(self.customer)
 		if c_addr:
 			consignment_note_json_doc["customer_address"] = c_addr
 
-		if self.posting_date >= '2017-07-01':
-			consignment_note_json_doc['taxes_and_charges'] = get_gst_sales_tax(consignment_note_json_doc["customer_address"])
-
-		consignment_note_json_doc[
-			"tax_paid_by_supplier"
-		] = 1
+		if not rc:
+			if self.posting_date >= '2017-07-01':
+				consignment_note_json_doc['taxes_and_charges'] = get_gst_sales_tax(consignment_note_json_doc["customer_address"])
+			consignment_note_json_doc["tax_paid_by_supplier"] = 1
 
 		data_bank = self.get_data_bank()
 		if 'transportation_invoice' in data_bank and data_bank['transportation_invoice']:
@@ -1155,7 +1173,7 @@ class IndentInvoice(StockController):
 
 			frappe.msgprint("Posting Date Of Amended Invoice {}".format(consignment_note_json_doc["posting_date"]))
 
-		consignment_note_json_doc['taxes_and_charges'] = get_gst_sales_tax(consignment_note_json_doc["customer_address"])
+		#consignment_note_json_doc['taxes_and_charges'] = get_gst_sales_tax(consignment_note_json_doc["customer_address"])
 
 		transportation_invoice = frappe.get_doc(consignment_note_json_doc)
 

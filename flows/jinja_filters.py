@@ -184,7 +184,8 @@ def get_omc_item_mapped(item, omc):
 			'FC19': '5400',
 			'FC35': '5500',
 			'FC47.5': '5600',
-			'FC47.5L': '5690'
+			'FC47.5L': '5690',
+			'FC425': 'Hippo'
 		}
 	}[omc][item]
 

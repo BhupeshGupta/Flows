@@ -22,7 +22,16 @@ pricing_dict = {
 	'2017-09': {
                 'Advance': 39.84,
                 'Credit': 42.84
-	}
+	},
+        '2017-10': {
+                'Advance': 43.69,
+                'Credit': 46.69
+        },
+        '2017-11': {
+                'Advance': 50.28,
+                'Credit': 53.28
+        },
+
 }
 
 
@@ -65,10 +74,10 @@ class SubcontractedInvoice(Document):
 		if self.company != 'Arun Logistics':
 			return
 
-		stock_available, stock = check_if_we_have_stock(self.item)
+		stock_available, stock = check_if_we_have_stock(self.posting_date, self.item, self.quantity)
 		if not stock_available:
 			frappe.throw("Stock not available, {}".format(stock))
-		frappe.msgprint("Stock, {}".format(stock))
+		frappe.msgprint("Stock as on {}: {}".format(self.posting_date, stock))
 
 
 	def on_update_after_submit(self):
@@ -314,15 +323,16 @@ def get_address(customer):
 	return None
 
 
-def get_stock():
+def get_stock(date):
 	purchase = frappe.db.sql("""
 	select item, sum(qty) as qty
 	from `tabIndent Invoice`
 	where docstatus != 2
 	and transaction_date >= '2017-07-01'
-	and (customer = 'Alpine Energy' or customer='Kailash Gas' or customer = 'KAILEY GAS SERVICE')
+	and transaction_date <= '{}'
+	and (customer = 'Alpine Energy' or customer='Kailash Gas' or customer = 'KAILEY GAS SERVICE' or customer='ARUN INDANE Prop. LUDHIANA ENETRPRISES LTD.')
 	group by item;
-	""", as_dict=True)
+	""".format(date), as_dict=True)
 
 	sale = frappe.db.sql("""
 	select item, sum(quantity) as qty
@@ -330,8 +340,9 @@ def get_stock():
 	where company like 'Arun Logis%'
 	and docstatus != 2
 	and posting_date >= '2017-07-01'
+	and posting_date <= '{}'
 	group by item;
-	""", as_dict=True)
+	""".format(date), as_dict=True)
 
 	pur_rs = {x.item: x.qty for x in purchase}
 	sale_rs = {x.item: x.qty for x in sale}
@@ -351,7 +362,7 @@ def get_stock():
 	return pur_rs
 
 
-def check_if_we_have_stock(item):
+def check_if_we_have_stock(date, item, qty):
 	itm = item.replace('L', '')
-	stock = get_stock()
-	return stock[itm] > 0, stock
+	stock = get_stock(date)
+	return stock[itm] - qty > 0, stock

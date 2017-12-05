@@ -14,14 +14,15 @@ def get_columns(filters):
 		"Customer:Link/Customer:250",
 		"19 Kg:Int:100",
 		"35 Kg:Int:100",
-		"47.5 Kg:Int:100"
+		"47.5 Kg:Int:100",
+		"425 Kg:int:100"
 	]
 
 
 def get_data(filters):
 	rows = []
 
-	totals_map = {'FC19': 0, 'FC35': 0, 'FC47.5': 0}
+	totals_map = {'FC19': 0, 'FC35': 0, 'FC47.5': 0, 'FC425': 0, 'FC450': 0}
 	for gr in get_grs(filters):
 		gr.item_delivered = map_item(gr.item_delivered)
 
@@ -30,6 +31,7 @@ def get_data(filters):
 			gr.qty if 'FC19' in gr.item_delivered else '',
 			gr.qty if 'FC35' in gr.item_delivered else '',
 			gr.qty if 'FC47.5' in gr.item_delivered else '',
+			gr.qty if gr.item_delivered in ('FC425', 'FC450') else '',
 		])
 
 		totals_map[gr.item_delivered] += gr.qty
@@ -38,7 +40,8 @@ def get_data(filters):
 		"Totals",
 		totals_map['FC19'],
 		totals_map['FC35'],
-		totals_map['FC47.5']
+		totals_map['FC47.5'],
+		totals_map['FC425'] + totals_map['FC450'],
 	])
 
 	return rows

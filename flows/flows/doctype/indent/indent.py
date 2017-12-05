@@ -540,13 +540,13 @@ def fetch_account_balance_with_omc(plant, customer, credit_account):
 		user, passed = get_portal_user_password(customer, 'HPCL', credit_account)
 		return {'status': 'OK', 'balance': HPCLCustomerPortal(user, '').get_current_balance_as_on_date()}
 	elif 'iocl' in plant.lower():
-		user, passwd = get_portal_user_password(customer, 'IOCL', credit_account)
-		if not (passwd and passwd.strip() != ""):
-			frappe.throw("Can not query balance for customer {}. Password not found!".format(customer))
-		portal = IOCLPortal(user, passwd)
-		portal.login()
-		return {'status': 'OK', 'balance': portal.get_current_balance_as_on_date('C002')['balance']}
-
+		#user, passwd = get_portal_user_password(customer, 'IOCL', credit_account)
+		#if not (passwd and passwd.strip() != ""):
+		#	frappe.throw("Can not query balance for customer {}. Password not found!".format(customer))
+		#portal = IOCLPortal(user, passwd)
+		#portal.login()
+		#return {'status': 'OK', 'balance': portal.get_current_balance_as_on_date('C002')['balance']}
+		pass
 	return {'status': 'Not Implemented', 'balance': 0}
 
 

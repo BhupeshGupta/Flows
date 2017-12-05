@@ -31,7 +31,7 @@ def execute(filters=None):
 			row = [
 				customer_map.get(customer.strip(), frappe._dict({'customer_group': 'CNF'})).customer_group,
 				customer,
-				debit_balance_map[customer] if customer in debit_balance_map else "-",
+				debit_balance_map[customer.strip()] if customer.strip() in debit_balance_map else "-",
 				item,
 				int(qty_dict.opening),
 				int(qty_dict.i_requested),
