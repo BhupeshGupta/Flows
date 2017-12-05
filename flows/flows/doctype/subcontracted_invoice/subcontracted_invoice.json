@@ -24,12 +24,12 @@
    "fieldname": "cross_sold", 
    "fieldtype": "Check", 
    "label": "Cross Sold", 
-   "no_copy": 1, 
    "permlevel": 2, 
    "precision": ""
   }, 
   {
    "allow_on_submit": 0, 
+   "default": "RCM", 
    "fieldname": "bill_type", 
    "fieldtype": "Select", 
    "hidden": 0, 
@@ -38,7 +38,7 @@
    "in_list_view": 0, 
    "label": "Bill Type", 
    "no_copy": 0, 
-   "options": "Retail\nVAT", 
+   "options": "RCM\nRetail", 
    "permlevel": 0, 
    "precision": "", 
    "print_hide": 0, 
@@ -50,7 +50,6 @@
   }, 
   {
    "allow_on_submit": 0, 
-   "default": "Today", 
    "fieldname": "posting_date", 
    "fieldtype": "Date", 
    "hidden": 0, 
@@ -58,7 +57,7 @@
    "in_filter": 0, 
    "in_list_view": 1, 
    "label": "Posting Date", 
-   "no_copy": 1, 
+   "no_copy": 0, 
    "permlevel": 0, 
    "precision": "", 
    "print_hide": 0, 
@@ -66,7 +65,7 @@
    "report_hide": 0, 
    "reqd": 1, 
    "search_index": 0, 
-   "set_only_once": 1
+   "set_only_once": 0
   }, 
   {
    "allow_on_submit": 0, 
@@ -235,7 +234,7 @@
  "is_submittable": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2017-12-01 13:12:50.024654", 
+ "modified": "2017-12-05 16:27:23.681687", 
  "modified_by": "Administrator", 
  "module": "Flows", 
  "name": "Subcontracted Invoice", 
@@ -304,12 +303,6 @@
    "permlevel": 2, 
    "read": 1, 
    "role": "Purchase Master Manager", 
-   "write": 1
-  }, 
-  {
-   "permlevel": 2, 
-   "read": 1, 
-   "role": "Quality Manager", 
    "write": 1
   }
  ], 

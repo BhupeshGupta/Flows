@@ -20,17 +20,17 @@ pricing_dict = {
 		'Credit': 37
 	},
 	'2017-09': {
-                'Advance': 39.84,
-                'Credit': 42.84
+		'Advance': 39.84,
+		'Credit': 42.84
 	},
-        '2017-10': {
-                'Advance': 43.69,
-                'Credit': 46.69
-        },
-        '2017-11': {
-                'Advance': 50.28,
-                'Credit': 53.28
-        },
+	'2017-10': {
+		'Advance': 43.69,
+		'Credit': 46.69
+	},
+	'2017-11': {
+		'Advance': 50.28,
+		'Credit': 53.28
+	},
 
 }
 
@@ -58,6 +58,10 @@ class SubcontractedInvoice(Document):
 			suffix = '#' * suffix_count
 			self.name = make_autoname(naming_series + suffix)
 
+	def validate_can_alter_state(self):
+		if self.posting_date < '2017-12-01':
+			frappe.throw("Can not alter invoice before Dec 17")
+
 	def before_submit(self):
 		if not self.posting_date:
 			self.fiscal_year = account_utils.get_fiscal_year(self.get("posting_date"))[0]
@@ -66,11 +70,15 @@ class SubcontractedInvoice(Document):
 		self.bill_grand_total = inv.grand_total_export
 
 	def cancel(self):
+		self.validate_can_alter_state()
+
 		super(SubcontractedInvoice, self).cancel()
 		self.cancel_sales_invoice()
 		self.sales_invoice = ''
 
 	def validate(self):
+		self.validate_can_alter_state()
+
 		if self.company != 'Arun Logistics':
 			return
 
@@ -138,7 +146,7 @@ class SubcontractedInvoice(Document):
 		if self.company == 'Aggarwal Enterprises':
 			rate_per_kg = self.amount_per_item / item_c_factor
 
-			item = {
+			items = [{
 				"qty": qty_in_kg,
 				"rate": rate_per_kg,
 				"item_code": "CLP",
@@ -150,7 +158,7 @@ class SubcontractedInvoice(Document):
 				"cost_center": "Main - {}".format(company_abbr),
 				"parenttype": "Sales Invoice",
 				"parentfield": "entries",
-			}
+			}]
 			select_print_heading = "Vat Invoice" if self.bill_type == 'VAT' else "Retail Invoice"
 		elif self.company == 'Arun Logistics':
 
@@ -162,21 +170,58 @@ class SubcontractedInvoice(Document):
 			rate_per_kg -= discount
 			discount = 0
 
+			rate = rate_per_kg * cf
+			transport = 0
+			if self.bill_type == "RCM":
+				rate = (rate_per_kg - 3) * cf
+				transport = 3 * cf
 
-			item = {
-				"qty": self.quantity,
-				"rate": rate_per_kg * cf,
-				"item_code": self.item,
-				"item_name": self.item,
-				"stock_uom": "Nos",
-				"doctype": "Sales Invoice Item",
-				"idx": 1,
-				"income_account": "Sales - {}".format(company_abbr),
-				"cost_center": "Main - {}".format(company_abbr),
-				"parenttype": "Sales Invoice",
-				"parentfield": "entries",
-				# "amount": float(self.amount_per_item) * float(self.quantity)
-			}
+			c_addr = get_address(self.customer)
+			gst_number, gst_status = get_gst_info(c_addr)
+
+			if self.bill_type == "RCM" and gst_status != 'Registered':
+				frappe.throw("The system is not configured for Unregistred Customers. Cant Rais Invoice.")
+
+			items = [
+				{
+					"qty": self.quantity,
+					"rate": rate,
+					"item_code": self.item,
+					"item_name": self.item,
+					"stock_uom": "Nos",
+					"doctype": "Sales Invoice Item",
+					"idx": 1,
+					"income_account": "Sales - {}".format(company_abbr),
+					"cost_center": "Main - {}".format(company_abbr),
+					"parenttype": "Sales Invoice",
+					"parentfield": "entries",
+					# "amount": float(self.amount_per_item) * float(self.quantity)
+				}
+			]
+
+			if transport:
+				service_acc = "Service - {}".format(company_abbr)
+				transport_item_code = "LPG Transport"
+				transport_item_name = "LPG Transport"
+				if gst_status == "Registered":
+					transport_item_code = "LPG Transport (RCM)"
+					transport_item_name = "LPG Transport (GST under RCM)"
+					service_acc = "Reverse Service - {}".format(company_abbr)
+
+				items.append({
+					"qty": self.quantity,
+					"rate": 2 * cf,
+					"item_code": transport_item_code,
+					"item_name": transport_item_name,
+					"stock_uom": "Kg",
+					"doctype": "Sales Invoice Item",
+					"idx": 2,
+					"income_account": service_acc,
+					"cost_center": "Main - {}".format(company_abbr),
+					"parenttype": "Sales Invoice",
+					"parentfield": "entries",
+				})
+
 			if self.posting_date < '2017-07-01':
 				frappe.throw("Company enabled for billing only after GST.")
 		else:
@@ -191,9 +236,7 @@ class SubcontractedInvoice(Document):
 			"customer_name": self.customer.strip(),
 			"posting_date": self.posting_date,
 			"fiscal_year": self.fiscal_year,
-			"entries": [
-				item
-			],
+			"entries": items,
 			"against_income_account": "Sales - {}".format(company_abbr),
 			"select_print_heading": select_print_heading,
 			"company": self.company,
@@ -232,7 +275,8 @@ class SubcontractedInvoice(Document):
 		transportation_invoice.save()
 
 		total_kgs = cf * self.quantity
-		transportation_invoice.terms = self.get_terms_and_conditions(transportation_invoice, total_kgs)
+		terms = self.get_terms_and_conditions(transportation_invoice, total_kgs)
+		transportation_invoice.terms = self.add_to_terms(terms)
 		transportation_invoice.docstatus = 1
 		transportation_invoice.save()
 
@@ -261,9 +305,19 @@ class SubcontractedInvoice(Document):
 			'total_payable_amount': payable_amount,
 			'indent_invoice': self,
 			'ti': transportation_invoice,
-			'total_kgs': total_kgs
+			'total_kgs': total_kgs,
+			'transport_inv': transportation_invoice,
+			'doc': self
 		}
 		return render_template(terms_template, context)
+
+	def add_to_terms(self, terms):
+		rs = []
+		if self.bill_type == 'RCM':
+			rs.append("GST on Transportation to be paid by customer under RCM.")
+		if rs:
+			terms = '</br>'.join(rs) + '</br>' + terms
+		return terms
 
 
 def get_conversion_factor(item):
@@ -280,11 +334,7 @@ def get_conversion_factor(item):
 
 
 def get_gst_sales_tax(address, company_abbr):
-	gst_number, gst_status = frappe.db.get_value(
-		"Address",
-		address,
-		['gst_number', 'gst_status']
-	)
+	gst_number, gst_status = get_gst_info(address)
 
 	if gst_status == 'Not Updated':
 		frappe.throw("GST Not Found. Enter GST in customer Portal")
@@ -351,13 +401,15 @@ def get_stock(date):
 		pur_rs.setdefault(item, 0)
 		pur_rs[item] -= qty
 
-	pur_rs['FC425'] += pur_rs['FC450']
-	pur_rs['FC47.5'] += pur_rs['FC47.5L']
+	pur_rs['FC425'] += pur_rs.get('FC450', 0)
+	pur_rs['FC47.5'] += pur_rs.get('FC47.5L', 0)
 
 	pur_rs['FC19'] -= 300
 
-	del pur_rs['FC450']
-	del pur_rs['FC47.5L']
+	if 'FC450' in pur_rs:
+		del pur_rs['FC450']
+	if 'FC47.5L' in pur_rs:
+		del pur_rs['FC47.5L']
 
 	return pur_rs
 
@@ -366,3 +418,13 @@ def check_if_we_have_stock(date, item, qty):
 	itm = item.replace('L', '')
 	stock = get_stock(date)
 	return stock[itm] - qty > 0, stock
+
+
+def get_gst_info(address):
+	gst_number, gst_status = frappe.db.get_value(
+		"Address",
+		address,
+		['gst_number', 'gst_status']
+	)
+
+	return gst_number, gst_status
