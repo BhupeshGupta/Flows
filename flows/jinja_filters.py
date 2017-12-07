@@ -4,6 +4,7 @@ import frappe
 from frappe.utils import cint
 from flows.controller.utils import get_portal_user_password
 from flows.doctype.indent.indent import get_omc_so as get_omc_so_from_indent
+import json
 
 def indent_refill_qty(indent_items):
 	sum = 0
@@ -217,3 +218,44 @@ def get_id_and_percision(doc):
 	rev = doc.name.replace(docname, '').replace('-', '')
 
 	return docname, rev
+
+
+def get_item_tax_table(docname):
+	taxes = frappe.db.sql("""
+	select description as descr, item_wise_tax_detail as item_tax
+	from `tabSales Taxes and Charges`
+	where parent="{}"
+	order by account_head desc;
+	""".format(docname), as_dict=True)
+
+	for row in taxes:
+		row.item_tax = json.loads(row.item_tax)
+
+	items = taxes[0].item_tax.keys()
+
+	rows = []
+	for item in items:
+		row = [item, __get_hsn_code__(item)]
+
+		for tax in taxes:
+			perc, amt = tax.item_tax.get(item)
+			row.append("({}%) {}".format(perc, amt))
+
+		rows.append(row)
+
+	header = ["Item", "HSN"]
+	header.extend([tax.descr for tax in taxes])
+
+	return header, rows
+
+
+
+
+
+
+def __get_hsn_code__(item):
+	return frappe.db.sql("""
+		select hsn_code
+		from `tabItem`
+		where name = "{}"
+	""".format(item))[0][0]

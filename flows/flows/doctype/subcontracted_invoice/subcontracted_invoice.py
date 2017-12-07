@@ -179,7 +179,7 @@ class SubcontractedInvoice(Document):
 			c_addr = get_address(self.customer)
 			gst_number, gst_status = get_gst_info(c_addr)
 
-			if self.bill_type == "RCM" and gst_status != 'Registered':
+			if self.bill_type == "RCM" and gst_status not in ("Unregistered", "Composition", 'Registered'):
 				frappe.throw("The system is not configured for Unregistred Customers. Cant Rais Invoice.")
 
 			items = [
@@ -201,12 +201,16 @@ class SubcontractedInvoice(Document):
 
 			if transport:
 				service_acc = "Service - {}".format(company_abbr)
+
 				transport_item_code = "LPG Transport"
 				transport_item_name = "LPG Transport"
 				if gst_status == "Registered":
 					transport_item_code = "LPG Transport (RCM)"
 					transport_item_name = "LPG Transport (GST under RCM)"
 					service_acc = "Reverse Service - {}".format(company_abbr)
+				elif gst_status in ("Unregistered", "Composition"):
+					transport_item_name = transport_item_code = "LPG Transport (12%)"
+					service_acc = "Service (12%) - {}".format(company_abbr)
 
 				items.append({
 					"qty": self.quantity,

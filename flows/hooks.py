@@ -166,5 +166,6 @@ jenv_filter = [
 	'get_omc_item_mapped:flows.jinja_filters.get_omc_item_mapped',
 	'get_rsp:flows.jinja_filters.get_rsp',
 	'get_omc_so:flows.jinja_filters.get_omc_so',
-	'get_name_rev:flows.jinja_filters.get_id_and_percision'
+	'get_name_rev:flows.jinja_filters.get_id_and_percision',
+	'get_item_tax_table:flows.jinja_filters.get_item_tax_table'
 ]
