@@ -31,7 +31,10 @@ pricing_dict = {
 		'Advance': 50.28,
 		'Credit': 53.28
 	},
-
+        '2017-12': {
+                'Advance': 50.65,
+                'Credit': 53.65
+        },
 }
 
 
@@ -214,7 +217,7 @@ class SubcontractedInvoice(Document):
 
 				items.append({
 					"qty": self.quantity,
-					"rate": 2 * cf,
+					"rate": transport,
 					"item_code": transport_item_code,
 					"item_name": transport_item_name,
 					"stock_uom": "Kg",
