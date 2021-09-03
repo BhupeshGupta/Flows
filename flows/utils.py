@@ -98,7 +98,7 @@ def get_party_account(company, party, party_type):
 	acc_head = frappe.db.get_value("Account", {"master_name": party,
 											   "master_type": party_type, "company": company})
 	if not acc_head:
-		print "missing act head"
+		print ("missing act head")
 		from stdlogger import root
 
 		root.debug({"master_name": party,
